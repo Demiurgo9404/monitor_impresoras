@@ -1,0 +1,5 @@
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Infrastructure\obj\Debug\net9.0\MonitorImpresoras.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Infrastructure\obj\Debug\net9.0\MonitorImpresoras.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Infrastructure\obj\Debug\net9.0\MonitorImpresoras.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Infrastructure\obj\Debug\net9.0\MonitorImpresoras.Infrastructure.AssemblyInfo.cs
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Infrastructure\obj\Debug\net9.0\MonitorImpresoras.Infrastructure.csproj.CoreCompileInputs.cache

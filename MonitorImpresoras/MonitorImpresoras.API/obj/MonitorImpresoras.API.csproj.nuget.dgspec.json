@@ -1,0 +1,339 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj",
+        "projectName": "MonitorImpresoras.API",
+        "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj",
+        "packagesPath": "C:\\Users\\Demiurgo\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Demiurgo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
+                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj"
+              },
+              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.0-preview.1.24081.5, )"
+            },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Swashbuckle.AspNetCore.Annotations": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj",
+        "projectName": "MonitorImpresoras.Application",
+        "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj",
+        "packagesPath": "C:\\Users\\Demiurgo\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Demiurgo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
+                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj",
+        "projectName": "MonitorImpresoras.Domain",
+        "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj",
+        "packagesPath": "C:\\Users\\Demiurgo\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Demiurgo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj",
+        "projectName": "MonitorImpresoras.Infrastructure",
+        "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\Demiurgo\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\Demiurgo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
+                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj"
+              },
+              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
+                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "AutoMapper": {
+              "target": "Package",
+              "version": "[13.0.1, )"
+            },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.AspNetCore.SignalR": {
+              "target": "Package",
+              "version": "[1.2.0, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.EntityFrameworkCore.Relational": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[9.0.9, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.0-preview.1, )"
+            },
+            "System.Linq.Expressions": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

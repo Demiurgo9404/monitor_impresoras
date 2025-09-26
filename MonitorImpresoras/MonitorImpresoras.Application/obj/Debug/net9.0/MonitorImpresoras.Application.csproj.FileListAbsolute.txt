@@ -1,0 +1,15 @@
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\MonitorImpresoras.Application.csproj.AssemblyReference.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\MonitorImpresoras.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\MonitorImpresoras.Application.AssemblyInfoInputs.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\MonitorImpresoras.Application.AssemblyInfo.cs
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\MonitorImpresoras.Application.csproj.CoreCompileInputs.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\bin\Debug\net9.0\MonitorImpresoras.Application.deps.json
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\bin\Debug\net9.0\MonitorImpresoras.Application.dll
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\bin\Debug\net9.0\MonitorImpresoras.Application.pdb
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\bin\Debug\net9.0\MonitorImpresoras.Domain.dll
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\bin\Debug\net9.0\MonitorImpresoras.Domain.pdb
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\MonitorI.E84C138D.Up2Date
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\MonitorImpresoras.Application.dll
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\refint\MonitorImpresoras.Application.dll
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\MonitorImpresoras.Application.pdb
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Application\obj\Debug\net9.0\ref\MonitorImpresoras.Application.dll
