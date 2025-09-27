@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MonitorImpresoras.Domain.Entities;
-using MonitorImpresoras.Domain.Interfaces;
 using MonitorImpresoras.Domain.Enums;
 using MonitorImpresoras.Domain.DTOs;
+using MonitorImpresoras.Application.Interfaces.Repositories;
+using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Application.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 

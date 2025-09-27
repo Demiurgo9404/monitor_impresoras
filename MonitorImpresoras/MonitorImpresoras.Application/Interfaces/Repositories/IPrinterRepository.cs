@@ -6,5 +6,7 @@ namespace MonitorImpresoras.Application.Interfaces.Repositories
     {
         Task<Printer> GetByIpAddressAsync(string ipAddress);
         Task<IEnumerable<Printer>> GetPrintersByDepartmentAsync(Guid departmentId);
+        Task<IEnumerable<Printer>> GetOfflinePrintersAsync();
+        Task<IEnumerable<Printer>> GetPrintersWithErrorsAsync();
     }
 }

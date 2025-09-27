@@ -6,5 +6,6 @@ namespace MonitorImpresoras.Application.Interfaces.Repositories
     {
         Task<IEnumerable<PrinterConsumable>> GetConsumablesByPrinterIdAsync(Guid printerId);
         Task<PrinterConsumable?> GetCurrentLevelAsync(Guid printerId, string consumableType);
+        Task<IEnumerable<PrinterConsumable>> GetLowConsumablesAsync();
     }
 }

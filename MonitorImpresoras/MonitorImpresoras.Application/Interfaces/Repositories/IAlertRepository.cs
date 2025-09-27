@@ -6,5 +6,6 @@ namespace MonitorImpresoras.Application.Interfaces.Repositories
     {
         Task<IEnumerable<Alert>> GetActiveAlertsAsync();
         Task<IEnumerable<Alert>> GetAlertsByPrinterIdAsync(Guid printerId);
+        Task<IEnumerable<Alert>> GetRecentAlertsByTypeAndEntityAsync(Guid entityId, string alertType, TimeSpan timeWindow);
     }
 }

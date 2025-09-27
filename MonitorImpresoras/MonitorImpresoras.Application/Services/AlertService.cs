@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using MonitorImpresoras.Application.Interfaces;
+using MonitorImpresoras.Application.Services.Interfaces;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Domain.Interfaces;
 using MonitorImpresoras.Domain.Enums;

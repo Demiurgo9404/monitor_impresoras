@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using MonitorImpresoras.Application.DTOs;
 using MonitorImpresoras.Application.Interfaces;
 
 namespace MonitorImpresoras.Infrastructure.Services.Monitoring

@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using MonitorImpresoras.Application.Services.Interfaces;
+using MonitorImpresoras.Application.Interfaces.Services;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Domain.Interfaces;
+using MonitorImpresoras.Domain.Enums;
 
 namespace MonitorImpresoras.Application.Services
 {
@@ -68,6 +69,35 @@ namespace MonitorImpresoras.Application.Services
             {
                 _logger.LogError(ex, "Error checking consumables for printer {PrinterId}", printerId);
                 throw new ApplicationException($"Failed to check consumables for printer {printerId}", ex);
+            }
+        }
+
+        public async Task<bool> IsConsumableLowAsync(Guid printerId, string consumableType)
+        {
+            try
+            {
+                // Try to parse the string to ConsumableType enum
+                if (!Enum.TryParse<ConsumableType>(consumableType, true, out var consumableTypeEnum))
+                {
+                    _logger.LogWarning("Invalid consumable type: {ConsumableType} for printer {PrinterId}", consumableType, printerId);
+                    return false;
+                }
+
+                var consumables = await _consumableRepository.GetConsumablesByPrinterIdAsync(printerId);
+                var consumable = consumables.FirstOrDefault(c => c.Type == consumableTypeEnum);
+
+                if (consumable == null)
+                {
+                    _logger.LogWarning("Consumable type {ConsumableType} not found for printer {PrinterId}", consumableType, printerId);
+                    return false;
+                }
+
+                return consumable.CurrentLevel <= (consumable.WarningLevel ?? 100);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if consumable {ConsumableType} is low for printer {PrinterId}", consumableType, printerId);
+                return false;
             }
         }
     }
