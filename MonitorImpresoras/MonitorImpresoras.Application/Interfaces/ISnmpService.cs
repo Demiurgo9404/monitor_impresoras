@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using MonitorImpresoras.Domain.Entities;
+using MonitorImpresoras.Domain.Enums;
 
 namespace MonitorImpresoras.Application.Interfaces
 {
