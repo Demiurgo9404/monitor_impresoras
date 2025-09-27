@@ -6,6 +6,7 @@ using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Application.Services;
 using MonitorImpresoras.Application.Services.Interfaces;
 using MonitorImpresoras.Domain.Interfaces;
+using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Infrastructure.Data;
 using MonitorImpresoras.Infrastructure.Repositories;
 using MonitorImpresoras.Infrastructure.Services.SNMP;

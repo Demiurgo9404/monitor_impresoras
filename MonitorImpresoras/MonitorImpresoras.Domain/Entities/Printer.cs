@@ -63,6 +63,6 @@ namespace MonitorImpresoras.Domain.Entities
 
         // Navigation properties
         public virtual ICollection<PrintJob> PrintJobs { get; set; } = new List<PrintJob>();
-        public virtual ICollection<PrinterConsumable> Consumables { get; set; } = new List<PrinterConsumable>();
+        public virtual ICollection<PrinterConsumable> ConsumableParts { get; set; } = new List<PrinterConsumable>();
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using MonitorImpresoras.Infrastructure.Data.Context;
 
 namespace MonitorImpresoras.Infrastructure.Data
 {

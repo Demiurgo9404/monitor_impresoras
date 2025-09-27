@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Domain.DTOs;
+using MonitorImpresoras.Domain.Interfaces;
 
 namespace MonitorImpresoras.Infrastructure.Data
 {

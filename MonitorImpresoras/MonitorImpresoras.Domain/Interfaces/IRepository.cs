@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using MonitorImpresoras.Domain.Common;
 
 namespace MonitorImpresoras.Domain.Interfaces
 {
@@ -7,7 +6,7 @@ namespace MonitorImpresoras.Domain.Interfaces
     /// Interfaz base para repositorios genéricos
     /// </summary>
     /// <typeparam name="TEntity">Tipo de entidad</typeparam>
-    public interface IRepository<TEntity> where TEntity : BaseEntity
+    public interface IRepository<TEntity>
     {
         /// <summary>
         /// Obtiene una entidad por ID

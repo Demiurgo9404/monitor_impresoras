@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Domain.DTOs;
+using MonitorImpresoras.Application.Interfaces;
 
 namespace MonitorImpresoras.Infrastructure.Services
 {

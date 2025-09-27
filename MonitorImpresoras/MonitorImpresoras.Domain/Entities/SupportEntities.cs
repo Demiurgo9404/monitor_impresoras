@@ -1,20 +1,6 @@
 namespace MonitorImpresoras.Domain.Entities
 {
     /// <summary>
-    /// DTO para información de tenant
-    /// </summary>
-    public class TenantInfo
-    {
-        public Guid Id { get; set; }
-        public string TenantKey { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string ConnectionString { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
-        public DateTime? ExpiresAt { get; set; }
-        public SubscriptionTier Tier { get; set; }
-    }
-
-    /// <summary>
     /// DTO para snapshot de datos de reporte
     /// </summary>
     public class ReportDataSnapshot
@@ -48,7 +34,7 @@ namespace MonitorImpresoras.Domain.Entities
     /// </summary>
     public class TenantContext
     {
-        public TenantInfo Tenant { get; set; } = new();
+        public object Tenant { get; set; } = new();
         public object Db { get; set; } = new();
     }
 }

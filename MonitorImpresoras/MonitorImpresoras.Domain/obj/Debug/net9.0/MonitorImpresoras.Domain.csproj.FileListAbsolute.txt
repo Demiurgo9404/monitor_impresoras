@@ -6,6 +6,7 @@ C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorI
 C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Debug\net9.0\MonitorImpresoras.Domain.AssemblyInfoInputs.cache
 C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Debug\net9.0\MonitorImpresoras.Domain.AssemblyInfo.cs
 C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Debug\net9.0\MonitorImpresoras.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Debug\net9.0\MonitorImpresoras.Domain.sourcelink.json
 C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Debug\net9.0\MonitorImpresoras.Domain.dll
 C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Debug\net9.0\refint\MonitorImpresoras.Domain.dll
 C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Debug\net9.0\MonitorImpresoras.Domain.pdb

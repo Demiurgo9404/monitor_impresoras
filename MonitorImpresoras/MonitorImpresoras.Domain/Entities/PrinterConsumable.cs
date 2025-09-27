@@ -18,6 +18,10 @@ namespace MonitorImpresoras.Domain.Entities
         public string Name { get; set; } = string.Empty;
 
         [Required]
+        [MaxLength(100)]
+        public string PartName { get; set; } = string.Empty;
+
+        [Required]
         public ConsumableType Type { get; set; }
 
         public int CurrentLevel { get; set; } // Nivel actual (0-100)

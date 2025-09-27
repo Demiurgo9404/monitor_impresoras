@@ -4,6 +4,7 @@ using System.Text;
 using System.Formats.Asn1;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Domain.Common;
+using MonitorImpresoras.Domain.Enums;
 
 namespace MonitorImpresoras.Infrastructure.Services.SNMP
 {

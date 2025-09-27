@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MonitorImpresoras.Application.Interfaces;
+using MonitorImpresoras.Domain.Entities;
 
 namespace MonitorImpresoras.Infrastructure.Services
 {

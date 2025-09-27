@@ -1,4 +1,4 @@
-using MonitorImpresoras.Domain.Common;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,7 +7,7 @@ namespace MonitorImpresoras.Domain.Entities
     /// <summary>
     /// Entidad de usuario del sistema
     /// </summary>
-    public class User : BaseEntity
+    public class User : IdentityUser<string>
     {
         [Required]
         [MaxLength(100)]
@@ -16,14 +16,6 @@ namespace MonitorImpresoras.Domain.Entities
         [Required]
         [MaxLength(100)]
         public string LastName { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(256)]
-        public string Email { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(100)]
-        public string UserName { get; set; } = string.Empty;
 
         [MaxLength(500)]
         public string Department { get; set; } = string.Empty;

@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Domain.DTOs;
+using MonitorImpresoras.Domain.Interfaces;
+using MonitorImpresoras.Application.Services.Interfaces;
+using MonitorImpresoras.Application.Interfaces;
 
 namespace MonitorImpresoras.Infrastructure.Services
 {
@@ -172,21 +175,48 @@ namespace MonitorImpresoras.Infrastructure.Services
             };
         }
 
-        private string CalculateConsumableStatus(PrinterConsumable consumable)
+        public async Task CheckConsumablesAsync(Guid printerId)
         {
-            if (!consumable.CurrentLevel.HasValue || !consumable.MaxCapacity.HasValue)
-                return "unknown";
+            var consumables = await _consumableRepository.GetConsumablesByPrinterIdAsync(printerId);
 
-            var percentage = (double)consumable.CurrentLevel.Value / consumable.MaxCapacity.Value * 100;
+            foreach (var consumable in consumables.Where(c => c.Status == "low" || c.Status == "critical"))
+            {
+                // Check if there's already an active alert for this consumable
+                var existingAlerts = await _alertRepository.GetByConsumableIdAsync(consumable.Id);
+                var activeAlert = existingAlerts.FirstOrDefault(a => a.Status == "Active");
 
-            if (consumable.CriticalLevel.HasValue && consumable.CurrentLevel.Value <= consumable.CriticalLevel.Value)
-                return "critical";
-            else if (consumable.WarningLevel.HasValue && consumable.CurrentLevel.Value <= consumable.WarningLevel.Value)
-                return "low";
-            else if (percentage < 10)
-                return "low";
-            else
-                return "normal";
+                if (activeAlert == null)
+                {
+                    var alert = new Alert
+                    {
+                        Type = consumable.Status == "critical" ? "CriticalConsumable" : "LowConsumable",
+                        Title = $"{consumable.Printer.Name} - {consumable.Name}",
+                        Message = $"El consumible {consumable.Name} de la impresora {consumable.Printer.Name} " +
+                                 $"está {consumable.Status} ({consumable.CurrentLevel}/{consumable.MaxCapacity} {consumable.Unit})",
+                        PrinterId = consumable.PrinterId,
+                        Source = "System",
+                        Status = "Active",
+                        CreatedAt = DateTime.UtcNow,
+                        Metadata = $"ConsumableId:{consumable.Id}"
+                    };
+
+                    await _alertRepository.AddAsync(alert);
+
+                    // Send SignalR notification
+                    await _signalRService.NotifyLowConsumableAlert(new ConsumableAlertDTO
+                    {
+                        PrinterId = consumable.PrinterId,
+                        PrinterName = consumable.Printer.Name,
+                        ConsumableId = consumable.Id,
+                        ConsumableName = consumable.Name,
+                        Type = consumable.Type,
+                        CurrentLevel = consumable.CurrentLevel,
+                        MaxCapacity = consumable.MaxCapacity,
+                        Status = consumable.Status,
+                        IsCritical = consumable.Status == "critical"
+                    });
+                }
+            }
         }
     }
 }

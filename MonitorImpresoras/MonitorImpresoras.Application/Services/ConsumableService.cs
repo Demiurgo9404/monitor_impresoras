@@ -36,16 +36,16 @@ namespace MonitorImpresoras.Application.Services
                 }
 
                 var consumables = await _consumableRepository.GetConsumablesByPrinterIdAsync(printerId);
-                var lowConsumables = new List<PrinterConsumablePart>();
+                var lowConsumables = new List<PrinterConsumable>();
 
                 foreach (var consumable in consumables)
                 {
-                    if (consumable.CurrentLevel <= consumable.WarningThreshold)
+                    if (consumable.CurrentLevel <= (consumable.WarningLevel ?? 100))
                     {
                         lowConsumables.Add(consumable);
                         _logger.LogWarning(
                             "Low consumable detected: {ConsumableType} for printer {PrinterName}. Level: {CurrentLevel}%",
-                            consumable.ConsumableType, printer.Name, consumable.CurrentLevel);
+                            consumable.Type, printer.Name, consumable.CurrentLevel);
                     }
                 }
 

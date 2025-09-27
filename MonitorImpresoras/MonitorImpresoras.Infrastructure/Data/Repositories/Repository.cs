@@ -4,23 +4,21 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using MonitorImpresoras.Domain.Common;
-using MonitorImpresoras.Domain.Interfaces;
 
 namespace MonitorImpresoras.Infrastructure.Data.Repositories
 {
-    public class Repository<T> : IRepository<T> where T : class, IEntity
+    public class Repository<T> : IRepository<T> where T : class
     {
         protected readonly ApplicationDbContext _context;
         protected readonly DbSet<T> _dbSet;
 
         public Repository(ApplicationDbContext context)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _dbSet = _context.Set<T>();
+            _context = context;
+            _dbSet = context.Set<T>();
         }
 
-        public virtual async Task<T> GetByIdAsync(int id)
+        public virtual async Task<T?> GetByIdAsync(Guid id)
         {
             return await _dbSet.FindAsync(id);
         }
@@ -30,67 +28,86 @@ namespace MonitorImpresoras.Infrastructure.Data.Repositories
             return await _dbSet.ToListAsync();
         }
 
-        public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        public virtual async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.Where(predicate).ToListAsync();
         }
 
-        public virtual async Task<T> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        public virtual async Task<IEnumerable<T>> GetAllAsync(
+            Expression<Func<T, bool>> predicate,
+            Expression<Func<T, object>> include,
+            int take = 0)
         {
-            return await _dbSet.SingleOrDefaultAsync(predicate);
+            var query = _dbSet.Where(predicate);
+
+            if (include != null)
+                query = query.Include(include);
+
+            if (take > 0)
+                query = query.Take(take);
+
+            return await query.ToListAsync();
         }
 
-        public virtual async Task AddAsync(T entity)
+        public virtual async Task<T> AddAsync(T entity)
         {
-            if (entity is BaseEntity baseEntity)
-            {
-                baseEntity.CreatedAt = DateTime.UtcNow;
-                baseEntity.UpdatedAt = DateTime.UtcNow;
-            }
             await _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
 
         public virtual async Task AddRangeAsync(IEnumerable<T> entities)
         {
-            var baseEntities = entities.OfType<BaseEntity>();
-            var now = DateTime.UtcNow;
-            foreach (var entity in baseEntities)
-            {
-                entity.CreatedAt = now;
-                entity.UpdatedAt = now;
-            }
             await _dbSet.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
+
+        public virtual async Task UpdateAsync(T entity)
+        {
+            _dbSet.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public virtual async Task DeleteAsync(T entity)
+        {
+            _dbSet.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public virtual T Add(T entity)
+        {
+            _dbSet.Add(entity);
+            _context.SaveChanges();
+            return entity;
+        }
+
+        public virtual void AddRange(IEnumerable<T> entities)
+        {
+            _dbSet.AddRange(entities);
+            _context.SaveChanges();
         }
 
         public virtual void Update(T entity)
         {
-            if (entity is BaseEntity baseEntity)
-            {
-                baseEntity.UpdatedAt = DateTime.UtcNow;
-            }
-            _dbSet.Attach(entity);
-            _context.Entry(entity).State = EntityState.Modified;
+            _dbSet.Update(entity);
+            _context.SaveChanges();
         }
 
         public virtual void Remove(T entity)
         {
-            if (_context.Entry(entity).State == EntityState.Detached)
-            {
-                _dbSet.Attach(entity);
-            }
             _dbSet.Remove(entity);
+            _context.SaveChanges();
         }
 
         public virtual void RemoveRange(IEnumerable<T> entities)
         {
-            foreach (var entity in entities)
-            {
-                if (_context.Entry(entity).State == EntityState.Detached)
-                {
-                    _dbSet.Attach(entity);
-                }
-            }
             _dbSet.RemoveRange(entities);
+            _context.SaveChanges();
+        }
+
+        public virtual async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
         }
 
         public virtual async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
@@ -100,9 +117,19 @@ namespace MonitorImpresoras.Infrastructure.Data.Repositories
 
         public virtual async Task<int> CountAsync(Expression<Func<T, bool>> predicate = null)
         {
-            return predicate == null 
-                ? await _dbSet.CountAsync() 
+            return predicate == null
+                ? await _dbSet.CountAsync()
                 : await _dbSet.CountAsync(predicate);
+        }
+
+        public virtual async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
+        }
+
+        public virtual async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
         }
 
         public virtual IQueryable<T> Query()

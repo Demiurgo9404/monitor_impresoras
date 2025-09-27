@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MonitorImpresoras.Infrastructure.Hubs;
 using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Domain.Entities;
+using MonitorImpresoras.Domain.DTOs;
 
 namespace MonitorImpresoras.Infrastructure.Services.Monitoring
 {

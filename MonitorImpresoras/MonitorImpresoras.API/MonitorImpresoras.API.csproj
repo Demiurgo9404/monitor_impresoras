@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MonitorImpresoras.Application\MonitorImpresoras.Application.csproj" />
     <ProjectReference Include="..\MonitorImpresoras.Infrastructure\MonitorImpresoras.Infrastructure.csproj" />
+    <ProjectReference Include="..\MonitorImpresoras.Domain\MonitorImpresoras.Domain.csproj" />
   </ItemGroup>
 
 </Project>

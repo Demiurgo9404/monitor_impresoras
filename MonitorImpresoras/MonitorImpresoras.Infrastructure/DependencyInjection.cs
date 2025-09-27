@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Domain.Interfaces;
 using MonitorImpresoras.Domain.Interfaces.Services;
 using MonitorImpresoras.Infrastructure.Data;
+using MonitorImpresoras.Infrastructure.Data.Context;
 using MonitorImpresoras.Infrastructure.Data.Repositories;
 using MonitorImpresoras.Infrastructure.Services;
 using MonitorImpresoras.Infrastructure.Services.Monitoring;

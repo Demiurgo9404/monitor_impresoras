@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Domain.DTOs;
+using MonitorImpresoras.Application.Interfaces;
 
 namespace MonitorImpresoras.Infrastructure.Services
 {

@@ -3,6 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MonitorImpresoras.Application.DTOs;
+using MonitorImpresoras.Application.Interfaces;
+using MonitorImpresoras.Domain.Entities;
 
 namespace MonitorImpresoras.Infrastructure.Services.Monitoring
 {
@@ -107,6 +110,55 @@ namespace MonitorImpresoras.Infrastructure.Services.Monitoring
                 LastCycleDurationMs = 0, // TODO: Implement cycle duration tracking
                 LastCycleTime = DateTime.UtcNow
             };
+        }
+
+        public async Task<IEnumerable<PrinterStatusInfo>> GetAllPrintersStatusAsync()
+        {
+            // TODO: Implement actual printer status retrieval
+            // This would require access to printer repository and SNMP service
+            return new List<PrinterStatusInfo>();
+        }
+
+        public async Task<PrinterStatusInfo> GetPrinterStatusAsync(Printer printer)
+        {
+            // TODO: Implement actual printer status retrieval using SNMP
+            return new PrinterStatusInfo
+            {
+                IpAddress = printer.IpAddress,
+                IsOnline = false,
+                Status = "Unknown",
+                LastUpdate = DateTime.UtcNow
+            };
+        }
+
+        public async Task<bool> IsPrinterOnlineAsync(string ipAddress)
+        {
+            // TODO: Implement actual printer online check using SNMP
+            return false;
+        }
+
+        public async Task<PrinterStatusInfo> GetPrinterInfoAsync(string ipAddress)
+        {
+            // TODO: Implement actual printer info retrieval using SNMP
+            return new PrinterStatusInfo
+            {
+                IpAddress = ipAddress,
+                IsOnline = false,
+                Status = "Unknown",
+                LastUpdate = DateTime.UtcNow
+            };
+        }
+
+        public async Task<IEnumerable<PrinterConsumable>> GetPrinterConsumablesAsync(string ipAddress)
+        {
+            // TODO: Implement actual printer consumables retrieval using SNMP
+            return new List<PrinterConsumable>();
+        }
+
+        public async Task<bool> TestPrinterConnectionAsync(string ipAddress)
+        {
+            // TODO: Implement actual printer connection test using SNMP
+            return false;
         }
 
         private async Task<int> GetActiveConnectionsCount()

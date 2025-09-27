@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MonitorImpresoras.Domain.Interfaces;
 using MonitorImpresoras.Infrastructure.Data;
+using MonitorImpresoras.Infrastructure.Data.Context;
 
 namespace MonitorImpresoras.Infrastructure.Repositories
 {
@@ -122,6 +123,20 @@ namespace MonitorImpresoras.Infrastructure.Repositories
         /// <returns>Número de entidades</returns>
         public async Task<int> CountAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate) =>
             await _dbSet.CountAsync(predicate);
+
+        /// <summary>
+        /// Busca una entidad usando un predicado
+        /// </summary>
+        /// <param name="predicate">Condición de búsqueda</param>
+        /// <returns>Entidad encontrada o null</returns>
+        public async Task<T?> FindAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate) =>
+            await _dbSet.FirstOrDefaultAsync(predicate);
+
+        /// <summary>
+        /// Guarda los cambios en la base de datos
+        /// </summary>
+        public async Task<int> SaveChangesAsync() =>
+            await _context.SaveChangesAsync();
 
         /// <summary>
         /// Métodos sincrónicos para compatibilidad
