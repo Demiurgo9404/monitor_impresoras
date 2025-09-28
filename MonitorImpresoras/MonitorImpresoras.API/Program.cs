@@ -1,51 +1,35 @@
-using Microsoft.OpenApi.Models;
-using System;
-using System.Text;
-using System.Reflection;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using MonitorImpresoras.API.Models;
-using MonitorImpresoras.Application;
-using MonitorImpresoras.Domain.Entities;
-using MonitorImpresoras.Infrastructure;
+using System.Text;
 using MonitorImpresoras.Infrastructure.Data;
+using MonitorImpresoras.Domain.Entities;
+using MonitorImpresoras.API.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar el logger
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+// Configuración de la base de datos
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configurar CORS
-builder.Services.AddCors(options =>
+// Configuración de Identity
+builder.Services.AddIdentity<User, Role>(options =>
 {
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
-});
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
-// Add services to the container.
-builder.Services.AddControllers();
-
-// Configure JWT Authentication
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-builder.Services.AddSingleton(jwtSettings);
-
-// Configure Identity
-builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
-// Configure JWT Authentication
-var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
+// Configuración de JWT
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]
+    ?? throw new InvalidOperationException("JWT Key no configurada"));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -61,224 +45,122 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = true,
-        ValidIssuer = jwtSettings.Issuer,
+        ValidIssuer = jwtSettings["Issuer"],
         ValidateAudience = true,
-        ValidAudience = jwtSettings.Audience,
+        ValidAudience = jwtSettings["Audience"],
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
 });
 
-// Add Authorization policies
-builder.Services.AddAuthorization(options =>
+// Configuración de CORS
+builder.Services.AddCors(options =>
 {
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User", "Admin"));
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
 });
 
-// Add Health Checks
-builder.Services.AddHealthChecks();
-
-// Add Swagger
-builder.Services.AddEndpointsApiExplorer();
+// Configuración de Swagger con autenticación JWT
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo 
-    { 
-        Title = "Monitor de Impresoras API", 
-        Version = "v1",
-        Description = "API para el monitoreo y gestión de impresoras en red",
-        Contact = new OpenApiContact
-        {
-            Name = "Soporte Técnico",
-            Email = "soporte@monitorimpresoras.com"
-        }
-    });
+    c.SwaggerDoc("v1", new() { Title = "MonitorImpresoras API", Version = "v1" });
 
-    // Configuración de autenticación JWT en Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    // Configuración para autenticación JWT en Swagger
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme.\r\n\r\n" +
-                     "Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\n" +
-                     "Example: \"Bearer 12345abcdef\"",
+        Description = "JWT Authorization header usando el esquema Bearer",
         Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecurityScheme
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
                     Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header,
+                }
             },
-            new List<string>()
+            Array.Empty<string>()
         }
     });
-    
-    // Configurar la documentación XML
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
 });
 
-// Configure AutoMapper
-try
+// Configuración de controladores con filtro de excepciones global
+builder.Services.AddControllers(options =>
 {
-    // Configurar AutoMapper para buscar perfiles en todos los ensamblados
-    builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-    
-    // Add application services
-    builder.Services.AddApplicationServices(builder.Configuration);
-    
-    // Add infrastructure services
-    builder.Services.AddInfrastructureServices(builder.Configuration);
-    
-    Console.WriteLine("Servicios configurados correctamente.");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Error al configurar los servicios: {ex.Message}");
-    if (ex.InnerException != null)
-    {
-        Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-    }
-    throw;
-}
+    options.Filters.Add<GlobalExceptionFilter>();
+});
+
+// Configuración de logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 var app = builder.Build();
 
-// Configurar el manejador global de excepciones
+// Configuración del pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/error-development");
-}
-else
-{
-    app.UseExceptionHandler("/error");
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MonitorImpresoras API V1");
+        c.OAuthClientId("swagger-ui");
+        c.OAuthClientSecret("swagger-ui-secret");
+        c.OAuthUsePkce();
+    });
 }
 
-// Crear roles y usuario administrador por defecto
+// Middleware de manejo global de errores
+app.UseExceptionHandler("/error");
+app.UseStatusCodePagesWithReExecute("/error/{0}");
+
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+// Endpoint de salud
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }));
+
+// Inicialización de la base de datos
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
+        var context = services.GetRequiredService<ApplicationDbContext>();
         var userManager = services.GetRequiredService<UserManager<User>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-        
-        // Crear roles si no existen
-        string[] roles = { "Admin", "User" };
-        foreach (var role in roles)
+        var roleManager = services.GetRequiredService<RoleManager<Role>>();
+
+        // Aplicar migraciones
+        if (context.Database.GetPendingMigrations().Any())
         {
-            if (!await roleManager.RoleExistsAsync(role))
-            {
-                await roleManager.CreateAsync(new IdentityRole(role));
-            }
+            await context.Database.MigrateAsync();
         }
-        
-        // Crear usuario administrador por defecto si no existe
-        var adminUser = await userManager.FindByEmailAsync("admin@monitorimpresoras.com");
-        if (adminUser == null)
-        {
-            var admin = new User
-            {
-                UserName = "admin@monitorimpresoras.com",
-                Email = "admin@monitorimpresoras.com",
-                FirstName = "Administrador",
-                LastName = "Sistema",
-                EmailConfirmed = true
-            };
-            
-            var result = await userManager.CreateAsync(admin, "Admin123!");
-            
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(admin, "Admin");
-            }
-        }
+
+        // Inicializar datos
+        await ApplicationDbInitializer.SeedAsync(userManager, roleManager,
+            app.Configuration, app.Logger);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocurrió un error al inicializar la base de datos con los roles y usuarios por defecto.");
+        logger.LogError(ex, "Error al inicializar la base de datos");
     }
 }
 
-// Configurar el pipeline de solicitud HTTP
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Monitor de Impresoras API V1");
-        c.RoutePrefix = string.Empty; // Hacer que Swagger UI esté disponible en la raíz
-    });
-    
-    Console.WriteLine("Modo desarrollo activado.");
-}
-
-app.UseHttpsRedirection();
-app.UseRouting();
-app.UseCors("AllowAll");
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Configurar endpoints
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-    
-    // Ruta de verificación de estado
-    endpoints.MapHealthChecks("/health");
-    
-    // Ruta de verificación de estado detallada (solo en desarrollo)
-    if (app.Environment.IsDevelopment())
-    {
-        endpoints.MapHealthChecks("/health/detailed");
-    }
-});
-
-// Configurar el middleware de manejo de errores
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsJsonAsync(new 
-        { 
-            error = "Ha ocurrido un error en el servidor.",
-            message = ex.Message,
-            stackTrace = app.Environment.IsDevelopment() ? ex.StackTrace : null
-        });
-    }
-});
-
-Console.WriteLine("Iniciando la aplicación...");
-try
-{
-    app.Run();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Error al iniciar la aplicación: {ex.Message}");
-    throw;
-}
-finally
-{
-    Console.WriteLine("La aplicación se está cerrando...");
-}
+app.Run();

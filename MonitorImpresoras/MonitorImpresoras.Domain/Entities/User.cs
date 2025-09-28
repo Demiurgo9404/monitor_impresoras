@@ -1,39 +1,33 @@
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MonitorImpresoras.Domain.Entities
 {
-    /// <summary>
-    /// Entidad de usuario del sistema
-    /// </summary>
-    public class User : IdentityUser<string>
+    public class User : IdentityUser
     {
         [Required]
         [MaxLength(100)]
-        public string FirstName { get; set; } = string.Empty;
+        public string? FirstName { get; set; }
 
         [Required]
         [MaxLength(100)]
-        public string LastName { get; set; } = string.Empty;
+        public string? LastName { get; set; }
 
         [MaxLength(500)]
-        public string Department { get; set; } = string.Empty;
+        public string? Department { get; set; }
 
-        [Required]
         public bool IsActive { get; set; } = true;
-
-        [MaxLength(500)]
-        public string RefreshToken { get; set; } = string.Empty;
-
+        public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
+
+        // Navegaciones
+        public virtual ICollection<UserRole>? UserRoles { get; set; }
+        public virtual ICollection<LoginAttempt>? LoginAttempts { get; set; }
+        public virtual ICollection<PrintJob>? PrintJobs { get; set; }
 
         [NotMapped]
         public string FullName => $"{FirstName} {LastName}".Trim();
-
-        // Navigation properties
-        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        public virtual ICollection<PrintJob> PrintJobs { get; set; } = new List<PrintJob>();
 
         /// <summary>
         /// Obtiene el nombre completo del usuario

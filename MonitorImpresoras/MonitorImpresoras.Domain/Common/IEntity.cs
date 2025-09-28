@@ -3,14 +3,15 @@ using System;
 namespace MonitorImpresoras.Domain.Common
 {
     /// <summary>
-    /// Interfaz base para todas las entidades
+    /// Interfaz base para todas las entidades con clave primaria genérica
     /// </summary>
-    public interface IEntity
+    /// <typeparam name="TKey">Tipo de la clave primaria (string, int, Guid, etc.)</typeparam>
+    public interface IEntity<TKey> where TKey : IEquatable<TKey>
     {
         /// <summary>
         /// Identificador único de la entidad
         /// </summary>
-        Guid Id { get; set; }
+        TKey Id { get; set; }
 
         /// <summary>
         /// Fecha de creación de la entidad
@@ -26,5 +27,12 @@ namespace MonitorImpresoras.Domain.Common
         /// Marca la entidad como actualizada
         /// </summary>
         void MarkAsUpdated();
+    }
+
+    /// <summary>
+    /// Interfaz base para entidades con clave primaria de tipo string
+    /// </summary>
+    public interface IEntity : IEntity<string>
+    {
     }
 }
