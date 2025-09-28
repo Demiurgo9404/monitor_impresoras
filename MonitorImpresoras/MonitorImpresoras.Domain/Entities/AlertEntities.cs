@@ -16,6 +16,8 @@ namespace MonitorImpresoras.Domain.Entities
         [Required]
         public Guid EntityId { get; set; }
 
+        public int? PrinterId { get; set; }
+
         [Required]
         [MaxLength(1000)]
         public string Description { get; set; } = string.Empty;
@@ -39,6 +41,12 @@ namespace MonitorImpresoras.Domain.Entities
 
         [MaxLength(500)]
         public string? ResolutionNotes { get; set; }
+
+        public DateTime? DetectedAt { get; set; }
+
+        public DateTime? ResolvedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
         public virtual Tenant? Tenant { get; set; }
