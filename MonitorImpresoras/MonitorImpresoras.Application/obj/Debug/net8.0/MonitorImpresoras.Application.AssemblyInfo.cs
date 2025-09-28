@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MonitorImpresoras.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f0d52dc7a56568774ec0861a95ad432537298309")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+401fd5a4f9184ad7145f01e01b9ee5ca095cd71c")]
 [assembly: System.Reflection.AssemblyProductAttribute("MonitorImpresoras.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MonitorImpresoras.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
