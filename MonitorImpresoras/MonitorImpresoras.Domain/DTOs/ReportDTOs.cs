@@ -237,7 +237,6 @@ namespace MonitorImpresoras.Domain.DTOs
         public Dictionary<ReportType, int> ReportsByType { get; set; } = new();
         public Dictionary<ExecutionStatus, int> ExecutionsByStatus { get; set; } = new();
         public Dictionary<ScheduleFrequency, int> ReportsByFrequency { get; set; } = new();
-        public List<ReportExecutionDTO> RecentExecutions { get; set; } = new();
         public List<ScheduledReportDTO> MostUsedReports { get; set; } = new();
         public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
     }

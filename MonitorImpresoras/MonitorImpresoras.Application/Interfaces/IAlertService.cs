@@ -1,17 +1,18 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using MonitorImpresoras.Domain.DTOs;
+using MonitorImpresoras.Application.DTOs;
+using MonitorImpresoras.Domain.Entities;
 
 namespace MonitorImpresoras.Application.Interfaces
 {
     public interface IAlertService
     {
-        Task<AlertDTO> GetAlertByIdAsync(Guid id);
-        Task<IEnumerable<AlertDTO>> GetAlertsByFilterAsync(AlertFilterDTO filter);
-        Task<AlertDTO> CreateAlertAsync(CreateAlertDTO alertDto);
-        Task<AlertDTO> UpdateAlertAsync(Guid id, UpdateAlertDTO alertDto, string userId);
-        Task<AlertStatsDTO> GetAlertStatsAsync();
-        Task AcknowledgeAlertAsync(Guid id, string userId);
-        Task ResolveAlertAsync(Guid id, string resolutionNotes, string userId);
+        Task<Alert> CreateAlertAsync(CreateAlertDTO alertDto);
+        Task<Alert?> GetAlertByIdAsync(Guid id);
+        Task<IEnumerable<Alert>> GetAlertsByPrinterAsync(int printerId);
+        Task<IEnumerable<Alert>> GetActiveAlertsAsync();
+        Task<IEnumerable<Alert>> GetActiveAlertsByPrinterAsync(int printerId);
+        Task<Alert> UpdateAlertAsync(Guid id, UpdateAlertDTO alertDto);
+        Task<bool> DeleteAlertAsync(Guid id);
+        Task<IEnumerable<Alert>> GetAlertsByDateRangeAsync(DateTime startDate, DateTime endDate);
+        Task<AlertStatisticsDTO> GetAlertStatisticsAsync();
     }
 }

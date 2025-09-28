@@ -5,7 +5,7 @@ namespace MonitorImpresoras.Application.Interfaces.Repositories
     public interface IAlertRepository : IRepository<Alert>
     {
         Task<IEnumerable<Alert>> GetActiveAlertsAsync();
-        Task<IEnumerable<Alert>> GetAlertsByPrinterIdAsync(Guid printerId);
+        Task<IEnumerable<Alert>> GetAlertsByPrinterIdAsync(int printerId);
         Task<IEnumerable<Alert>> GetRecentAlertsByTypeAndEntityAsync(Guid entityId, string alertType, TimeSpan timeWindow);
         Task<IEnumerable<Alert>> GetByPrinterIdAsync(int printerId);
         Task<IEnumerable<Alert>> GetActiveAlertsByPrinterAsync(int printerId);

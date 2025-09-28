@@ -1,66 +1,54 @@
-using System.Collections.Generic;
 using MonitorImpresoras.Domain.Common;
 using MonitorImpresoras.Domain.Enums;
 
 namespace MonitorImpresoras.Domain.Entities
 {
-    /// <summary>
-    /// DTO para contadores de impresora obtenidos via SNMP
-    /// </summary>
-    public class PrinterCounters
+    public class PrinterCounters : BaseEntity
     {
-        public Guid PrinterId { get; set; }
-        public string IpAddress { get; set; } = string.Empty;
-        public Dictionary<string, object> CounterValues { get; set; } = new();
-        public DateTime RetrievedAt { get; set; } = DateTime.UtcNow;
+        public int PrinterId { get; set; }
+        public Printer Printer { get; set; } = null!;
+        public DateTime RecordedAt { get; set; }
+        public int TotalPrintedPages { get; set; }
+        public int BlackAndWhitePages { get; set; }
+        public int ColorPages { get; set; }
+        public int CopiesMade { get; set; }
+        public int ScannedPages { get; set; }
+        public int FaxPages { get; set; }
+        public double TonerLevel { get; set; }
+        public int DrumUsage { get; set; }
+        public int? MaintenanceCounter { get; set; }
+        public int? PaperJams { get; set; }
+        public int? ErrorCount { get; set; }
 
-        // Contadores comunes de impresoras
-        public int? TotalPagesPrinted { get; set; }
-        public int? BlackPagesPrinted { get; set; }
-        public int? ColorPagesPrinted { get; set; }
-        public int? TotalCopies { get; set; }
-        public int? TotalScans { get; set; }
-        public int? TotalFaxes { get; set; }
+        // Método para determinar el estado general de la impresora
+        public PrinterStatus GetOverallStatus()
+        {
+            if (TonerLevel <= 10)
+                return PrinterStatus.Warning;
+            if (TonerLevel <= 5)
+                return PrinterStatus.Error;
+            if (PaperJams > 0 || ErrorCount > 0)
+                return PrinterStatus.Error;
+                
+            return PrinterStatus.Online;
+        }
 
-        // Estados de consumibles
-        public int? BlackTonerLevel { get; set; }
-        public int? CyanTonerLevel { get; set; }
-        public int? MagentaTonerLevel { get; set; }
-        public int? YellowTonerLevel { get; set; }
-        public int? DrumLevel { get; set; }
-        public int? FuserLevel { get; set; }
-        public int? TransferBeltLevel { get; set; }
+        // Método para obtener el nivel de tóner como porcentaje
+        public double GetTonerPercentage()
+        {
+            return Math.Max(0, Math.Min(100, TonerLevel));
+        }
 
-        // Estados de la impresora
-        public PrinterStatus Status { get; set; } = PrinterStatus.Unknown;
-        public string StatusMessage { get; set; } = string.Empty;
-        public int? ErrorCode { get; set; }
-        public List<string> ActiveAlerts { get; set; } = new();
-        public List<string> WarningMessages { get; set; } = new();
+        // Método para verificar si necesita mantenimiento
+        public bool NeedsMaintenance()
+        {
+            return MaintenanceCounter.HasValue && MaintenanceCounter >= 10000;
+        }
 
-        // Información de identificación
-        public string ModelName { get; set; } = string.Empty;
-        public string SerialNumber { get; set; } = string.Empty;
-        public string FirmwareVersion { get; set; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Partes consumibles de la impresora
-    /// </summary>
-    public class PrinterConsumablePart : BaseEntity
-    {
-        public Guid PrinterId { get; set; }
-        public ConsumableType ConsumableType { get; set; }
-        public string PartName { get; set; } = string.Empty;
-        public int CurrentLevel { get; set; }
-        public int MaxCapacity { get; set; }
-        public int WarningThreshold { get; set; } = 20;
-        public int CriticalThreshold { get; set; } = 10;
-        public DateTime? LastReplaced { get; set; }
-        public int EstimatedPagesRemaining { get; set; }
-        public bool IsOriginal { get; set; } = true;
-        public string SerialNumber { get; set; } = string.Empty;
-        public decimal Cost { get; set; }
-        public string Supplier { get; set; } = string.Empty;
+        // Método para calcular el uso total
+        public int GetTotalUsage()
+        {
+            return TotalPrintedPages + ScannedPages + FaxPages;
+        }
     }
 }

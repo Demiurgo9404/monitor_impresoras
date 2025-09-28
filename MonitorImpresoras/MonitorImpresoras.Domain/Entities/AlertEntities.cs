@@ -46,8 +46,6 @@ namespace MonitorImpresoras.Domain.Entities
 
         public DateTime? ResolvedAt { get; set; }
 
-        public DateTime? UpdatedAt { get; set; }
-
         // Navigation properties
         public virtual Tenant? Tenant { get; set; }
     }

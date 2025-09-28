@@ -46,7 +46,7 @@ namespace MonitorImpresoras.Application.Services
             _logger.LogInformation("AlertEngineService detenido");
         }
 
-        private async void OnTimedEvent(object? sender, ElapsedEventArgs e)
+        public async Task ProcessAllAlertRulesAsync()
         {
             try
             {
@@ -62,6 +62,11 @@ namespace MonitorImpresoras.Application.Services
             {
                 _logger.LogError(ex, "Error durante la verificación de estado de impresoras");
             }
+        }
+
+        private async void OnTimedEvent(object? sender, ElapsedEventArgs e)
+        {
+            await ProcessAllAlertRulesAsync();
         }
 
         private async Task EvaluatePrinterStatus(PrinterStatusInfo printerStatus)
@@ -118,7 +123,7 @@ namespace MonitorImpresoras.Application.Services
             }
         }
 
-        private async Task CreateAlertIfNotExists(PrinterStatus printerStatus, AlertType alertType, string description, AlertSeverity severity)
+        private async Task CreateAlertIfNotExists(PrinterStatusInfo printerStatus, AlertType alertType, string description, AlertSeverity severity)
         {
             var existingAlerts = await _alertService.GetActiveAlertsByPrinterAsync(printerStatus.PrinterId);
             var existingAlert = existingAlerts.FirstOrDefault(a => a.Type == alertType);
@@ -128,9 +133,9 @@ namespace MonitorImpresoras.Application.Services
                 var alertDto = new CreateAlertDTO
                 {
                     PrinterId = printerStatus.PrinterId,
-                    Type = alertType,
-                    Description = description,
-                    Severity = severity,
+                    Type = alertType.ToString(),
+                    Severity = severity.ToString(),
+                    Message = description,
                     DetectedAt = DateTime.UtcNow
                 };
 
@@ -147,8 +152,7 @@ namespace MonitorImpresoras.Application.Services
             {
                 var updateDto = new UpdateAlertDTO
                 {
-                    ResolvedAt = DateTime.UtcNow,
-                    Status = AlertStatus.Resolved
+                    Status = AlertStatus.Resolved.ToString()
                 };
 
                 await _alertService.UpdateAlertAsync(alert.Id, updateDto);

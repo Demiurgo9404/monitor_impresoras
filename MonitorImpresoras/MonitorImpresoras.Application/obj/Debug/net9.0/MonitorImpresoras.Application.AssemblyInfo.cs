@@ -10,12 +10,12 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("MonitorImpresoras.Domain")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("MonitorImpresoras.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b679868588158d91c4b0e40b50ef4a743448e8b5")]
-[assembly: System.Reflection.AssemblyProductAttribute("MonitorImpresoras.Domain")]
-[assembly: System.Reflection.AssemblyTitleAttribute("MonitorImpresoras.Domain")]
+[assembly: System.Reflection.AssemblyProductAttribute("MonitorImpresoras.Application")]
+[assembly: System.Reflection.AssemblyTitleAttribute("MonitorImpresoras.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 
 // Generado por la clase WriteCodeFragment de MSBuild.
