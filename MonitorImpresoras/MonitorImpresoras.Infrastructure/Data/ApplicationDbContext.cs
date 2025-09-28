@@ -19,7 +19,7 @@ namespace MonitorImpresoras.Infrastructure.Data
         public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
         public DbSet<PrintJob> PrintJobs => Set<PrintJob>();
         public DbSet<Printer> Printers => Set<Printer>();
-        // Agrega otros DbSet según sea necesario
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -109,6 +109,35 @@ namespace MonitorImpresoras.Infrastructure.Data
                 b.HasIndex(p => p.IpAddress);
                 b.HasIndex(p => p.Status);
                 b.HasIndex(p => p.IsOnline);
+            });
+
+            // Configuración de AuditLog
+            builder.Entity<AuditLog>(b =>
+            {
+                b.ToTable("AuditLogs");
+                b.HasKey(a => a.Id);
+
+                b.Property(a => a.UserId).IsRequired().HasMaxLength(100);
+                b.Property(a => a.Action).IsRequired().HasMaxLength(100);
+                b.Property(a => a.Entity).IsRequired().HasMaxLength(100);
+                b.Property(a => a.EntityId).HasMaxLength(100);
+                b.Property(a => a.Details).HasMaxLength(500);
+                b.Property(a => a.IpAddress).HasMaxLength(50);
+                b.Property(a => a.UserAgent).HasMaxLength(500);
+                b.Property(a => a.Timestamp).IsRequired();
+
+                // Índices para búsquedas rápidas
+                b.HasIndex(a => a.UserId);
+                b.HasIndex(a => a.Action);
+                b.HasIndex(a => a.Entity);
+                b.HasIndex(a => a.Timestamp);
+                b.HasIndex(a => new { a.Entity, a.EntityId });
+                b.HasIndex(a => new { a.UserId, a.Timestamp });
+
+                b.HasOne(a => a.User)
+                    .WithMany()
+                    .HasForeignKey(a => a.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Configuraciones adicionales para otras entidades...

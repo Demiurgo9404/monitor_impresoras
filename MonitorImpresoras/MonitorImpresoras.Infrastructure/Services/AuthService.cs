@@ -4,6 +4,7 @@ using MonitorImpresoras.Application.DTOs;
 using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Infrastructure.Data;
+using Serilog;
 
 namespace MonitorImpresoras.Infrastructure.Services
 {
@@ -12,13 +13,15 @@ namespace MonitorImpresoras.Infrastructure.Services
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<Role> _roleManager;
         private readonly ITokenService _tokenService;
+        private readonly IAuditService _auditService;
         private readonly ApplicationDbContext _context;
 
-        public AuthService(UserManager<User> userManager, RoleManager<Role> roleManager, ITokenService tokenService, ApplicationDbContext context)
+        public AuthService(UserManager<User> userManager, RoleManager<Role> roleManager, ITokenService tokenService, IAuditService auditService, ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _tokenService = tokenService;
+            _auditService = auditService;
             _context = context;
         }
 
@@ -27,8 +30,18 @@ namespace MonitorImpresoras.Infrastructure.Services
             var user = await _userManager.FindByNameAsync(request.Username);
             if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
             {
+                // Auditoría de intento fallido
+                await _auditService.LogAsync("system", "LOGIN_FAILED", "User", request.Username,
+                    $"Intento de login fallido para usuario: {request.Username}", ipAddress, userAgent);
                 await RegisterLoginAttempt(user, request.Username, false, ipAddress, userAgent, "Credenciales inválidas");
                 throw new UnauthorizedAccessException("Usuario o contraseña incorrectos");
+            }
+
+            if (!user.IsActive)
+            {
+                await _auditService.LogAsync(user.Id, "LOGIN_BLOCKED", "User", user.Id,
+                    "Intento de login de usuario inactivo", ipAddress, userAgent);
+                throw new UnauthorizedAccessException("Usuario inactivo");
             }
 
             var roles = await _userManager.GetRolesAsync(user);
@@ -40,6 +53,12 @@ namespace MonitorImpresoras.Infrastructure.Services
             await _userManager.UpdateAsync(user);
 
             await RegisterLoginAttempt(user, user.UserName!, true, ipAddress, userAgent);
+
+            // Auditoría de login exitoso
+            await _auditService.LogAsync(user.Id, "LOGIN_SUCCESS", "User", user.Id,
+                $"Login exitoso para usuario: {user.UserName}", ipAddress, userAgent);
+
+            Log.Information("Usuario {UserName} inició sesión desde IP {IpAddress}", user.UserName, ipAddress);
 
             return new LoginResponseDto
             {
@@ -68,10 +87,16 @@ namespace MonitorImpresoras.Infrastructure.Services
             if (!result.Succeeded)
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
 
-            if (!await _roleManager.RoleExistsAsync("Cliente"))
-                await _roleManager.CreateAsync(new Role { Name = "Cliente" });
+            if (!await _roleManager.RoleExistsAsync("User"))
+                await _roleManager.CreateAsync(new Role { Name = "User" });
 
-            await _userManager.AddToRoleAsync(user, "Cliente");
+            await _userManager.AddToRoleAsync(user, "User");
+
+            // Auditoría de registro
+            await _auditService.LogAsync(user.Id, "USER_REGISTERED", "User", user.Id,
+                $"Nuevo usuario registrado: {user.UserName} ({user.Email})");
+
+            Log.Information("Nuevo usuario registrado: {UserName} ({Email})", user.UserName, user.Email);
 
             return true;
         }
@@ -90,6 +115,12 @@ namespace MonitorImpresoras.Infrastructure.Services
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
+            // Auditoría de refresh token
+            await _auditService.LogAsync(user.Id, "REFRESH_TOKEN", "User", user.Id,
+                "Token de acceso renovado", ipAddress);
+
+            Log.Information("Token renovado para usuario {UserName}", user.UserName);
+
             return new LoginResponseDto
             {
                 Token = newAccessToken,
@@ -107,6 +138,12 @@ namespace MonitorImpresoras.Infrastructure.Services
             user.RefreshToken = null;
             user.RefreshTokenExpiryTime = null;
             await _userManager.UpdateAsync(user);
+
+            // Auditoría de logout
+            await _auditService.LogAsync(userId, "LOGOUT", "User", userId,
+                $"Usuario {user.UserName} cerró sesión");
+
+            Log.Information("Usuario {UserName} cerró sesión", user.UserName);
 
             return true;
         }

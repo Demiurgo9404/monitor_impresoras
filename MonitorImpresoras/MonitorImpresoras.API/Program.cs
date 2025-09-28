@@ -2,11 +2,29 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using Serilog;
 using MonitorImpresoras.Infrastructure.Data;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.API.Filters;
+using MonitorImpresoras.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configuración de Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithExceptionDetails()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+try
+{
+    Log.Information("Iniciando aplicación MonitorImpresoras");
+}
 
 // Configuración de la base de datos
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -189,22 +207,19 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Configuración de controladores con filtro de excepciones global
+// Configuración de controladores
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<GlobalExceptionFilter>();
 });
-
-// Configuración de logging
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
 
 // Registro de servicios
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPrinterRepository, PrinterRepository>();
 builder.Services.AddScoped<IPrinterService, PrinterService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddHttpContextAccessor();
 
 // Configuración de AutoMapper
 builder.Services.AddAutoMapper(typeof(PrinterProfile));
@@ -214,6 +229,11 @@ builder.Services.AddControllers()
     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreatePrinterDtoValidator>());
 
 var app = builder.Build();
+
+try
+{
+    Log.Information("Aplicación construida exitosamente");
+}
 
 // Configuración del pipeline HTTP
 if (app.Environment.IsDevelopment())
@@ -229,8 +249,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Middleware de manejo global de errores
-app.UseExceptionHandler("/error");
-app.UseStatusCodePagesWithReExecute("/error/{0}");
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
@@ -264,9 +283,20 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Error al inicializar la base de datos");
+        Log.Error(ex, "Error al inicializar la base de datos");
     }
 }
 
-app.Run();
+try
+{
+    Log.Information("Aplicación iniciándose");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Error fatal al iniciar la aplicación");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

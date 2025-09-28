@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using AutoMapper;
 using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Application.DTOs.Printers;
@@ -8,6 +9,7 @@ namespace MonitorImpresoras.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PrinterController : ControllerBase
     {
         private readonly IPrinterService _service;
@@ -23,6 +25,9 @@ namespace MonitorImpresoras.API.Controllers
         /// Obtiene todas las impresoras
         /// </summary>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAll()
         {
             var printers = await _service.GetAllPrintersAsync();
@@ -34,6 +39,10 @@ namespace MonitorImpresoras.API.Controllers
         /// Obtiene una impresora por ID
         /// </summary>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var printer = await _service.GetPrinterByIdAsync(id);
@@ -48,6 +57,10 @@ namespace MonitorImpresoras.API.Controllers
         /// Crea una nueva impresora
         /// </summary>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create(CreatePrinterDto createDto)
         {
             var printer = _mapper.Map<Printer>(createDto);
@@ -61,6 +74,10 @@ namespace MonitorImpresoras.API.Controllers
         /// Actualiza una impresora existente
         /// </summary>
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Update(Guid id, UpdatePrinterDto updateDto)
         {
             var existingPrinter = await _service.GetPrinterByIdAsync(id);
@@ -82,6 +99,12 @@ namespace MonitorImpresoras.API.Controllers
         /// Elimina una impresora
         /// </summary>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _service.DeletePrinterAsync(id);

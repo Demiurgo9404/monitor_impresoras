@@ -23,13 +23,11 @@ namespace MonitorImpresoras.Infrastructure.Data
                 var adminPassword = adminConfig["Password"] ?? "Admin123!";
 
                 // Crear roles si no existen
-                string[] roles = { "Administrador", "Empresa", "Vendedor", "Cliente" };
+                string[] roles = { "Admin", "User" };
                 string[] roleDescriptions =
                 {
                     "Administrador del sistema con acceso completo",
-                    "Empresa que ofrece servicios de impresión",
-                    "Vendedor de la empresa",
-                    "Cliente que utiliza los servicios de impresión"
+                    "Usuario estándar con acceso limitado"
                 };
 
                 for (int i = 0; i < roles.Length; i++)
@@ -75,7 +73,7 @@ namespace MonitorImpresoras.Infrastructure.Data
                     var result = await userManager.CreateAsync(admin, adminPassword);
                     if (result.Succeeded)
                     {
-                        await userManager.AddToRoleAsync(admin, "Administrador");
+                        await userManager.AddToRoleAsync(admin, "Admin");
                         logger.LogInformation("Usuario administrador creado exitosamente");
                     }
                     else
