@@ -24,17 +24,40 @@ namespace MonitorImpresoras.Infrastructure.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("IsActive", user.IsActive.ToString()),
+                new Claim("FullName", user.GetFullName()),
+                new Claim("Department", user.Department ?? ""),
+                new Claim("ManagePrinters", (roles.Contains("Admin") || user.Department == "IT").ToString()),
+                new Claim("ReadPrinters", "true"), // Todos los usuarios autenticados pueden leer impresoras
+                new Claim("CanDeletePrinters", roles.Contains("Admin").ToString()),
+                new Claim("IssuedAt", DateTime.UtcNow.ToString("o"))
             };
 
+            // Agregar roles como claims
             authClaims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+            // Agregar permisos basados en roles
+            if (roles.Contains("Admin"))
+            {
+                authClaims.Add(new Claim("Permissions", "FullAccess"));
+                authClaims.Add(new Claim("CanManageUsers", "true"));
+                authClaims.Add(new Claim("CanViewAuditLogs", "true"));
+            }
+            else if (roles.Contains("User"))
+            {
+                authClaims.Add(new Claim("Permissions", "ReadOnly"));
+                authClaims.Add(new Claim("CanManageUsers", "false"));
+                authClaims.Add(new Claim("CanViewAuditLogs", "false"));
+            }
 
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
-                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["Jwt:ExpireDays"] ?? "7") * 24 * 60), // Convertir días a minutos
+                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["Jwt:ExpireMinutes"] ?? "60")),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );

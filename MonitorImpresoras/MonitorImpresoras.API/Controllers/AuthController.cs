@@ -11,10 +11,12 @@ namespace MonitorImpresoras.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IAuditService _auditService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IAuditService auditService)
         {
             _authService = authService;
+            _auditService = auditService;
         }
 
         /// <summary>
@@ -56,9 +58,29 @@ namespace MonitorImpresoras.API.Controllers
         public async Task<IActionResult> RefreshToken(RefreshTokenRequestDto request)
         {
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var userAgent = Request.Headers["User-Agent"].ToString();
+
+            // Validar que el refresh token no esté vacío
+            if (string.IsNullOrEmpty(request.RefreshToken))
+            {
+                await _auditService.LogAsync("system", "REFRESH_TOKEN_INVALID", "Auth",
+                    null, "Refresh token vacío", ip, userAgent);
+                return BadRequest("Refresh token es requerido");
+            }
+
             var response = await _authService.RefreshTokenAsync(request, ip);
+
             if (response == null)
+            {
+                await _auditService.LogAsync("system", "REFRESH_TOKEN_EXPIRED", "Auth",
+                    null, $"Refresh token expirado o inválido: {request.RefreshToken[..Math.Min(10, request.RefreshToken.Length)]}...",
+                    ip, userAgent);
                 return Unauthorized("Refresh token inválido o expirado");
+            }
+
+            // Auditoría de refresh exitoso
+            await _auditService.LogAsync(response.UserId, "REFRESH_TOKEN_SUCCESS", "Auth",
+                response.UserId, "Token de acceso renovado exitosamente", ip, userAgent);
 
             return Ok(response);
         }

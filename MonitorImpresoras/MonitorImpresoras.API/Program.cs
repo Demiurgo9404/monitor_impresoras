@@ -70,6 +70,35 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Configuración de políticas de autorización
+builder.Services.AddAuthorization(options =>
+{
+    // Política para administradores
+    options.AddPolicy("RequireAdmin", policy =>
+        policy.RequireRole("Admin"));
+
+    // Política para gestión de impresoras
+    options.AddPolicy("PrinterManager", policy =>
+        policy.RequireClaim("ManagePrinters", "true"));
+
+    // Política para usuarios activos
+    options.AddPolicy("ActiveUser", policy =>
+        policy.RequireClaim("IsActive", "true"));
+
+    // Política para lectura de impresoras (Admin o usuarios con permiso)
+    options.AddPolicy("CanReadPrinters", policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole("Admin") ||
+            context.User.HasClaim("ManagePrinters", "true") ||
+            context.User.HasClaim("ReadPrinters", "true")));
+
+    // Política para escritura de impresoras (solo Admin o usuarios con permiso específico)
+    options.AddPolicy("CanWritePrinters", policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole("Admin") ||
+            context.User.HasClaim("ManagePrinters", "true")));
+});
+
 // Configuración de CORS
 builder.Services.AddCors(options =>
 {
@@ -162,6 +191,35 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+});
+
+// Configuración de políticas de autorización
+builder.Services.AddAuthorization(options =>
+{
+    // Política para administradores
+    options.AddPolicy("RequireAdmin", policy =>
+        policy.RequireRole("Admin"));
+
+    // Política para gestión de impresoras
+    options.AddPolicy("PrinterManager", policy =>
+        policy.RequireClaim("ManagePrinters", "true"));
+
+    // Política para usuarios activos
+    options.AddPolicy("ActiveUser", policy =>
+        policy.RequireClaim("IsActive", "true"));
+
+    // Política para lectura de impresoras (Admin o usuarios con permiso)
+    options.AddPolicy("CanReadPrinters", policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole("Admin") ||
+            context.User.HasClaim("ManagePrinters", "true") ||
+            context.User.HasClaim("ReadPrinters", "true")));
+
+    // Política para escritura de impresoras (solo Admin o usuarios con permiso específico)
+    options.AddPolicy("CanWritePrinters", policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole("Admin") ||
+            context.User.HasClaim("ManagePrinters", "true")));
 });
 
 // Configuración de CORS

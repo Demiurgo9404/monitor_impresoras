@@ -9,7 +9,7 @@ namespace MonitorImpresoras.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize]  // Requiere autenticación para todos los endpoints
     public class PrinterController : ControllerBase
     {
         private readonly IPrinterService _service;
@@ -22,11 +22,13 @@ namespace MonitorImpresoras.API.Controllers
         }
 
         /// <summary>
-        /// Obtiene todas las impresoras
+        /// Obtiene todas las impresoras (requiere CanReadPrinters policy)
         /// </summary>
         [HttpGet]
+        [Authorize(Policy = "CanReadPrinters")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAll()
         {
@@ -36,12 +38,14 @@ namespace MonitorImpresoras.API.Controllers
         }
 
         /// <summary>
-        /// Obtiene una impresora por ID
+        /// Obtiene una impresora por ID (requiere CanReadPrinters policy)
         /// </summary>
         [HttpGet("{id}")]
+        [Authorize(Policy = "CanReadPrinters")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -54,12 +58,14 @@ namespace MonitorImpresoras.API.Controllers
         }
 
         /// <summary>
-        /// Crea una nueva impresora
+        /// Crea una nueva impresora (requiere CanWritePrinters policy)
         /// </summary>
         [HttpPost]
+        [Authorize(Policy = "CanWritePrinters")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create(CreatePrinterDto createDto)
         {
@@ -71,12 +77,14 @@ namespace MonitorImpresoras.API.Controllers
         }
 
         /// <summary>
-        /// Actualiza una impresora existente
+        /// Actualiza una impresora existente (requiere CanWritePrinters policy)
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Policy = "CanWritePrinters")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Update(Guid id, UpdatePrinterDto updateDto)
         {
@@ -96,10 +104,10 @@ namespace MonitorImpresoras.API.Controllers
         }
 
         /// <summary>
-        /// Elimina una impresora
+        /// Elimina una impresora (requiere Admin role)
         /// </summary>
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "RequireAdmin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
