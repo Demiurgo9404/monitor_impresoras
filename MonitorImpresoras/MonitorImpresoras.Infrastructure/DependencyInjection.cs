@@ -1,50 +1,55 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MonitorImpresoras.Application.Interfaces;
-using MonitorImpresoras.Domain.Interfaces;
-using MonitorImpresoras.Domain.Interfaces.Services;
 using MonitorImpresoras.Infrastructure.Data;
-using MonitorImpresoras.Infrastructure.Data.Context;
-using MonitorImpresoras.Infrastructure.Data.Repositories;
 using MonitorImpresoras.Infrastructure.Services;
-using MonitorImpresoras.Infrastructure.Services.Monitoring;
+using System;
 
-namespace MonitorImpresoras.Infrastructure
+namespace MonitorImpresoras.Infrastructure;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        // Configurar DbContext
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(
+                configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+
+        // Registrar servicios de infraestructura con manejo de errores
+        try
         {
-            // Configure DbContext with PostgreSQL
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(
-                    configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
-
-            // Register repositories
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IPrinterRepository, PrinterRepository>();
-            services.AddScoped<IPrintJobRepository, PrintJobRepository>();
-            services.AddScoped<IConsumableRepository, ConsumableRepository>();
-            services.AddScoped<IAlertRepository, AlertRepository>();
-            services.AddScoped<IReportRepository, ReportRepository>();
-            // Add other repositories here as they are created
-
-            // Register services
-            services.AddScoped<IPrinterService, PrinterService>();
-            services.AddScoped<IConsumableService, ConsumableService>();
-            services.AddScoped<IAlertService, AlertService>();
-            services.AddScoped<IReportService, ReportService>();
-            services.AddScoped<IPrintJobService, PrintJobService>();
+            // Registrar servicios de aplicación
+            services.AddScoped<IPrinterMonitoringService, PrinterMonitoringService>();
             services.AddScoped<ISnmpService, SnmpService>();
-
-            // Register monitoring services
-            services.AddSingleton<ISignalRNotificationService, SignalRNotificationService>();
-            services.AddSingleton<IMonitoringService, MonitoringService>();
+            services.AddScoped<IWindowsPrinterService, WindowsPrinterService>();
+            
+            // Registrar el factory para el DbContext
+            services.AddScoped<ApplicationDbContextFactory>();
+            
+            // Registrar el servicio de fondo para monitoreo de impresoras
             services.AddHostedService<PrinterMonitoringBackgroundService>();
-
-            return services;
+            
+            // Configurar el logger
+            services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Information));
+            
+            // Configuración del servicio de monitoreo
+            services.Configure<PrinterMonitoringOptions>(configuration.GetSection("PrinterMonitoring"));
         }
+        catch (Exception ex)
+        {
+            // En un entorno real, deberías registrar este error en un sistema de registro
+            Console.WriteLine($"Error al registrar servicios de infraestructura: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+            }
+            throw; // Relanzar la excepción para que el sistema sepa que hubo un error
+        }
+        
+        return services;
     }
 }

@@ -1,6 +1,9 @@
-﻿namespace MonitorImpresoras.Application;
+﻿using System;
 
-public class Class1
+namespace MonitorImpresoras.Application
 {
+    public class Class1
+    {
 
+    }
 }
