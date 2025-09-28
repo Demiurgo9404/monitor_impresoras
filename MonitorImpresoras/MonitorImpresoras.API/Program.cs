@@ -206,6 +206,13 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPrinterRepository, PrinterRepository>();
 builder.Services.AddScoped<IPrinterService, PrinterService>();
 
+// Configuración de AutoMapper
+builder.Services.AddAutoMapper(typeof(PrinterProfile));
+
+// Configuración de FluentValidation
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreatePrinterDtoValidator>());
+
 var app = builder.Build();
 
 // Configuración del pipeline HTTP
