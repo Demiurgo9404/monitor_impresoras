@@ -203,6 +203,8 @@ builder.Logging.AddDebug();
 // Registro de servicios
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IPrinterRepository, PrinterRepository>();
+builder.Services.AddScoped<IPrinterService, PrinterService>();
 
 var app = builder.Build();
 

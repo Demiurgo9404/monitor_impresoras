@@ -18,6 +18,7 @@ namespace MonitorImpresoras.Infrastructure.Data
         // Entidades de dominio
         public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
         public DbSet<PrintJob> PrintJobs => Set<PrintJob>();
+        public DbSet<Printer> Printers => Set<Printer>();
         // Agrega otros DbSet según sea necesario
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -85,6 +86,29 @@ namespace MonitorImpresoras.Infrastructure.Data
                     .WithMany(u => u.LoginAttempts)
                     .HasForeignKey(x => x.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configuración de Printer
+            builder.Entity<Printer>(b =>
+            {
+                b.ToTable("Printers");
+                b.HasKey(p => p.Id);
+
+                b.Property(p => p.Name).IsRequired().HasMaxLength(100);
+                b.Property(p => p.Model).IsRequired().HasMaxLength(100);
+                b.Property(p => p.SerialNumber).IsRequired().HasMaxLength(100);
+                b.Property(p => p.IpAddress).IsRequired().HasMaxLength(50);
+                b.Property(p => p.Location).HasMaxLength(200);
+                b.Property(p => p.Status).HasMaxLength(50);
+                b.Property(p => p.CommunityString).HasMaxLength(50);
+                b.Property(p => p.Notes).HasMaxLength(500);
+                b.Property(p => p.LastError).HasMaxLength(1000);
+
+                // Índices para búsquedas rápidas
+                b.HasIndex(p => p.SerialNumber).IsUnique();
+                b.HasIndex(p => p.IpAddress);
+                b.HasIndex(p => p.Status);
+                b.HasIndex(p => p.IsOnline);
             });
 
             // Configuraciones adicionales para otras entidades...
