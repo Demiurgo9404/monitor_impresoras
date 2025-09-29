@@ -221,9 +221,20 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IScheduledReportService, ScheduledReportService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<PdfExportService>();
+builder.Services.AddScoped<ExcelExportService>();
 builder.Services.AddScoped<IPrinterRepository, PrinterRepository>();
 builder.Services.AddScoped<IPrinterService, PrinterService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IExtendedAuditService, ExtendedAuditService>();
+builder.Services.AddScoped<IHealthCheckService, HealthCheckService>();
+builder.Services.AddScoped<IMetricsService, MetricsService>();
+builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<INotificationService, EmailNotificationService>();
 builder.Services.AddHttpContextAccessor();
 
 // Configuración de AutoMapper
@@ -232,6 +243,36 @@ builder.Services.AddAutoMapper(typeof(PrinterProfile));
 // Configuración de FluentValidation
 builder.Services.AddControllers()
     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreatePrinterDtoValidator>());
+
+// Configuración de Quartz.NET para jobs programados
+builder.Services.AddQuartz(q =>
+{
+    // Registrar jobs
+    q.UseMicrosoftDependencyInjectionJobFactory();
+
+    // Job de reporte diario (8:00 AM todos los días)
+    q.AddJob<DailyReportJob>(opts => opts.WithIdentity("DailyReportJob"))
+        .AddTrigger(opts => opts
+            .ForJob("DailyReportJob")
+            .WithCronSchedule("0 0 8 * * ?") // Todos los días a las 8:00 AM
+            .WithDescription("Envío automático de reporte diario"));
+
+    // Job de verificación de estado de impresoras (cada 15 minutos)
+    q.AddJob<PrinterStatusCheckJob>(opts => opts.WithIdentity("PrinterStatusCheckJob"))
+        .AddTrigger(opts => opts
+            .ForJob("PrinterStatusCheckJob")
+            .WithCronSchedule("0 */15 * * * ?") // Cada 15 minutos
+            .WithDescription("Verificación periódica de estado de impresoras"));
+
+    // Job de verificación de métricas del sistema (cada 10 minutos)
+    q.AddJob<SystemMetricsCheckJob>(opts => opts.WithIdentity("SystemMetricsCheckJob"))
+        .AddTrigger(opts => opts
+            .ForJob("SystemMetricsCheckJob")
+            .WithCronSchedule("0 */10 * * * ?") // Cada 10 minutos
+            .WithDescription("Verificación periódica de métricas del sistema"));
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 var app = builder.Build();
 

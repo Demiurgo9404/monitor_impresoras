@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "DbTyEvNka+Q=",
+  "dgSpecHash": "Dx4Y3vQ4ZN4=",
   "success": true,
   "projectFilePath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj",
   "expectedPackageFiles": [
@@ -50,6 +50,8 @@
     "C:\\Users\\Demiurgo\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\microsoft.extensions.dependencymodel\\8.0.1\\microsoft.extensions.dependencymodel.8.0.1.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\microsoft.extensions.diagnostics.abstractions\\8.0.0\\microsoft.extensions.diagnostics.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\Demiurgo\\.nuget\\packages\\microsoft.extensions.diagnostics.healthchecks\\8.0.0\\microsoft.extensions.diagnostics.healthchecks.8.0.0.nupkg.sha512",
+    "C:\\Users\\Demiurgo\\.nuget\\packages\\microsoft.extensions.diagnostics.healthchecks.abstractions\\8.0.0\\microsoft.extensions.diagnostics.healthchecks.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\8.0.0\\microsoft.extensions.fileproviders.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\microsoft.extensions.fileproviders.physical\\8.0.0\\microsoft.extensions.fileproviders.physical.8.0.0.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\8.0.0\\microsoft.extensions.filesystemglobbing.8.0.0.nupkg.sha512",
@@ -82,6 +84,10 @@
     "C:\\Users\\Demiurgo\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\8.0.0\\npgsql.entityframeworkcore.postgresql.8.0.0.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\prometheus-net\\8.2.1\\prometheus-net.8.2.1.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\prometheus-net.aspnetcore\\8.2.1\\prometheus-net.aspnetcore.8.2.1.nupkg.sha512",
+    "C:\\Users\\Demiurgo\\.nuget\\packages\\quartz\\3.8.1\\quartz.3.8.1.nupkg.sha512",
+    "C:\\Users\\Demiurgo\\.nuget\\packages\\quartz.aspnetcore\\3.8.1\\quartz.aspnetcore.3.8.1.nupkg.sha512",
+    "C:\\Users\\Demiurgo\\.nuget\\packages\\quartz.extensions.dependencyinjection\\3.8.1\\quartz.extensions.dependencyinjection.3.8.1.nupkg.sha512",
+    "C:\\Users\\Demiurgo\\.nuget\\packages\\quartz.extensions.hosting\\3.8.1\\quartz.extensions.hosting.3.8.1.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\serilog\\3.1.1\\serilog.3.1.1.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\serilog.aspnetcore\\8.0.2\\serilog.aspnetcore.8.0.2.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\serilog.exceptions\\8.4.0\\serilog.exceptions.8.4.0.nupkg.sha512",
