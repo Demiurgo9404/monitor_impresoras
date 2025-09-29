@@ -34,6 +34,9 @@ namespace MonitorImpresoras.Infrastructure.Data
         {
             base.OnModelCreating(builder);
 
+            // Configuración de filtros globales para multi-tenant
+            ConfigureMultiTenantFilters(builder);
+
             // Configuración de RefreshToken
             builder.Entity<RefreshToken>(b =>
             {
@@ -255,5 +258,22 @@ namespace MonitorImpresoras.Infrastructure.Data
 
             // Configuraciones adicionales para otras entidades...
         }
-    }
-}
+
+        /// <summary>
+        /// Configura filtros globales para aislamiento multi-tenant
+        /// </summary>
+        private void ConfigureMultiTenantFilters(ModelBuilder builder)
+        {
+            // Nota: Estos filtros requieren que el contexto tenga acceso al TenantId actual
+            // En producción, esto se haría mediante un servicio de contexto de tenant
+
+            // Ejemplo de configuración (se activaría cuando se implemente el contexto de tenant):
+            /*
+            builder.Entity<Printer>().HasQueryFilter(p => p.TenantId == _currentTenantService.TenantId);
+            builder.Entity<PrinterTelemetry>().HasQueryFilter(t => t.TenantId == _currentTenantService.TenantId);
+            builder.Entity<MaintenancePrediction>().HasQueryFilter(p => p.TenantId == _currentTenantService.TenantId);
+            builder.Entity<PredictionFeedback>().HasQueryFilter(f => f.TenantId == _currentTenantService.TenantId);
+            */
+
+            // Por ahora, comentar estos filtros hasta implementar el servicio de contexto de tenant
+        }

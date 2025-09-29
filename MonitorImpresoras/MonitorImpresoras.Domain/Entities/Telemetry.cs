@@ -19,6 +19,12 @@ namespace MonitorImpresoras.Domain.Entities
         public int PrinterId { get; set; }
 
         /// <summary>
+        /// ID del tenant al que pertenece esta métrica
+        /// </summary>
+        [Required]
+        public int TenantId { get; set; } = 1;
+
+        /// <summary>
         /// Marca de tiempo UTC cuando se capturó la métrica
         /// </summary>
         [Required]

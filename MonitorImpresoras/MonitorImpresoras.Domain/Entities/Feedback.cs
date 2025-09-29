@@ -13,6 +13,18 @@ namespace MonitorImpresoras.Domain.Entities
         public long Id { get; set; }
 
         /// <summary>
+        /// ID del tenant al que pertenece esta predicción
+        /// </summary>
+        [Required]
+        public int TenantId { get; set; } = 1;
+
+        /// <summary>
+        /// ID de la impresora para la que se hace la predicción
+        /// </summary>
+        [Required]
+        public int PrinterId { get; set; } = 1;
+
+        /// <summary>
         /// ID de la predicción que se está evaluando
         /// </summary>
         [Required]

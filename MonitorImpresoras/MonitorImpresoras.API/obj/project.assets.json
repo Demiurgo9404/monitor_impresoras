@@ -8814,6 +8814,7 @@
       "Swashbuckle.AspNetCore >= 6.5.0",
       "Swashbuckle.AspNetCore.Annotations >= 6.5.0",
       "Twilio >= 7.0.0",
+      "prometheus-net >= 8.2.1",
       "prometheus-net.AspNetCore >= 8.2.1"
     ]
   },
@@ -8935,6 +8936,10 @@
           "Twilio": {
             "target": "Package",
             "version": "[7.0.0, )"
+          },
+          "prometheus-net": {
+            "target": "Package",
+            "version": "[8.2.1, )"
           },
           "prometheus-net.AspNetCore": {
             "target": "Package",

@@ -120,6 +120,10 @@
               "target": "Package",
               "version": "[7.0.0, )"
             },
+            "prometheus-net": {
+              "target": "Package",
+              "version": "[8.2.1, )"
+            },
             "prometheus-net.AspNetCore": {
               "target": "Package",
               "version": "[8.2.1, )"
