@@ -21,8 +21,12 @@ namespace MonitorImpresoras.Infrastructure.Data
         public DbSet<ReportTemplate> ReportTemplates => Set<ReportTemplate>();
         public DbSet<ReportExecution> ReportExecutions => Set<ReportExecution>();
         public DbSet<ScheduledReport> ScheduledReports => Set<ScheduledReport>();
+        // Nuevas entidades agregadas
         public DbSet<SystemEvent> SystemEvents { get; set; } = default!;
         public DbSet<NotificationEscalationHistory> NotificationEscalationHistory { get; set; } = default!;
+        public DbSet<PrinterTelemetry> PrinterTelemetry { get; set; } = default!;
+        public DbSet<PrinterTelemetryClean> PrinterTelemetryClean { get; set; } = default!;
+        public DbSet<MaintenancePrediction> MaintenancePredictions { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -144,34 +148,35 @@ namespace MonitorImpresoras.Infrastructure.Data
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // Configuración de NotificationEscalationHistory
-            builder.Entity<NotificationEscalationHistory>(b =>
+            // Configuración de MaintenancePrediction
+            builder.Entity<MaintenancePrediction>(b =>
             {
-                b.ToTable("NotificationEscalationHistory");
-                b.HasKey(neh => neh.Id);
+                b.ToTable("MaintenancePredictions");
+                b.HasKey(mp => mp.Id);
 
-                b.Property(neh => neh.NotificationId).IsRequired();
-                b.Property(neh => neh.EscalationLevel).IsRequired();
-                b.Property(neh => neh.Channel).IsRequired().HasMaxLength(50);
-                b.Property(neh => neh.OriginalRecipients).IsRequired();
-                b.Property(neh => neh.EscalatedRecipients).IsRequired();
-                b.Property(neh => neh.EscalationReason).IsRequired().HasMaxLength(200);
-                b.Property(neh => neh.ResponseTimeMinutes).IsRequired();
-                b.Property(neh => neh.OriginalNotificationSentAt).IsRequired();
-                b.Property(neh => neh.EscalatedAt).IsRequired();
-                b.Property(neh => neh.AcknowledgedBy).HasMaxLength(450);
-                b.Property(neh => neh.AcknowledgmentComments).HasMaxLength(1000);
-                b.Property(neh => neh.CreatedAt).IsRequired();
-                b.Property(neh => neh.CreatedBy).IsRequired().HasMaxLength(450);
-                b.Property(neh => neh.ModifiedBy).HasMaxLength(450);
+                b.Property(mp => mp.PrinterId).IsRequired();
+                b.Property(mp => mp.PredictedAt).IsRequired();
+                b.Property(mp => mp.PredictionType).IsRequired().HasMaxLength(50);
+                b.Property(mp => mp.Probability).IsRequired().HasColumnType("decimal(5,4)");
+                b.Property(mp => mp.EstimatedDate);
+                b.Property(mp => mp.DaysUntilEvent);
+                b.Property(mp => mp.Confidence).HasColumnType("decimal(5,4)");
+                b.Property(mp => mp.ModelVersion).HasMaxLength(100);
+                b.Property(mp => mp.InputData).HasColumnType("jsonb");
+                b.Property(mp => mp.FeatureImportance).HasColumnType("jsonb");
+                b.Property(mp => mp.RecommendedAction).HasMaxLength(200);
+                b.Property(mp => mp.ReviewedBy).HasMaxLength(450);
+                b.Property(mp => mp.ReviewComments).HasMaxLength(1000);
+                b.Property(mp => mp.CreatedAt).IsRequired();
+                b.Property(mp => mp.AccuracyComments).HasMaxLength(1000);
 
                 // Índices para consultas frecuentes
-                b.HasIndex(neh => neh.NotificationId);
-                b.HasIndex(neh => neh.EscalationLevel);
-                b.HasIndex(neh => neh.AcknowledgedBy);
-                b.HasIndex(neh => new { neh.NotificationId, neh.EscalationLevel });
-                b.HasIndex(neh => neh.OriginalNotificationSentAt);
-                b.HasIndex(neh => neh.EscalatedAt);
+                b.HasIndex(mp => mp.PrinterId);
+                b.HasIndex(mp => mp.PredictionType);
+                b.HasIndex(mp => mp.PredictedAt);
+                b.HasIndex(mp => mp.Probability);
+                b.HasIndex(mp => new { mp.PrinterId, mp.PredictionType });
+                b.HasIndex(mp => new { mp.PredictedAt, mp.Probability });
             });
 
             // Configuración de LoginAttempt
