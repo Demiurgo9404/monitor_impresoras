@@ -12,14 +12,20 @@ namespace MonitorImpresoras.Application.Services
     /// </summary>
     public class PredictiveMaintenanceService : IPredictiveMaintenanceService
     {
+        private readonly IModelRetrainingService _retrainingService;
+        private readonly IPredictionFeedbackRepository _feedbackRepository;
         private readonly ILogger<PredictiveMaintenanceService> _logger;
-        private readonly MLContext _mlContext;
         private ITransformer? _trainedModel;
         private string _modelPath;
 
-        public PredictiveMaintenanceService(ILogger<PredictiveMaintenanceService> logger)
+        public PredictiveMaintenanceService(
+            ILogger<PredictiveMaintenanceService> logger,
+            IModelRetrainingService retrainingService,
+            IPredictionFeedbackRepository feedbackRepository)
         {
             _logger = logger;
+            _retrainingService = retrainingService;
+            _feedbackRepository = feedbackRepository;
             _mlContext = new MLContext(seed: 0);
             _modelPath = Path.Combine(Directory.GetCurrentDirectory(), "MLModels", "MaintenancePredictionModel.zip");
         }
@@ -323,24 +329,62 @@ namespace MonitorImpresoras.Application.Services
         }
 
         /// <summary>
-        /// Guarda el modelo entrenado en disco
+        /// Procesa feedback de usuario sobre una predicción
         /// </summary>
-        private async Task SaveModelAsync()
+        public async Task<bool> ProcessFeedbackAsync(long predictionId, bool isCorrect, string? comment, string userId)
         {
             try
             {
-                var modelDirectory = Path.GetDirectoryName(_modelPath);
-                if (!Directory.Exists(modelDirectory))
-                {
-                    Directory.CreateDirectory(modelDirectory!);
-                }
+                _logger.LogInformation("Procesando feedback para predicción {PredictionId} por usuario {UserId}", predictionId, userId);
 
-                _mlContext.Model.Save(_trainedModel, null, _modelPath);
-                _logger.LogInformation("Modelo guardado en {ModelPath}", _modelPath);
+                var feedback = new PredictionFeedback(predictionId, isCorrect, userId)
+                {
+                    Comment = comment,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                // Procesar feedback con el servicio de reentrenamiento
+                await _retrainingService.ProcessFeedbackAsync(feedback);
+
+                _logger.LogInformation("Feedback procesado exitosamente para predicción {PredictionId}", predictionId);
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error guardando modelo en {ModelPath}", _modelPath);
+                _logger.LogError(ex, "Error procesando feedback para predicción {PredictionId}", predictionId);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene estadísticas avanzadas de predicciones
+        /// </summary>
+        public async Task<AdvancedPredictionStatistics> GetAdvancedStatisticsAsync(DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            try
+            {
+                return await _retrainingService.GetAdvancedStatisticsAsync(fromDate, toDate);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error obteniendo estadísticas avanzadas");
+                return new AdvancedPredictionStatistics();
+            }
+        }
+
+        /// <summary>
+        /// Realiza reentrenamiento automático del modelo
+        /// </summary>
+        public async Task<RetrainingResult> RetrainModelAsync()
+        {
+            try
+            {
+                return await _retrainingService.RetrainModelAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en reentrenamiento automático del modelo");
+                return new RetrainingResult();
             }
         }
 

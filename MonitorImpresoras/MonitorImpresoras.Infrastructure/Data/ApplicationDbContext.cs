@@ -27,6 +27,8 @@ namespace MonitorImpresoras.Infrastructure.Data
         public DbSet<PrinterTelemetry> PrinterTelemetry { get; set; } = default!;
         public DbSet<PrinterTelemetryClean> PrinterTelemetryClean { get; set; } = default!;
         public DbSet<MaintenancePrediction> MaintenancePredictions { get; set; } = default!;
+        public DbSet<PredictionFeedback> PredictionFeedback { get; set; } = default!;
+        public DbSet<PredictionTrainingData> PredictionTrainingData { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -148,35 +150,30 @@ namespace MonitorImpresoras.Infrastructure.Data
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // Configuración de MaintenancePrediction
-            builder.Entity<MaintenancePrediction>(b =>
+            // Configuración de PredictionTrainingData
+            builder.Entity<PredictionTrainingData>(b =>
             {
-                b.ToTable("MaintenancePredictions");
-                b.HasKey(mp => mp.Id);
+                b.ToTable("PredictionTrainingData");
+                b.HasKey(ptd => ptd.Id);
 
-                b.Property(mp => mp.PrinterId).IsRequired();
-                b.Property(mp => mp.PredictedAt).IsRequired();
-                b.Property(mp => mp.PredictionType).IsRequired().HasMaxLength(50);
-                b.Property(mp => mp.Probability).IsRequired().HasColumnType("decimal(5,4)");
-                b.Property(mp => mp.EstimatedDate);
-                b.Property(mp => mp.DaysUntilEvent);
-                b.Property(mp => mp.Confidence).HasColumnType("decimal(5,4)");
-                b.Property(mp => mp.ModelVersion).HasMaxLength(100);
-                b.Property(mp => mp.InputData).HasColumnType("jsonb");
-                b.Property(mp => mp.FeatureImportance).HasColumnType("jsonb");
-                b.Property(mp => mp.RecommendedAction).HasMaxLength(200);
-                b.Property(mp => mp.ReviewedBy).HasMaxLength(450);
-                b.Property(mp => mp.ReviewComments).HasMaxLength(1000);
-                b.Property(mp => mp.CreatedAt).IsRequired();
-                b.Property(mp => mp.AccuracyComments).HasMaxLength(1000);
+                b.Property(ptd => ptd.FeedbackId).IsRequired();
+                b.Property(ptd => ptd.PredictionId).IsRequired();
+                b.Property(ptd => ptd.InputData).IsRequired();
+                b.Property(ptd => ptd.OriginalProbability).IsRequired().HasColumnType("decimal(5,4)");
+                b.Property(ptd => ptd.CorrectedProbability).HasColumnType("decimal(5,4)");
+                b.Property(ptd => ptd.ActualEventDate);
+                b.Property(ptd => ptd.ActualDaysUntilEvent);
+                b.Property(ptd => ptd.PredictionType).IsRequired().HasMaxLength(50);
+                b.Property(ptd => ptd.TrainingWeight).HasColumnType("decimal(3,2)").HasDefaultValue(1.0m);
+                b.Property(ptd => ptd.CreatedAt).IsRequired();
 
                 // Índices para consultas frecuentes
-                b.HasIndex(mp => mp.PrinterId);
-                b.HasIndex(mp => mp.PredictionType);
-                b.HasIndex(mp => mp.PredictedAt);
-                b.HasIndex(mp => mp.Probability);
-                b.HasIndex(mp => new { mp.PrinterId, mp.PredictionType });
-                b.HasIndex(mp => new { mp.PredictedAt, mp.Probability });
+                b.HasIndex(ptd => ptd.FeedbackId);
+                b.HasIndex(ptd => ptd.PredictionId);
+                b.HasIndex(ptd => ptd.PredictionType);
+                b.HasIndex(ptd => ptd.IsReadyForTraining);
+                b.HasIndex(ptd => new { ptd.PredictionType, ptd.IsReadyForTraining });
+                b.HasIndex(ptd => ptd.CreatedAt);
             });
 
             // Configuración de LoginAttempt

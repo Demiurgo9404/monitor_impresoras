@@ -18,9 +18,19 @@ namespace MonitorImpresoras.Application.Interfaces
         Task<IEnumerable<MaintenancePrediction>> PredictMaintenanceAsync(int printerId, TimeSpan predictionWindow);
 
         /// <summary>
-        /// Obtiene todas las predicciones recientes
+        /// Procesa feedback de usuario sobre una predicción
         /// </summary>
-        Task<IEnumerable<MaintenancePrediction>> GetRecentPredictionsAsync(int? printerId = null, DateTime? fromDate = null);
+        Task<bool> ProcessFeedbackAsync(long predictionId, bool isCorrect, string? comment, string userId);
+
+        /// <summary>
+        /// Obtiene estadísticas avanzadas de predicciones
+        /// </summary>
+        Task<AdvancedPredictionStatistics> GetAdvancedStatisticsAsync(DateTime? fromDate = null, DateTime? toDate = null);
+
+        /// <summary>
+        /// Realiza reentrenamiento automático del modelo
+        /// </summary>
+        Task<RetrainingResult> RetrainModelAsync();
     }
 
     /// <summary>

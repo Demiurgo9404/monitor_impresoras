@@ -222,49 +222,28 @@ namespace MonitorImpresoras.API.Controllers
         }
 
         /// <summary>
-        /// Obtiene tendencias de predicciones a lo largo del tiempo
+        /// Obtiene estadísticas avanzadas de precisión del modelo ML
         /// </summary>
-        [HttpGet("trends")]
-        [Authorize(Policy = "RequireManager")]
+        [HttpGet("advanced-statistics")]
+        [Authorize(Policy = "RequireAdmin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetPredictionTrends([FromQuery] int days = 30)
+        public async Task<IActionResult> GetAdvancedStatistics(
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate)
         {
             try
             {
-                _logger.LogInformation("Obteniendo tendencias de predicciones para últimos {Days} días", days);
+                _logger.LogInformation("Obteniendo estadísticas avanzadas de predicciones");
 
-                var trends = new
-                {
-                    PeriodDays = days,
-                    PredictionTrends = new[]
-                    {
-                        new { Date = DateTime.UtcNow.AddDays(-7), Critical = 2, High = 5, Medium = 8, Low = 12 },
-                        new { Date = DateTime.UtcNow.AddDays(-6), Critical = 1, High = 4, Medium = 9, Low = 11 },
-                        new { Date = DateTime.UtcNow.AddDays(-5), Critical = 3, High = 6, Medium = 7, Low = 10 },
-                        new { Date = DateTime.UtcNow.AddDays(-4), Critical = 2, High = 5, Medium = 8, Low = 13 },
-                        new { Date = DateTime.UtcNow.AddDays(-3), Critical = 1, High = 3, Medium = 6, Low = 14 },
-                        new { Date = DateTime.UtcNow.AddDays(-2), Critical = 2, High = 4, Medium = 7, Low = 12 },
-                        new { Date = DateTime.UtcNow.AddDays(-1), Critical = 3, High = 5, Medium = 8, Low = 11 }
-                    },
-                    AccuracyTrend = new[]
-                    {
-                        new { Date = DateTime.UtcNow.AddDays(-7), Accuracy = 0.85m },
-                        new { Date = DateTime.UtcNow.AddDays(-6), Accuracy = 0.87m },
-                        new { Date = DateTime.UtcNow.AddDays(-5), Accuracy = 0.84m },
-                        new { Date = DateTime.UtcNow.AddDays(-4), Accuracy = 0.89m },
-                        new { Date = DateTime.UtcNow.AddDays(-3), Accuracy = 0.86m },
-                        new { Date = DateTime.UtcNow.AddDays(-2), Accuracy = 0.88m },
-                        new { Date = DateTime.UtcNow.AddDays(-1), Accuracy = 0.90m }
-                    }
-                };
+                var statistics = await _predictiveService.GetAdvancedStatisticsAsync(fromDate, toDate);
 
-                return Ok(trends);
+                return Ok(statistics);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error obteniendo tendencias de predicciones");
+                _logger.LogError(ex, "Error obteniendo estadísticas avanzadas");
                 throw;
             }
         }

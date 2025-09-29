@@ -12,13 +12,16 @@ namespace MonitorImpresoras.API.Services
     {
         private readonly IAlertService _alertService;
         private readonly ILogger<DailyReportJob> _logger;
+        private readonly IModelRetrainingService _retrainingService;
 
         public DailyReportJob(
             IAlertService alertService,
-            ILogger<DailyReportJob> logger)
+            ILogger<DailyReportJob> logger,
+            IModelRetrainingService retrainingService)
         {
             _alertService = alertService;
             _logger = logger;
+            _retrainingService = retrainingService;
         }
 
         public async Task Execute(IJobExecutionContext context)
@@ -177,7 +180,102 @@ namespace MonitorImpresoras.API.Services
             catch
             {
                 return false;
+        }
+    }
+
+    /// <summary>
+    /// Job para reentrenamiento automático del modelo de ML
+    /// </summary>
+    [DisallowConcurrentExecution]
+    public class ModelRetrainingJob : IJob
+    {
+        private readonly IModelRetrainingService _retrainingService;
+        private readonly ILogger<ModelRetrainingJob> _logger;
+
+        public ModelRetrainingJob(
+            IModelRetrainingService retrainingService,
+            ILogger<ModelRetrainingJob> logger)
+        {
+            _retrainingService = retrainingService;
+            _logger = logger;
+        }
+
+        public async Task Execute(IJobExecutionContext context)
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando reentrenamiento automático del modelo ML");
+
+                var result = await _retrainingService.RetrainModelAsync();
+
+                if (result.ModelUpdated)
+                {
+                    _logger.LogInformation("Modelo ML reentrenado exitosamente. Versión: {Version}, Mejora: {Improvement:P2}",
+                        result.NewModelVersion, result.ImprovementFromPrevious);
+                }
+                else
+                {
+                    _logger.LogInformation("Reentrenamiento completado sin actualización del modelo");
+                }
+
+                _logger.LogInformation("Reentrenamiento completado: {TrainingSize} datos entrenamiento, {FeedbackSize} feedback, duración: {Duration}",
+                    result.TrainingDataSize, result.FeedbackDataSize, result.Duration);
+
+                if (result.IssuesFound.Any())
+                {
+                    foreach (var issue in result.IssuesFound)
+                    {
+                        _logger.LogWarning("Problema en reentrenamiento: {Issue}", issue);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error crítico en reentrenamiento automático del modelo ML");
+                throw;
             }
         }
     }
-}
+
+    /// <summary>
+    /// Job para colección periódica de métricas de telemetría
+    /// </summary>
+    [DisallowConcurrentExecution]
+    public class TelemetryCollectionJob : IJob
+    {
+        private readonly ITelemetryCollectorService _telemetryService;
+        private readonly ITelemetryDataCleaner _dataCleaner;
+        private readonly ILogger<TelemetryCollectionJob> _logger;
+
+        public TelemetryCollectionJob(
+            ITelemetryCollectorService telemetryService,
+            ITelemetryDataCleaner dataCleaner,
+            ILogger<TelemetryCollectionJob> logger)
+        {
+            _telemetryService = telemetryService;
+            _dataCleaner = dataCleaner;
+            _logger = logger;
+        }
+
+        public async Task Execute(IJobExecutionContext context)
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando colección periódica de métricas de telemetría");
+
+                var collectionResult = await _telemetryService.CollectAllPrinterMetricsAsync();
+
+                _logger.LogInformation("Métricas recolectadas: {Successful}/{Total} impresoras exitosas en {Duration}",
+                    collectionResult.SuccessfulCollections, collectionResult.ActivePrinters, collectionResult.Duration);
+
+                _telemetryService.CleanupRecentMetrics();
+
+                _logger.LogInformation("Colección de telemetría completada exitosamente");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en colección periódica de métricas de telemetría");
+                throw;
+            }
+        }
+    }
