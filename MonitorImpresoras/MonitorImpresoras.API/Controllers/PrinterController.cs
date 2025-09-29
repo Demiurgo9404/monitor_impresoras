@@ -8,7 +8,8 @@ using MonitorImpresoras.Domain.Entities;
 namespace MonitorImpresoras.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     [Authorize]  // Requiere autenticación para todos los endpoints
     public class PrinterController : ControllerBase
     {

@@ -136,112 +136,39 @@ builder.Services.AddSwaggerGen(c =>
                     Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
-            },
-            Array.Empty<string>()
-        }
-    });
 });
 
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using MonitorImpresoras.Infrastructure.Data;
-using MonitorImpresoras.Domain.Entities;
-using MonitorImpresoras.API.Filters;
-using MonitorImpresoras.Application.Interfaces;
-using MonitorImpresoras.Infrastructure.Services;
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Configuración de Identity
-builder.Services.AddIdentity<User, Role>(options =>
+builder.Services.AddVersionedApiExplorer(options =>
 {
-    options.Password.RequireDigit = false;
-    options.Password.RequiredLength = 6;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireLowercase = false;
-    options.User.RequireUniqueEmail = true;
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
-
-// Configuración de JWT
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]
-    ?? throw new InvalidOperationException("JWT Key no configurada"));
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidateAudience = true,
-        ValidAudience = jwtSettings["Audience"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
-
-// Configuración de políticas de autorización
-builder.Services.AddAuthorization(options =>
-{
-    // Política para administradores
-    options.AddPolicy("RequireAdmin", policy =>
-        policy.RequireRole("Admin"));
-
-    // Política para gestión de impresoras
-    options.AddPolicy("PrinterManager", policy =>
-        policy.RequireClaim("ManagePrinters", "true"));
-
-    // Política para usuarios activos
-    options.AddPolicy("ActiveUser", policy =>
-        policy.RequireClaim("IsActive", "true"));
-
-    // Política para lectura de impresoras (Admin o usuarios con permiso)
-    options.AddPolicy("CanReadPrinters", policy =>
-        policy.RequireAssertion(context =>
-            context.User.IsInRole("Admin") ||
-            context.User.HasClaim("ManagePrinters", "true") ||
-            context.User.HasClaim("ReadPrinters", "true")));
-
-    // Política para escritura de impresoras (solo Admin o usuarios con permiso específico)
-    options.AddPolicy("CanWritePrinters", policy =>
-        policy.RequireAssertion(context =>
-            context.User.IsInRole("Admin") ||
-            context.User.HasClaim("ManagePrinters", "true")));
-});
-
-// Configuración de CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
 });
 
 // Configuración de Swagger con autenticación JWT
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "MonitorImpresoras API", Version = "v1" });
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Version = "v1",
+        Title = "Monitor Impresoras API",
+        Description = "API completa para el monitoreo, gestión y auditoría de impresoras con autenticación JWT y autorización basada en roles.",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "Equipo MonitorImpresoras",
+            Email = "soporte@monitorimpresoras.com",
+            Url = new Uri("https://monitorimpresoras.com")
+        },
+        License = new Microsoft.OpenApi.Models.OpenApiLicense
+        {
+            Name = "MIT",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
 
     // Configuración para autenticación JWT en Swagger
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header usando el esquema Bearer",
+        Description = "JWT Authorization header usando el esquema Bearer. Ejemplo: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
@@ -263,6 +190,18 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+
+    // Incluir comentarios XML para documentación detallada
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
+
+    // Configurar ejemplos para los DTOs
+    c.UseInlineDefinitionsForEnums();
+    c.EnableAnnotations();
 });
 
 // Configuración de controladores
@@ -274,6 +213,7 @@ builder.Services.AddControllers(options =>
 // Registro de servicios
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPrinterRepository, PrinterRepository>();
 builder.Services.AddScoped<IPrinterService, PrinterService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
@@ -299,7 +239,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "MonitorImpresoras API V1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Monitor Impresoras API V1");
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        c.DefaultModelsExpandDepth(-1); // Ocultar modelos por defecto
         c.OAuthClientId("swagger-ui");
         c.OAuthClientSecret("swagger-ui-secret");
         c.OAuthUsePkce();

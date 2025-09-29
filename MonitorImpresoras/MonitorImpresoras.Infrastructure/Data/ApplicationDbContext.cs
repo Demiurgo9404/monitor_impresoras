@@ -4,63 +4,48 @@ using Microsoft.EntityFrameworkCore;
 using MonitorImpresoras.Domain.Entities;
 using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MonitorImpresoras.Infrastructure.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<User, Role, string, IdentityUserClaim<string>,
-        UserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
+    public class ApplicationDbContext : IdentityDbContext<User, Role, string>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options) { }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {
+        }
 
         // Entidades de dominio
-        public DbSet<LoginAttempt> LoginAttempts => Set<LoginAttempt>();
-        public DbSet<PrintJob> PrintJobs => Set<PrintJob>();
         public DbSet<Printer> Printers => Set<Printer>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            // Configuración de User
-            builder.Entity<User>(b =>
+            // Configuración de RefreshToken
+            builder.Entity<RefreshToken>(b =>
             {
-                b.ToTable("Users");
-                b.HasIndex(u => u.UserName).IsUnique();
-                b.HasIndex(u => u.Email).IsUnique();
-                b.HasIndex(u => u.NormalizedUserName).IsUnique();
-                b.HasIndex(u => u.NormalizedEmail).IsUnique();
-                b.Property(u => u.FirstName).IsRequired().HasMaxLength(100);
-                b.Property(u => u.LastName).IsRequired().HasMaxLength(100);
-                b.Property(u => u.RefreshToken).HasMaxLength(500);
-            });
+                b.ToTable("RefreshTokens");
+                b.HasKey(rt => rt.Id);
 
-            // Configuración de Role
-            builder.Entity<Role>(b =>
-            {
-                b.ToTable("Roles");
-                b.HasIndex(r => r.NormalizedName).IsUnique();
-                b.Property(r => r.Description).HasMaxLength(500);
-            });
+                b.Property(rt => rt.Token).IsRequired().HasMaxLength(100);
+                b.Property(rt => rt.UserId).IsRequired().HasMaxLength(450);
+                b.Property(rt => rt.ExpiresAtUtc).IsRequired();
+                b.Property(rt => rt.CreatedAtUtc).IsRequired();
+                b.Property(rt => rt.CreatedByIp).HasMaxLength(45);
+                b.Property(rt => rt.RevokedByIp).HasMaxLength(45);
+                b.Property(rt => rt.ReplacedByToken).HasMaxLength(100);
 
-            // Configuración de UserRole
-            builder.Entity<UserRole>(b =>
-            {
-                b.ToTable("UserRoles");
-                b.HasKey(ur => new { ur.UserId, ur.RoleId });
+                // Índices para búsquedas rápidas
+                b.HasIndex(rt => rt.Token).IsUnique();
+                b.HasIndex(rt => new { rt.UserId, rt.IsActive })
+                    .HasFilter("\"Revoked\" = false AND \"ExpiresAtUtc\" > NOW()");
 
-                b.HasOne(ur => ur.User)
-                    .WithMany(u => u.UserRoles)
-                    .HasForeignKey(ur => ur.UserId)
-                    .IsRequired();
-
-                b.HasOne(ur => ur.Role)
-                    .WithMany(r => r.UserRoles)
-                    .HasForeignKey(ur => ur.RoleId)
-                    .IsRequired();
+                // Relación con User
+                b.HasOne(rt => rt.User)
+                    .WithMany()
+                    .HasForeignKey(rt => rt.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Configuración de LoginAttempt
