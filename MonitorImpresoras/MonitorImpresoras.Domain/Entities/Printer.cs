@@ -13,6 +13,12 @@ namespace MonitorImpresoras.Domain.Entities
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
+        /// <summary>
+        /// ID del tenant al que pertenece esta impresora
+        /// </summary>
+        [Required]
+        public int TenantId { get; set; } = 1;
+
         [Required]
         [MaxLength(100)]
         public string Model { get; set; } = string.Empty;
