@@ -284,40 +284,172 @@ namespace MonitorImpresoras.API.Controllers
             }
         }
 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using MonitorImpresoras.Application.DTOs;
+using MonitorImpresoras.Application.Interfaces;
+using MonitorImpresoras.Domain.Constants;
+using System.Security.Claims;
+
+namespace MonitorImpresoras.API.Controllers
+{
+    [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
+    [Authorize]
+    public class UsersController : ControllerBase
+    {
+        private readonly IUserService _userService;
+        private readonly IPermissionService _permissionService;
+        private readonly ILogger<UsersController> _logger;
+
+        public UsersController(IUserService userService, IPermissionService permissionService, ILogger<UsersController> logger)
+        {
+            _userService = userService;
+            _permissionService = permissionService;
+            _logger = logger;
+        }
+
         /// <summary>
-        /// Actualiza el perfil del usuario autenticado
+        /// Obtiene claims de un usuario específico (solo admin)
         /// </summary>
-        /// <param name="request">Datos del perfil a actualizar</param>
-        /// <returns>Resultado de la operación</returns>
-        [HttpPut("profile")]
+        /// <param name="id">ID del usuario</param>
+        /// <returns>Lista de claims del usuario</returns>
+        [HttpGet("{id}/claims")]
+        [Authorize(Policy = "RequireAdmin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto request)
+        public async Task<IActionResult> GetUserClaims(string id)
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+                _logger.LogInformation("Obteniendo claims del usuario: {UserId}", id);
 
-                _logger.LogInformation("Actualizando perfil del usuario: {UserId}", userId);
+                var claims = await _permissionService.GetUserClaimsAsync(id);
 
-                var result = await _userService.UpdateUserProfileAsync(userId, request, userId);
-
-                if (!result)
-                {
-                    return BadRequest(new { errorCode = ErrorCodes.ValidationFailed, message = "No se pudo actualizar el perfil" });
-                }
-
-                return Ok(new { success = true, message = "Perfil actualizado exitosamente" });
+                return Ok(claims);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al actualizar perfil del usuario");
+                _logger.LogError(ex, "Error al obtener claims del usuario: {UserId}", id);
                 throw;
             }
         }
-    }
+
+        /// <summary>
+        /// Asigna un claim a un usuario (solo admin)
+        /// </summary>
+        /// <param name="id">ID del usuario</param>
+        /// <param name="request">Datos del claim a asignar</param>
+        /// <returns>Resultado de la operación</returns>
+        [HttpPost("{id}/claims")]
+        [Authorize(Policy = "RequireAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AssignClaim(string id, [FromBody] AssignClaimDto request)
+        {
+            try
+            {
+                var performedByUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+
+                _logger.LogInformation("Asignando claim {ClaimType} al usuario {UserId} por {PerformedByUserId}",
+                    request.ClaimType, id, performedByUserId);
+
+                var result = await _permissionService.AssignClaimToUserAsync(
+                    id,
+                    request.ClaimType,
+                    request.ClaimValue,
+                    request.Description,
+                    request.Category,
+                    request.ExpiresAtUtc,
+                    performedByUserId);
+
+                if (!result)
+                {
+                    return BadRequest(new { errorCode = ErrorCodes.ValidationFailed, message = "No se pudo asignar el claim" });
+                }
+
+                return Ok(new { success = true, message = "Claim asignado exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al asignar claim al usuario: {UserId}", id);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Revoca un claim de un usuario (solo admin)
+        /// </summary>
+        /// <param name="id">ID del usuario</param>
+        /// <param name="claimType">Tipo de claim a revocar</param>
+        /// <returns>Resultado de la operación</returns>
+        [HttpDelete("{id}/claims/{claimType}")]
+        [Authorize(Policy = "RequireAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> RevokeClaim(string id, string claimType)
+        {
+            try
+            {
+                var performedByUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+
+                _logger.LogInformation("Revocando claim {ClaimType} del usuario {UserId} por {PerformedByUserId}",
+                    claimType, id, performedByUserId);
+
+                var result = await _permissionService.RevokeClaimFromUserAsync(id, claimType, performedByUserId);
+
+                if (!result)
+                {
+                    return BadRequest(new { errorCode = ErrorCodes.ValidationFailed, message = "No se pudo revocar el claim" });
+                }
+
+                return Ok(new { success = true, message = "Claim revocado exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al revocar claim del usuario: {UserId}", id);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene lista de claims disponibles en el sistema (solo admin)
+        /// </summary>
+        /// <returns>Lista de claims disponibles</returns>
+        [HttpGet("claims/available")]
+        [Authorize(Policy = "RequireAdmin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAvailableClaims()
+        {
+            try
+            {
+                _logger.LogInformation("Obteniendo claims disponibles");
+
+                var claims = await _permissionService.GetAvailableClaimsAsync();
+
+                return Ok(claims);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener claims disponibles");
+                throw;
+            }
+        }
 
     // DTOs auxiliares para las peticiones
     public class AssignRoleDto

@@ -17,6 +17,7 @@ namespace MonitorImpresoras.Infrastructure.Data
         public DbSet<Printer> Printers => Set<Printer>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public DbSet<UserClaim> UserClaims => Set<UserClaim>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -42,9 +43,33 @@ namespace MonitorImpresoras.Infrastructure.Data
                     .HasFilter("\"Revoked\" = false AND \"ExpiresAtUtc\" > NOW()");
 
                 // Relación con User
-                b.HasOne(rt => rt.User)
+            // Configuración de UserClaim
+            builder.Entity<UserClaim>(b =>
+            {
+                b.ToTable("UserClaims");
+                b.HasKey(uc => uc.Id);
+
+                b.Property(uc => uc.ClaimType).IsRequired().HasMaxLength(200);
+                b.Property(uc => uc.ClaimValue).IsRequired().HasMaxLength(200);
+                b.Property(uc => uc.Description).HasMaxLength(500);
+                b.Property(uc => uc.Category).HasMaxLength(100);
+                b.Property(uc => uc.CreatedAtUtc).IsRequired();
+                b.Property(uc => uc.UpdatedAtUtc);
+                b.Property(uc => uc.ExpiresAtUtc);
+                b.Property(uc => uc.CreatedByUserId).HasMaxLength(450);
+                b.Property(uc => uc.UpdatedByUserId).HasMaxLength(450);
+
+                // Índices para búsquedas rápidas
+                b.HasIndex(uc => new { uc.UserId, uc.ClaimType }).IsUnique();
+                b.HasIndex(uc => uc.ClaimType);
+                b.HasIndex(uc => uc.Category);
+                b.HasIndex(uc => uc.IsActive);
+                b.HasIndex(uc => uc.ExpiresAtUtc);
+
+                // Relación con User
+                b.HasOne(uc => uc.User)
                     .WithMany()
-                    .HasForeignKey(rt => rt.UserId)
+                    .HasForeignKey(uc => uc.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 

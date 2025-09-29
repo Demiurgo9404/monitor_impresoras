@@ -70,20 +70,22 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configuración de políticas de autorización
+// Configuración de autorización
 builder.Services.AddAuthorization(options =>
 {
-    // Política para administradores
-    options.AddPolicy("RequireAdmin", policy =>
-        policy.RequireRole("Admin"));
+    // Políticas basadas en roles
+    options.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RequireManager", policy => policy.RequireRole("Admin", "Manager"));
+    options.AddPolicy("RequireUser", policy => policy.RequireRole("Admin", "Manager", "User"));
 
-    // Política para gestión de impresoras
-    options.AddPolicy("PrinterManager", policy =>
-        policy.RequireClaim("ManagePrinters", "true"));
+    // Políticas basadas en claims
+    options.AddPolicy("CanManagePrinters", policy => policy.RequireClaim("printers.manage", "true"));
+    options.AddPolicy("CanViewReports", policy => policy.RequireClaim("reports.view", "true"));
+    options.AddPolicy("CanManageUsers", policy => policy.RequireClaim("users.manage", "true"));
+    options.AddPolicy("CanViewAuditLogs", policy => policy.RequireClaim("audit.view", "true"));
 
     // Política para usuarios activos
-    options.AddPolicy("ActiveUser", policy =>
-        policy.RequireClaim("IsActive", "true"));
+    options.AddPolicy("ActiveUser", policy => policy.RequireClaim("IsActive", "true"));
 
     // Política para lectura de impresoras (Admin o usuarios con permiso)
     options.AddPolicy("CanReadPrinters", policy =>
@@ -98,6 +100,10 @@ builder.Services.AddAuthorization(options =>
             context.User.IsInRole("Admin") ||
             context.User.HasClaim("ManagePrinters", "true")));
 });
+
+// Configuración de autorización personalizada
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 // Configuración de CORS
 builder.Services.AddCors(options =>
@@ -214,6 +220,7 @@ builder.Services.AddControllers(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IPrinterRepository, PrinterRepository>();
 builder.Services.AddScoped<IPrinterService, PrinterService>();
 builder.Services.AddScoped<IAuditService, AuditService>();

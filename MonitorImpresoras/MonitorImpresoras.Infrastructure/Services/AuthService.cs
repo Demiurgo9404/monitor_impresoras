@@ -65,7 +65,7 @@ namespace MonitorImpresoras.Infrastructure.Services
             }
 
             var roles = await _userManager.GetRolesAsync(user);
-            var accessToken = _tokenService.GenerateAccessToken(user, roles);
+            var accessToken = await _tokenService.GenerateAccessTokenAsync(user, roles);
             var refreshToken = _tokenService.GenerateRefreshToken();
 
             var refresh = new RefreshToken
@@ -130,7 +130,7 @@ namespace MonitorImpresoras.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             var roles = await _userManager.GetRolesAsync(user);
-            var accessToken = _tokenService.GenerateAccessToken(user, roles);
+            var accessToken = await _tokenService.GenerateAccessTokenAsync(user, roles);
 
             _logger.LogInformation("Refresh token renovado para userId {UserId} desde IP {Ip}", user.Id, ipAddress);
 
