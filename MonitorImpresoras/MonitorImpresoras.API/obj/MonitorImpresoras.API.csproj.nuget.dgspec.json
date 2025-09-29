@@ -112,6 +112,10 @@
               "target": "Package",
               "version": "[6.5.0, )"
             },
+            "Twilio": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
             "prometheus-net.AspNetCore": {
               "target": "Package",
               "version": "[8.2.1, )"

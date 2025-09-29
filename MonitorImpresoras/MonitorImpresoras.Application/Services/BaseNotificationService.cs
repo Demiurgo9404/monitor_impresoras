@@ -25,7 +25,7 @@ namespace MonitorImpresoras.Application.Services
             _auditService = auditService;
         }
 
-        public virtual async Task<NotificationResponseDto> SendCriticalAsync(string title, string message, List<string>? recipients = null)
+        public virtual async Task<NotificationResponseDto> SendCriticalAsync(string title, string message, List<string>? recipients = null, Dictionary<string, object>? metadata = null)
         {
             var request = new NotificationRequestDto
             {
@@ -35,7 +35,7 @@ namespace MonitorImpresoras.Application.Services
                 Recipients = recipients ?? GetDefaultRecipients(),
                 Channels = GetEnabledChannels(),
                 RequireAcknowledgment = true,
-                Metadata = new Dictionary<string, object>
+                Metadata = metadata ?? new Dictionary<string, object>
                 {
                     { "AlertType", "Critical" },
                     { "Timestamp", DateTime.UtcNow }
@@ -218,6 +218,9 @@ namespace MonitorImpresoras.Application.Services
 
             if (bool.Parse(_configuration["Notifications:Teams:Enabled"] ?? "false"))
                 enabledChannels.Add(NotificationChannel.Teams);
+
+            if (bool.Parse(_configuration["Notifications:WhatsApp:Enabled"] ?? "false"))
+                enabledChannels.Add(NotificationChannel.WhatsApp);
 
             return enabledChannels;
         }

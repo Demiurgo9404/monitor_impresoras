@@ -327,16 +327,25 @@ namespace MonitorImpresoras.Application.Services
         {
             try
             {
+                var metadata = new Dictionary<string, object>
+                {
+                    { "PrinterId", alert.Metadata?.GetValueOrDefault("PrinterId", "N/A") ?? "N/A" },
+                    { "PrinterName", alert.Metadata?.GetValueOrDefault("PrinterName", "N/A") ?? "N/A" },
+                    { "Location", alert.Metadata?.GetValueOrDefault("Location", "N/A") ?? "N/A" },
+                    { "OriginalMessage", alert.Message },
+                    { "AlertType", alert.Type.ToString() }
+                };
+
                 switch (alert.Type)
                 {
                     case AlertType.Critical:
-                        await _notificationService.SendCriticalAsync(alert.Title, alert.Message);
+                        await _notificationService.SendCriticalAsync(alert.Title, alert.Message, metadata: metadata);
                         break;
                     case AlertType.Warning:
-                        await _notificationService.SendWarningAsync(alert.Title, alert.Message);
+                        await _notificationService.SendWarningAsync(alert.Title, alert.Message, metadata: metadata);
                         break;
                     case AlertType.Info:
-                        await _notificationService.SendInfoAsync(alert.Title, alert.Message);
+                        await _notificationService.SendInfoAsync(alert.Title, alert.Message, metadata: metadata);
                         break;
                 }
 
