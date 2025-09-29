@@ -18,6 +18,9 @@ namespace MonitorImpresoras.Infrastructure.Data
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<UserClaim> UserClaims => Set<UserClaim>();
+        public DbSet<ReportTemplate> ReportTemplates => Set<ReportTemplate>();
+        public DbSet<ReportExecution> ReportExecutions => Set<ReportExecution>();
+        public DbSet<ScheduledReport> ScheduledReports => Set<ScheduledReport>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -67,10 +70,35 @@ namespace MonitorImpresoras.Infrastructure.Data
                 b.HasIndex(uc => uc.ExpiresAtUtc);
 
                 // Relación con User
-                b.HasOne(uc => uc.User)
-                    .WithMany()
-                    .HasForeignKey(uc => uc.UserId)
+            // Configuración de ScheduledReport
+            builder.Entity<ScheduledReport>(b =>
+            {
+                b.ToTable("ScheduledReports");
+                b.HasKey(sr => sr.Id);
+
+                b.Property(sr => sr.Name).IsRequired().HasMaxLength(200);
+                b.Property(sr => sr.Description).HasMaxLength(500);
+                b.Property(sr => sr.CronExpression).IsRequired().HasMaxLength(100);
+                b.Property(sr => sr.Format).IsRequired().HasMaxLength(20);
+                b.Property(sr => sr.Recipients).HasMaxLength(1000);
+                b.Property(sr => sr.FixedParameters).HasColumnType("jsonb");
+
+                // Índices para búsquedas rápidas
+                b.HasIndex(sr => sr.ReportTemplateId);
+                b.HasIndex(sr => sr.CreatedByUserId);
+                b.HasIndex(sr => sr.IsActive);
+                b.HasIndex(sr => sr.NextExecutionUtc);
+
+                // Relaciones
+                b.HasOne(sr => sr.ReportTemplate)
+                    .WithMany(rt => rt.ScheduledReports)
+                    .HasForeignKey(sr => sr.ReportTemplateId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                b.HasOne(sr => sr.CreatedByUser)
+                    .WithMany()
+                    .HasForeignKey(sr => sr.CreatedByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Configuración de LoginAttempt
