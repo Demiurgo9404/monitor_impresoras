@@ -18,60 +18,28 @@ namespace MonitorImpresoras.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<ReportTemplate>> GetAvailableReportTemplatesAsync(string userId)
-        {
-            // Obtener claims del usuario
-            var userClaims = await _context.UserClaims
-                .Where(uc => uc.UserId == userId && uc.IsValid)
-                .Select(uc => uc.ClaimType)
-                .ToListAsync();
+        public async Task<IEnumerable<ReportTemplate>> GetAvailableReportTemplatesAsync(string userId) => await _context.ReportTemplates.AsNoTracking()
+            .Include(rt => rt.CreatedByUser)
+            .Where(rt => rt.IsActive && (
+                rt.RequiredClaim == null ||
+                _context.UserClaims.AsNoTracking().Where(uc => uc.UserId == userId && uc.IsValid).Select(uc => uc.ClaimType).Contains(rt.RequiredClaim) ||
+                _context.UserRoles.AsNoTracking().Where(ur => ur.UserId == userId).Join(_context.Roles.AsNoTracking(), ur => ur.RoleId, r => r.Id, (ur, r) => r.Name).Contains("Admin")
+            ))
+            .OrderBy(rt => rt.Category)
+            .ThenBy(rt => rt.Name)
+            .ToListAsync();
 
-            // Incluir claims basados en roles (Admin tiene todos los permisos)
-            var userRoles = await _context.UserRoles
-                .Where(ur => ur.UserId == userId)
-                .Select(ur => ur.RoleId)
-                .ToListAsync();
+        public async Task<ReportTemplate?> GetReportTemplateByIdAsync(int templateId) => await _context.ReportTemplates.AsNoTracking()
+            .Include(rt => rt.CreatedByUser)
+            .FirstOrDefaultAsync(rt => rt.Id == templateId);
 
-            var roleNames = await _context.Roles
-                .Where(r => userRoles.Contains(r.Id))
-                .Select(r => r.Name)
-                .ToListAsync();
-
-            var isAdmin = roleNames.Contains("Admin");
-
-            var templates = await _context.ReportTemplates
-                .Include(rt => rt.CreatedByUser)
-                .Where(rt => rt.IsActive && (
-                    rt.RequiredClaim == null ||
-                    userClaims.Contains(rt.RequiredClaim) ||
-                    isAdmin
-                ))
-                .OrderBy(rt => rt.Category)
-                .ThenBy(rt => rt.Name)
-                .ToListAsync();
-
-            return templates;
-        }
-
-        public async Task<ReportTemplate?> GetReportTemplateByIdAsync(int templateId)
-        {
-            return await _context.ReportTemplates
-                .Include(rt => rt.CreatedByUser)
-                .FirstOrDefaultAsync(rt => rt.Id == templateId);
-        }
-
-        public async Task<IEnumerable<ReportExecution>> GetUserReportExecutionsAsync(string userId, int page, int pageSize)
-        {
-            var executions = await _context.ReportExecutions
-                .Include(re => re.ReportTemplate)
-                .Where(re => re.ExecutedByUserId == userId)
-                .OrderByDescending(re => re.StartedAtUtc)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return executions;
-        }
+        public async Task<IEnumerable<ReportExecution>> GetUserReportExecutionsAsync(string userId, int page, int pageSize) => await _context.ReportExecutions.AsNoTracking()
+            .Include(re => re.ReportTemplate)
+            .Where(re => re.ExecutedByUserId == userId)
+            .OrderByDescending(re => re.StartedAtUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         public async Task<ReportExecution?> GetReportExecutionByIdAsync(int executionId)
         {
@@ -95,8 +63,20 @@ namespace MonitorImpresoras.Infrastructure.Repositories
 
         public async Task<ReportStatisticsDto> GetReportStatisticsAsync(string userId)
         {
-            var executions = await _context.ReportExecutions
+            var executions = await _context.ReportExecutions.AsNoTracking()
                 .Where(re => re.ExecutedByUserId == userId)
+                .Select(re => new
+                {
+                    re.Status,
+                    re.ExecutionTimeSeconds,
+                    re.FileSize,
+                    re.StartedAtUtc,
+                    re.Format,
+                    TemplateCategory = _context.ReportTemplates.AsNoTracking()
+                        .Where(rt => rt.Id == re.ReportTemplateId)
+                        .Select(rt => rt.Category)
+                        .FirstOrDefault() ?? "Unknown"
+                })
                 .ToListAsync();
 
             var totalExecutions = executions.Count;
@@ -115,11 +95,7 @@ namespace MonitorImpresoras.Infrastructure.Repositories
                 .ToDictionary(g => g.Key, g => g.Count());
 
             var executionsByCategory = executions
-                .Join(_context.ReportTemplates,
-                      re => re.ReportTemplateId,
-                      rt => rt.Id,
-                      (re, rt) => new { re, rt })
-                .GroupBy(x => x.rt.Category)
+                .GroupBy(e => e.TemplateCategory)
                 .ToDictionary(g => g.Key, g => g.Count());
 
             return new ReportStatisticsDto
@@ -137,7 +113,7 @@ namespace MonitorImpresoras.Infrastructure.Repositories
 
         public async Task<IEnumerable<object>> GetPrinterReportDataAsync(ReportFilterDto? filters = null)
         {
-            var query = _context.Printers.AsQueryable();
+            var query = _context.Printers.AsNoTracking().AsQueryable();
 
             if (filters?.DateFrom.HasValue == true)
             {
@@ -193,7 +169,7 @@ namespace MonitorImpresoras.Infrastructure.Repositories
 
         public async Task<IEnumerable<object>> GetUserReportDataAsync(ReportFilterDto? filters = null)
         {
-            var query = _context.Users.AsQueryable();
+            var query = _context.Users.AsNoTracking().AsQueryable();
 
             if (filters?.DateFrom.HasValue == true)
             {
