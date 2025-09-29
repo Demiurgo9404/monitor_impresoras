@@ -1,64 +1,203 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System;
-using System.Threading.Tasks;
+using MonitorImpresoras.Application.Interfaces;
 
 namespace MonitorImpresoras.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class HealthController : ControllerBase
     {
+        private readonly IHealthCheckService _healthCheckService;
         private readonly ILogger<HealthController> _logger;
 
-        public HealthController(ILogger<HealthController> logger)
+        public HealthController(
+            IHealthCheckService healthCheckService,
+            ILogger<HealthController> logger)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _healthCheckService = healthCheckService;
+            _logger = logger;
         }
 
         /// <summary>
-        /// Verifica el estado de salud de la API
+        /// Health check básico - accesible públicamente para load balancers
         /// </summary>
+        /// <returns>Estado básico de la aplicación</returns>
         [HttpGet]
-        public IActionResult Get()
+        [AllowAnonymous] // Público para load balancers y monitoreo externo
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetBasicHealth()
         {
             try
             {
-                var response = new
-                {
-                    status = "Healthy",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    checks = new[]
-                    {
-                        new
-                        {
-                            name = "API",
-                            status = "Healthy",
-                            description = "La API está en funcionamiento"
-                        }
-                    }
-                };
-                
-                _logger.LogInformation("Solicitud de verificación de salud exitosa");
-                return Ok(response);
+                var health = await _healthCheckService.GetBasicHealthAsync();
+
+                var statusCode = health.Status == "Healthy" ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
+
+                return StatusCode(statusCode, health);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al verificar el estado de salud de la API");
-                
-                var errorResponse = new
+                _logger.LogError(ex, "Error en health check básico");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
                 {
-                    status = "Unhealthy",
-                    timestamp = DateTime.UtcNow.ToString("o"),
-                    error = new
+                    Status = "Unhealthy",
+                    Error = ex.Message,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Health check extendido con detalles de componentes
+        /// </summary>
+        /// <returns>Estado detallado de todos los componentes</returns>
+        [HttpGet("extended")]
+        [AllowAnonymous] // Público pero con más detalles para debugging
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetExtendedHealth()
+        {
+            try
+            {
+                var health = await _healthCheckService.GetExtendedHealthAsync();
+
+                var statusCode = health.Status == "Healthy" ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
+
+                return StatusCode(statusCode, health);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en health check extendido");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    Status = "Unhealthy",
+                    Error = ex.Message,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Health check seguro con información sensible (solo para administradores)
+        /// </summary>
+        /// <returns>Estado completo incluyendo configuración</returns>
+        [HttpGet("secure")]
+        [Authorize(Policy = "RequireAdmin")] // Solo administradores
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetSecureHealth()
+        {
+            try
+            {
+                var health = await _healthCheckService.GetExtendedHealthAsync();
+
+                // Agregar información sensible solo para administradores
+                var secureHealth = new
+                {
+                    Status = health.Status,
+                    Checks = health.Checks,
+                    TotalDuration = health.TotalDuration,
+                    Database = new
                     {
-                        message = "Error al verificar el estado de salud de la API",
-                        details = ex.Message
+                        Status = health.Database?.Status,
+                        ConnectionCount = health.Database?.ConnectionCount,
+                        QueryTime = health.Database?.QueryTime,
+                        // No incluir ConnectionString en respuesta segura
+                        TableRecordCounts = health.Database?.TableRecordCounts
+                    },
+                    ScheduledReports = health.ScheduledReports,
+                    System = health.System,
+                    Metrics = health.Metrics,
+                    Environment = new
+                    {
+                        ApplicationName = "MonitorImpresoras",
+                        Version = typeof(HealthController).Assembly.GetName().Version?.ToString() ?? "1.0.0",
+                        EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production",
+                        MachineName = Environment.MachineName,
+                        OSVersion = Environment.OSVersion.VersionString,
+                        ProcessorCount = Environment.ProcessorCount,
+                        Is64BitOperatingSystem = Environment.Is64BitOperatingSystem,
+                        SystemPageSize = Environment.SystemPageSize,
+                        WorkingSet = Environment.WorkingSet
                     }
                 };
-                
-                return StatusCode(500, errorResponse);
+
+                var statusCode = health.Status == "Healthy" ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
+
+                return StatusCode(statusCode, secureHealth);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en health check seguro");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    Status = "Unhealthy",
+                    Error = ex.Message,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Health check específico para readiness (Kubernetes)
+        /// </summary>
+        [HttpGet("ready")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetReadiness()
+        {
+            try
+            {
+                // Para readiness, solo verificamos componentes críticos
+                var health = await _healthCheckService.GetBasicHealthAsync();
+
+                var statusCode = health.Status == "Healthy" ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
+
+                return StatusCode(statusCode, new
+                {
+                    Status = health.Status,
+                    Timestamp = DateTime.UtcNow,
+                    Checks = new
+                    {
+                        Application = health.Checks["Application"],
+                        Database = "Ready" // Simplified for readiness probe
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en readiness check");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    Status = "NotReady",
+                    Error = ex.Message,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        /// <summary>
+        /// Health check específico para liveness (Kubernetes)
+        /// </summary>
+        [HttpGet("live")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetLiveness()
+        {
+            // Para liveness, solo verificamos que la aplicación responde
+            return Ok(new
+            {
+                Status = "Alive",
+                Timestamp = DateTime.UtcNow,
+                Application = "MonitorImpresoras",
+                Version = typeof(HealthController).Assembly.GetName().Version?.ToString() ?? "1.0.0"
+            });
         }
     }
 }

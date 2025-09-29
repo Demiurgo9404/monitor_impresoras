@@ -15,17 +15,23 @@ namespace MonitorImpresoras.Application.Services
         private readonly ApplicationDbContext _context;
         private readonly IReportRepository _reportRepository;
         private readonly IPermissionService _permissionService;
+        private readonly PdfExportService _pdfExportService;
+        private readonly ExcelExportService _excelExportService;
         private readonly ILogger<ReportService> _logger;
 
         public ReportService(
             ApplicationDbContext context,
             IReportRepository reportRepository,
             IPermissionService permissionService,
+            PdfExportService pdfExportService,
+            ExcelExportService excelExportService,
             ILogger<ReportService> logger)
         {
             _context = context;
             _reportRepository = reportRepository;
             _permissionService = permissionService;
+            _pdfExportService = pdfExportService;
+            _excelExportService = excelExportService;
             _logger = logger;
         }
 
@@ -305,6 +311,45 @@ namespace MonitorImpresoras.Application.Services
                     contentType = "text/csv";
                     break;
 
+                case "pdf":
+                    var user = await _context.Users.FindAsync(execution.ExecutedByUserId);
+                    var userName = user?.UserName ?? "Sistema";
+                    var parameters = JsonSerializer.Deserialize<Dictionary<string, object>>(execution.Parameters ?? "{}");
+
+                    content = execution.ReportTemplate.EntityType switch
+                    {
+                        "Printer" => await _pdfExportService.GeneratePrinterPdfAsync(data, userName, parameters),
+                        "User" => await _pdfExportService.GenerateUserPdfAsync(data, userName, parameters),
+                        "AuditLog" => await _pdfExportService.GenerateAuditPdfAsync(data, userName, parameters),
+                        "UserClaim" => await _pdfExportService.GeneratePermissionsPdfAsync(data, userName, parameters),
+                        _ => await _pdfExportService.GeneratePdfAsync(
+                            execution.ReportTemplate.Name,
+                            execution.ReportTemplate.Description ?? "Reporte generado automáticamente",
+                            data, userName, parameters)
+                    };
+                    contentType = "application/pdf";
+                    break;
+
+                case "excel":
+                case "xlsx":
+                    var userExcel = await _context.Users.FindAsync(execution.ExecutedByUserId);
+                    var userNameExcel = userExcel?.UserName ?? "Sistema";
+                    var parametersExcel = JsonSerializer.Deserialize<Dictionary<string, object>>(execution.Parameters ?? "{}");
+
+                    content = execution.ReportTemplate.EntityType switch
+                    {
+                        "Printer" => await _excelExportService.GeneratePrinterExcelAsync(data, userNameExcel, parametersExcel),
+                        "User" => await _excelExportService.GenerateUserExcelAsync(data, userNameExcel, parametersExcel),
+                        "AuditLog" => await _excelExportService.GenerateAuditExcelAsync(data, userNameExcel, parametersExcel),
+                        "UserClaim" => await _excelExportService.GeneratePermissionsExcelAsync(data, userNameExcel, parametersExcel),
+                        _ => await _excelExportService.GenerateExcelAsync(
+                            execution.ReportTemplate.Name,
+                            execution.ReportTemplate.Description ?? "Reporte generado automáticamente",
+                            data, userNameExcel, parametersExcel)
+                    };
+                    contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                    break;
+
                 default:
                     throw new NotSupportedException($"Formato no soportado: {format}");
             }
@@ -356,6 +401,7 @@ namespace MonitorImpresoras.Application.Services
                 "csv" => "text/csv",
                 "pdf" => "application/pdf",
                 "excel" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 _ => "application/octet-stream"
             };
         }

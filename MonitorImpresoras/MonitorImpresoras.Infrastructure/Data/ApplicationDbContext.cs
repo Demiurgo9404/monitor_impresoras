@@ -21,6 +21,7 @@ namespace MonitorImpresoras.Infrastructure.Data
         public DbSet<ReportTemplate> ReportTemplates => Set<ReportTemplate>();
         public DbSet<ReportExecution> ReportExecutions => Set<ReportExecution>();
         public DbSet<ScheduledReport> ScheduledReports => Set<ScheduledReport>();
+        public DbSet<SystemEvent> SystemEvents => Set<SystemEvent>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -99,6 +100,48 @@ namespace MonitorImpresoras.Infrastructure.Data
                     .WithMany()
                     .HasForeignKey(sr => sr.CreatedByUserId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configuración de SystemEvent
+            builder.Entity<SystemEvent>(b =>
+            {
+                b.ToTable("SystemEvents");
+                b.HasKey(se => se.Id);
+
+                b.Property(se => se.EventType).IsRequired().HasMaxLength(100);
+                b.Property(se => se.Category).IsRequired().HasMaxLength(50);
+                b.Property(se => se.Severity).IsRequired().HasMaxLength(20);
+                b.Property(se => se.Title).IsRequired().HasMaxLength(200);
+                b.Property(se => se.Description).HasMaxLength(2000);
+                b.Property(se => se.EventData).HasColumnType("jsonb");
+                b.Property(se => se.UserId).HasMaxLength(450);
+                b.Property(se => se.IpAddress).HasMaxLength(45);
+                b.Property(se => se.UserAgent).HasMaxLength(500);
+                b.Property(se => se.SessionId).HasMaxLength(100);
+                b.Property(se => se.RequestId).HasMaxLength(100);
+                b.Property(se => se.Endpoint).HasMaxLength(500);
+                b.Property(se => se.HttpMethod).HasMaxLength(10);
+                b.Property(se => se.ErrorMessage).HasMaxLength(1000);
+                b.Property(se => se.StackTrace).HasMaxLength(4000);
+                b.Property(se => se.EnvironmentInfo).HasMaxLength(1000);
+                b.Property(se => se.ApplicationVersion).HasMaxLength(50);
+                b.Property(se => se.ServerName).HasMaxLength(100);
+
+                // Índices para búsquedas rápidas
+                b.HasIndex(se => se.EventType);
+                b.HasIndex(se => se.Category);
+                b.HasIndex(se => se.Severity);
+                b.HasIndex(se => se.UserId);
+                b.HasIndex(se => se.TimestampUtc);
+                b.HasIndex(se => se.IsSuccess);
+                b.HasIndex(se => new { se.Category, se.Severity, se.TimestampUtc });
+
+                // Relación con User
+                b.HasOne(se => se.User)
+                    .WithMany()
+                    .HasForeignKey(se => se.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
             });
 
             // Configuración de LoginAttempt
