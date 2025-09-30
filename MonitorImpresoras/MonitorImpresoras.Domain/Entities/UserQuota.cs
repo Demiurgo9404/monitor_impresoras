@@ -9,7 +9,7 @@ namespace MonitorImpresoras.Domain.Entities
         public int UsedPages { get; set; }
         public DateTime ResetDate { get; set; } = DateTime.UtcNow.AddMonths(1);
 
-        public virtual UserEntity? User { get; set; }
+        public virtual User? User { get; set; }
         public virtual PrintingPolicy? Policy { get; set; }
     }
 }

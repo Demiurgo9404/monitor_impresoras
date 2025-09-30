@@ -18,4 +18,67 @@
     <ProjectReference Include="..\MonitorImpresoras.Domain\MonitorImpresoras.Domain.csproj" />
   </ItemGroup>
 
+  <!-- Temporarily exclude files that depend on external packages while offline -->
+  <ItemGroup>
+    <Compile Remove="Services\AdvancedMetricsService.cs" />
+    <Compile Remove="Services\EmailService.cs" />
+    <Compile Remove="Services\Export\ExcelExportService.cs" />
+    <Compile Remove="Services\Export\PdfExportService.cs" />
+    <Compile Remove="Services\IisScalabilityService.cs" />
+    <Compile Remove="Services\DatabaseStrategiesService.cs" />
+    <Compile Remove="Services\ExtendedHealthCheckService.cs" />
+    <Compile Remove="Interfaces\IExtendedHealthCheckService.cs" />
+    <Compile Remove="Services\ApiSecurityService.cs" />
+    <Compile Remove="Interfaces\IApiSecurityService.cs" />
+    <Compile Remove="Services\AsyncProcessingService.cs" />
+    <Compile Remove="Services\MetricsService.cs" />
+    <Compile Remove="Services\ModelRetrainingService.cs" />
+    <Compile Remove="Services\PredictiveMaintenanceService.cs" />
+    <Compile Remove="Services\HealthCheckService.cs" />
+    <Compile Remove="Services\ExtendedAuditService.cs" />
+    <Compile Remove="Services\PermissionService.cs" />
+    <Compile Remove="Services\ReportService.cs" />
+    <Compile Remove="Services\ScheduledReportService.cs" />
+    <Compile Remove="Services\PrinterService.cs" />
+    <Compile Remove="Services\QueryOptimizationService.cs" />
+    <Compile Remove="Services\RedisIntegrationService.cs" />
+    <Compile Remove="Services\WhatsAppNotificationService.cs" />
+    <Compile Remove="Services\TelemetryCollectorService.cs" />
+    <Compile Remove="Services\CentralizedLoggingService.cs" />
+    <Compile Remove="Services\WindowsHardeningService.cs" />
+    <Compile Remove="Services\AdvancedAlertService.cs" />
+    <Compile Remove="Interfaces\IAdvancedAlertService.cs" />
+    <Compile Remove="Interfaces\IAdvancedHealthCheckService.cs" />
+    <Compile Remove="Interfaces\IAdvancedMetricsService.cs" />
+    <Compile Remove="Interfaces\IAsyncProcessingService.cs" />
+    <Compile Remove="Interfaces\IRedisIntegrationService.cs" />
+    <Compile Remove="Interfaces\IWindowsHardeningService.cs" />
+    <Compile Remove="Interfaces\IPostgreSqlHardeningService.cs" />
+    <Compile Remove="Services\AlertService.cs" />
+    <Compile Remove="Services\BaseNotificationService.cs" />
+    <Compile Remove="Interfaces\IAlertService.cs" />
+    <Compile Remove="Interfaces\INotificationService.cs" />
+    <Compile Remove="Interfaces\IMetricsService.cs" />
+    <Compile Remove="Interfaces\IPermissionService.cs" />
+    <Compile Remove="Interfaces\IDatabaseStrategiesService.cs" />
+    <Compile Remove="Interfaces\ICentralizedLoggingService.cs" />
+    <Compile Remove="Interfaces\IExtendedAuditService.cs" />
+    <Compile Remove="Interfaces\IIisScalabilityService.cs" />
+    <Compile Remove="Interfaces\IDistributedCachingService.cs" />
+    <Compile Remove="Interfaces\INotificationEscalationService.cs" />
+    <Compile Remove="Interfaces\IQueryOptimizationService.cs" />
+    <Compile Remove="Services\ComprehensiveMetricsService.cs" />
+  </ItemGroup>
+
+  <!-- Drastic minimization: compile only DTOs and IPrinterMonitoringService for baseline build -->
+  <ItemGroup>
+    <Compile Remove="**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DTOs\**\*.cs" />
+    <Compile Include="Interfaces\IPrinterMonitoringService.cs" />
+    <Compile Include="Interfaces\IPrinterQueryService.cs" />
+  </ItemGroup>
+
 </Project>
+

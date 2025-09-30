@@ -9,6 +9,6 @@ namespace MonitorImpresoras.Domain.Entities
         public bool IsActive { get; set; } = true;
         public DateTime? LastLogin { get; set; }
 
-        public virtual UserEntity? User { get; set; }
+        public virtual User? User { get; set; }
     }
 }

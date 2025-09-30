@@ -12,7 +12,7 @@ namespace MonitorImpresoras.Domain.Entities
         public bool IsActive { get; set; } = true;
 
         // Navigation properties
-        public virtual UserEntity? User { get; set; }
+        public virtual User? User { get; set; }
         public virtual Plan? Plan { get; set; }
         public virtual ICollection<SubscriptionHistory>? History { get; set; }
     }

@@ -457,6 +457,7 @@ namespace MonitorImpresoras.Application.Services
         private async Task<BackupAndRecoveryStrategies> ConfigureBackupAndRecoveryStrategiesAsync()
         {
             try
+            {
                 _logger.LogInformation("Configurando estrategias avanzadas de respaldo y recuperación");
 
                 var strategies = new BackupAndRecoveryStrategies
@@ -556,6 +557,7 @@ namespace MonitorImpresoras.Application.Services
         private async Task<DatabaseMonitoringConfiguration> ConfigureDatabaseMonitoringAsync()
         {
             try
+            {
                 _logger.LogInformation("Configurando monitoreo avanzado de base de datos");
 
                 var config = new DatabaseMonitoringConfiguration

@@ -221,6 +221,7 @@ namespace MonitorImpresoras.Application.Services
         private async Task<CompressionConfiguration> ConfigureCompressionAsync()
         {
             try
+            {
                 _logger.LogInformation("Configurando compresión HTTP/2 avanzada");
 
                 var config = new CompressionConfiguration

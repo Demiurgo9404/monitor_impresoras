@@ -1,13 +1,8 @@
-using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using MonitorImpresoras.Application.DTOs;
 using MonitorImpresoras.Application.Interfaces;
-using MonitorImpresoras.Domain.Entities;
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MonitorImpresoras.API.Controllers
@@ -17,102 +12,21 @@ namespace MonitorImpresoras.API.Controllers
     [Produces("application/json")]
     public class PrintersController : ControllerBase
     {
-        private readonly IPrinterMonitoringService _printerService;
-        private readonly ILogger<PrintersController> _logger;
-        private readonly IMapper _mapper;
+        private readonly IPrinterQueryService _svc;
 
-        public PrintersController(
-            IPrinterMonitoringService printerService,
-            ILogger<PrintersController> logger,
-            IMapper mapper)
+        public PrintersController(IPrinterQueryService svc)
         {
-            _printerService = printerService ?? throw new ArgumentNullException(nameof(printerService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _svc = svc;
         }
 
         /// <summary>
-        /// Obtiene todas las impresoras registradas
+        /// Devuelve la lista de impresoras (baseline: datos dummy desde servicio)
         /// </summary>
-        /// <returns>Lista de impresoras</returns>
-        /// <response code="200">Devuelve la lista de impresoras</response>
-        /// <response code="500">Error interno del servidor</response>
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IEnumerable<PrinterDto>>> GetAllPrinters()
+        public async Task<ActionResult<IEnumerable<PrinterDto>>> GetAll(CancellationToken ct)
         {
-            try
-            {
-                var printers = await _printerService.GetAllPrintersAsync();
-                var printerDtos = _mapper.Map<IEnumerable<PrinterDto>>(printers);
-                return Ok(printerDtos);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener la lista de impresoras");
-                return StatusCode(500, new { Message = "Error interno del servidor al obtener las impresoras", Error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Obtiene una impresora por su ID
-        /// </summary>
-        /// <param name="id">ID de la impresora</param>
-        /// <returns>La impresora solicitada</returns>
-        /// <response code="200">Devuelve la impresora solicitada</response>
-        /// <response code="404">No se encontró la impresora con el ID especificado</response>
-        /// <response code="500">Error interno del servidor</response>
-        [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<PrinterDto>> GetPrinterById(int id)
-        {
-            try
-            {
-                var printer = await _printerService.GetPrinterByIdAsync(id);
-                if (printer == null)
-                {
-                    return NotFound(new { Message = $"No se encontró la impresora con ID {id}" });
-                }
-                
-                var printerDto = _mapper.Map<PrinterDto>(printer);
-                return Ok(printerDto);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogWarning(ex, $"No se encontró la impresora con ID: {id}");
-                return NotFound(new { Message = $"No se encontró la impresora con ID {id}" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al obtener la impresora con ID: {id}");
-                return StatusCode(500, new { Message = "Error interno del servidor al obtener la impresora", Error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Agrega una nueva impresora
-        /// </summary>
-        /// <param name="createPrinterDto">Datos de la impresora a crear</param>
-        /// <returns>La impresora creada</returns>
-        /// <response code="201">Devuelve la impresora recién creada</response>
-        /// <response code="400">Los datos de la impresora no son válidos</response>
-        /// <response code="500">Error interno del servidor</response>
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<PrinterDto>> AddPrinter(CreatePrinterDto createPrinterDto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { Message = "Datos de la impresora no válidos", Errors = ModelState.Values.SelectMany(v => v.Errors) });
-                }
-
+            var printers = await _svc.GetAllAsync(ct);
+            return Ok(printers);
                 var printer = _mapper.Map<Printer>(createPrinterDto);
                 var addedPrinter = await _printerService.AddPrinterAsync(printer);
                 var printerDto = _mapper.Map<PrinterDto>(addedPrinter);

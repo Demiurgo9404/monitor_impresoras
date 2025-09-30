@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,8 +21,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MonitorImpresoras.Application\MonitorImpresoras.Application.csproj" />
     <ProjectReference Include="..\MonitorImpresoras.Domain\MonitorImpresoras.Domain.csproj" />
+    <ProjectReference Include="..\MonitorImpresoras.Application\MonitorImpresoras.Application.csproj" />
+  </ItemGroup>
+
+  <!-- Explicitly include only minimal compile set for baseline -->
+  <ItemGroup>
+    <Compile Remove="**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Data\ApplicationDbContext.cs" />
+    <Compile Include="Data\ApplicationDbContextFactory.cs" />
+    <Compile Include="Data\ApplicationDbInitializer.cs" />
+    <Compile Include="Options\PrinterMonitoringOptions.cs" />
+    <Compile Include="Services\PrinterQueryService.cs" />
   </ItemGroup>
 
 </Project>

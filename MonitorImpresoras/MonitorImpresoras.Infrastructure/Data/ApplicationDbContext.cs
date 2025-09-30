@@ -55,8 +55,9 @@ namespace MonitorImpresoras.Infrastructure.Data
                 b.HasIndex(rt => rt.Token).IsUnique();
                 b.HasIndex(rt => new { rt.UserId, rt.IsActive })
                     .HasFilter("\"Revoked\" = false AND \"ExpiresAtUtc\" > NOW()");
+            });
 
-                // Relación con User
+            // Relación con User (si se requiere) puede configurarse aquí
             // Configuración de UserClaim
             builder.Entity<UserClaim>(b =>
             {
@@ -79,8 +80,9 @@ namespace MonitorImpresoras.Infrastructure.Data
                 b.HasIndex(uc => uc.Category);
                 b.HasIndex(uc => uc.IsActive);
                 b.HasIndex(uc => uc.ExpiresAtUtc);
+            });
 
-                // Relación con User
+            // Relación con User (si se requiere) puede configurarse aquí
             // Configuración de ScheduledReport
             builder.Entity<ScheduledReport>(b =>
             {
@@ -277,3 +279,6 @@ namespace MonitorImpresoras.Infrastructure.Data
 
             // Por ahora, comentar estos filtros hasta implementar el servicio de contexto de tenant
         }
+
+    }
+}

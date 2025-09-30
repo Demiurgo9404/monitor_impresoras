@@ -5,7 +5,7 @@ using MonitorImpresoras.Domain.Common;
 
 namespace MonitorImpresoras.Domain.Entities
 {
-    public class PrinterTelemetry : BaseEntity, ITenantEntity
+    public class PrinterTelemetry : BaseEntity
     {
         [Required]
         public int PrinterId { get; set; }

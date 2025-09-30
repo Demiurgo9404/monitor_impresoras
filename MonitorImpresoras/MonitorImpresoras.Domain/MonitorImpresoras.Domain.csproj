@@ -12,4 +12,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.0" />
   </ItemGroup>
 
+  <!-- Exclude conflicting legacy telemetry entities to avoid duplicate type definitions -->
+  <ItemGroup>
+    <Compile Remove="Entities\Telemetry.cs" />
+  </ItemGroup>
+
 </Project>

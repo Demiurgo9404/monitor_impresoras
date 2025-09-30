@@ -41,7 +41,6 @@ namespace MonitorImpresoras.API.Services
             }
         }
     }
-
     /// <summary>
     /// Job para verificación periódica del estado de impresoras
     /// </summary>
@@ -180,6 +179,7 @@ namespace MonitorImpresoras.API.Services
             catch
             {
                 return false;
+            }
         }
     }
 

@@ -3,10 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Serilog;
+using Serilog.Events;
 using MonitorImpresoras.Infrastructure.Data;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.API.Filters;
 using MonitorImpresoras.API.Middleware;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using MonitorImpresoras.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,12 +18,8 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .Enrich.WithExceptionDetails()
     .Enrich.WithProperty("Application", "MonitorImpresoras")
     .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
-    .Enrich.WithMachineName()
-    .Enrich.WithProcessId()
-    .Enrich.WithThreadId()
     .WriteTo.Console(
         outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
     .WriteTo.File("logs/app_log.txt",
@@ -34,11 +34,6 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
-
-try
-{
-    Log.Information("Iniciando aplicación MonitorImpresoras");
-}
 
 // Configuración de la base de datos
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -115,9 +110,7 @@ builder.Services.AddAuthorization(options =>
             context.User.HasClaim("ManagePrinters", "true")));
 });
 
-// Configuración de autorización personalizada
-builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
-builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+// Configuración de autorización personalizada (omitida temporalmente en baseline)
 
 // Configuración de CORS
 builder.Services.AddCors(options =>
@@ -146,98 +139,36 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configuración de Swagger con autenticación JWT
+// Explorers y Swagger (bloque único y bien formado)
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "MonitorImpresoras API", Version = "v1" });
-
-    // Configuración para autenticación JWT en Swagger
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header usando el esquema Bearer",
-        Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
-
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-});
-
-builder.Services.AddVersionedApiExplorer(options =>
-{
-    options.GroupNameFormat = "'v'VVV";
-    options.SubstituteApiVersionInUrl = true;
-});
-
-// Configuración de Swagger con autenticación JWT
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "Monitor Impresoras API",
-        Description = "API completa para el monitoreo, gestión y auditoría de impresoras con autenticación JWT y autorización basada en roles.",
-        Contact = new Microsoft.OpenApi.Models.OpenApiContact
-        {
-            Name = "Equipo MonitorImpresoras",
-            Email = "soporte@monitorimpresoras.com",
-            Url = new Uri("https://monitorimpresoras.com")
-        },
-        License = new Microsoft.OpenApi.Models.OpenApiLicense
-        {
-            Name = "MIT",
-            Url = new Uri("https://opensource.org/licenses/MIT")
-        }
+        Title = "MonitorImpresoras API",
+        Description = "API para monitoreo y gestión de impresoras"
     });
 
-    // Configuración para autenticación JWT en Swagger
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    var jwt = new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header usando el esquema Bearer. Ejemplo: \"Authorization: Bearer {token}\"",
-        Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
         Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
+        BearerFormat = "JWT",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Reference = new OpenApiReference { Id = "Bearer", Type = ReferenceType.SecurityScheme }
+    };
 
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+    c.AddSecurityDefinition("Bearer", jwt);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement { { jwt, Array.Empty<string>() } });
 
-    // Incluir comentarios XML para documentación detallada
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
     {
         c.IncludeXmlComments(xmlPath);
     }
-
-    // Configurar ejemplos para los DTOs
-    c.UseInlineDefinitionsForEnums();
-    c.EnableAnnotations();
 });
 
 // Configuración de controladores
@@ -246,70 +177,20 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<GlobalExceptionFilter>();
 });
 
-// Registro de servicios
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IPermissionService, PermissionService>();
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IReportRepository, ReportRepository>();
-builder.Services.AddScoped<IScheduledReportService, ScheduledReportService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<PdfExportService>();
-builder.Services.AddScoped<ExcelExportService>();
-builder.Services.AddScoped<IPrinterRepository, PrinterRepository>();
-builder.Services.AddScoped<IPrinterService, PrinterService>();
-builder.Services.AddScoped<IAuditService, AuditService>();
-builder.Services.AddScoped<IExtendedAuditService, ExtendedAuditService>();
-builder.Services.AddScoped<IHealthCheckService, HealthCheckService>();
-builder.Services.AddScoped<IMetricsService, MetricsService>();
-builder.Services.AddScoped<IAlertService, AlertService>();
-builder.Services.AddScoped<INotificationService, EmailNotificationService>();
+// Registro mínimo de servicios para baseline (evitar dependencias no esenciales)
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<MonitorImpresoras.Application.Interfaces.IPrinterQueryService,
+    MonitorImpresoras.Infrastructure.Services.PrinterQueryService>();
 
-// Configuración de AutoMapper
-builder.Services.AddAutoMapper(typeof(PrinterProfile));
+// AutoMapper y FluentValidation deshabilitados temporalmente para baseline
+// builder.Services.AddAutoMapper(typeof(PrinterProfile));
+// builder.Services.AddControllers().AddFluentValidation(...);
 
-// Configuración de FluentValidation
-builder.Services.AddControllers()
-    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreatePrinterDtoValidator>());
-
-// Configuración de Quartz.NET para jobs programados
-builder.Services.AddQuartz(q =>
-{
-    // Registrar jobs
-    q.UseMicrosoftDependencyInjectionJobFactory();
-
-    // Job de reporte diario (8:00 AM todos los días)
-    q.AddJob<DailyReportJob>(opts => opts.WithIdentity("DailyReportJob"))
-        .AddTrigger(opts => opts
-            .ForJob("DailyReportJob")
-            .WithCronSchedule("0 0 8 * * ?") // Todos los días a las 8:00 AM
-            .WithDescription("Envío automático de reporte diario"));
-
-    // Job de verificación de estado de impresoras (cada 15 minutos)
-    q.AddJob<PrinterStatusCheckJob>(opts => opts.WithIdentity("PrinterStatusCheckJob"))
-        .AddTrigger(opts => opts
-            .ForJob("PrinterStatusCheckJob")
-            .WithCronSchedule("0 */15 * * * ?") // Cada 15 minutos
-            .WithDescription("Verificación periódica de estado de impresoras"));
-
-    // Job de verificación de métricas del sistema (cada 10 minutos)
-    q.AddJob<SystemMetricsCheckJob>(opts => opts.WithIdentity("SystemMetricsCheckJob"))
-        .AddTrigger(opts => opts
-            .ForJob("SystemMetricsCheckJob")
-            .WithCronSchedule("0 */10 * * * ?") // Cada 10 minutos
-            .WithDescription("Verificación periódica de métricas del sistema"));
-});
-
-builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+// Quartz deshabilitado temporalmente para baseline
+// builder.Services.AddQuartz(...);
+// builder.Services.AddQuartzHostedService(...);
 
 var app = builder.Build();
-
-try
-{
-    Log.Information("Aplicación construida exitosamente");
-}
 
 // Configuración del pipeline HTTP
 if (app.Environment.IsDevelopment())

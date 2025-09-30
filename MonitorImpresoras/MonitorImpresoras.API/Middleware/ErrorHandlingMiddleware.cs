@@ -57,11 +57,7 @@ namespace MonitorImpresoras.API.Middleware
                     message = "No tienes permisos para acceder a este recurso";
                     break;
 
-                case Microsoft.AspNetCore.Identity.IdentityErrorDescriber:
-                    statusCode = HttpStatusCode.BadRequest;
-                    errorCode = ErrorCodes.ValidationFailed;
-                    message = "Error en la operación de identidad";
-                    break;
+                // Nota: IdentityErrorDescriber no es una excepción; se remueve este caso inválido
 
                 case Microsoft.EntityFrameworkCore.DbUpdateException:
                     statusCode = HttpStatusCode.BadRequest;
