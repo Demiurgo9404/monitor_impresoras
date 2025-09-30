@@ -239,6 +239,13 @@ using (var scope = app.Services.CreateScope())
         // Inicializar datos
         await ApplicationDbInitializer.SeedAsync(userManager, roleManager,
             app.Configuration, app.Logger);
+
+        // Seed mínimo de impresoras en entorno de desarrollo
+        var env = services.GetRequiredService<IWebHostEnvironment>();
+        if (env.IsDevelopment())
+        {
+            await ApplicationDbInitializer.InitializeAsync(context);
+        }
     }
     catch (Exception ex)
     {

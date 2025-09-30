@@ -1,50 +1,102 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MonitorImpresoras.Application.DTOs;
 using MonitorImpresoras.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using MonitorImpresoras.Infrastructure.Data;
+using MonitorImpresoras.Domain.Entities;
+using System;
 
 namespace MonitorImpresoras.Infrastructure.Services
 {
     /// <summary>
-    /// Implementación baseline (sin dependencias externas) para consultar impresoras.
+    /// Implementación con EF Core para consultar impresoras desde la base de datos.
     /// </summary>
     public sealed class PrinterQueryService : IPrinterQueryService
     {
-        private static readonly List<PrinterDto> _demo = new()
+        private readonly ApplicationDbContext _db;
+
+        public PrinterQueryService(ApplicationDbContext db)
         {
-            new PrinterDto
+            _db = db;
+        }
+
+        public async Task<IEnumerable<PrinterQueryDto>> GetAllAsync(CancellationToken ct = default)
+        {
+            return await _db.Set<Printer>()
+                .AsNoTracking()
+                .Select(p => new PrinterQueryDto(
+                    p.Id,
+                    p.Name,
+                    p.IpAddress,
+                    p.Location
+                ))
+                .ToListAsync(ct);
+        }
+
+        public async Task<PrinterQueryDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        {
+            return await _db.Set<Printer>()
+                .AsNoTracking()
+                .Where(p => p.Id == id)
+                .Select(p => new PrinterQueryDto(
+                    p.Id,
+                    p.Name,
+                    p.IpAddress,
+                    p.Location
+                ))
+                .FirstOrDefaultAsync(ct);
+        }
+
+        public async Task<(IEnumerable<PrinterQueryDto> Items, int Total)> SearchAsync(
+            string? q,
+            int page = 1,
+            int pageSize = 20,
+            string? orderBy = "Name",
+            bool desc = false,
+            CancellationToken ct = default)
+        {
+            var query = _db.Set<Printer>().AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(q))
             {
-                Id = 1,
-                Name = "HP-BackOffice",
-                Description = "Impresora HP BackOffice",
-                IpAddress = "192.168.1.50",
-                SerialNumber = "HP-BO-001",
-                Model = "HP LaserJet",
-                Brand = "HP",
-                Location = "BackOffice",
-                Department = "Ops",
-                Status = "Online"
-            },
-            new PrinterDto
-            {
-                Id = 2,
-                Name = "Brother-Front",
-                Description = "Impresora Brother FrontDesk",
-                IpAddress = "192.168.1.51",
-                SerialNumber = "BR-FR-002",
-                Model = "Brother HL",
-                Brand = "Brother",
-                Location = "Front Desk",
-                Department = "Admin",
-                Status = "Online"
+                q = q.Trim();
+                query = query.Where(p =>
+                    EF.Functions.ILike(p.Name, $"%{q}%") ||
+                    EF.Functions.ILike(p.IpAddress, $"%{q}%") ||
+                    (p.Location != null && EF.Functions.ILike(p.Location, $"%{q}%"))
+                );
             }
-        };
 
-        public Task<IEnumerable<PrinterDto>> GetAllAsync(CancellationToken ct = default)
-            => Task.FromResult<IEnumerable<PrinterDto>>(_demo);
+            // Ordering (minimal safe set)
+            switch ((orderBy ?? "Name").Trim().ToLowerInvariant())
+            {
+                case "ipaddress":
+                    query = desc ? query.OrderByDescending(p => p.IpAddress) : query.OrderBy(p => p.IpAddress);
+                    break;
+                case "location":
+                    query = desc ? query.OrderByDescending(p => p.Location) : query.OrderBy(p => p.Location);
+                    break;
+                case "name":
+                default:
+                    query = desc ? query.OrderByDescending(p => p.Name) : query.OrderBy(p => p.Name);
+                    break;
+            }
 
-        public Task<PrinterDto?> GetByIdAsync(int id, CancellationToken ct = default)
-            => Task.FromResult(_demo.Find(p => p.Id == id));
+            var total = await query.CountAsync(ct);
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new PrinterQueryDto(
+                    p.Id,
+                    p.Name,
+                    p.IpAddress,
+                    p.Location
+                ))
+                .ToListAsync(ct);
+
+            return (items, total);
+        }
     }
 }

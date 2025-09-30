@@ -75,9 +75,9 @@
     <Compile Remove="**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DTOs\**\*.cs" />
     <Compile Include="Interfaces\IPrinterMonitoringService.cs" />
     <Compile Include="Interfaces\IPrinterQueryService.cs" />
+    <Compile Include="Interfaces\PrinterQueryDto.cs" />
   </ItemGroup>
 
 </Project>

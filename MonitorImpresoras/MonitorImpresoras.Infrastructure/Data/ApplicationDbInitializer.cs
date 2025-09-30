@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MonitorImpresoras.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace MonitorImpresoras.Infrastructure.Data
 {
@@ -88,6 +89,24 @@ namespace MonitorImpresoras.Infrastructure.Data
             {
                 logger.LogError(ex, "Error durante la inicialización de la base de datos");
                 throw; // Relanzar para que la aplicación no inicie si hay un error crítico
+            }
+        }
+
+        /// <summary>
+        /// Inicialización mínima de datos funcionales (Printers) para desarrollo.
+        /// Aplica migraciones y agrega datos si la tabla está vacía.
+        /// </summary>
+        public static async Task InitializeAsync(ApplicationDbContext db, CancellationToken ct = default)
+        {
+            await db.Database.MigrateAsync(ct);
+
+            if (!await db.Set<Printer>().AsNoTracking().AnyAsync(ct))
+            {
+                db.Set<Printer>().AddRange(
+                    new Printer { Name = "HP LaserJet 402dn", IpAddress = "192.168.1.10", Location = "Front Desk" },
+                    new Printer { Name = "Kyocera ECOSYS M2540", IpAddress = "192.168.1.11", Location = "Accounting" }
+                );
+                await db.SaveChangesAsync(ct);
             }
         }
     }

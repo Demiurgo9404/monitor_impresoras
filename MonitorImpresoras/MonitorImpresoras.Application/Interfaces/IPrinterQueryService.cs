@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MonitorImpresoras.Application.DTOs;
+using System;
 
 namespace MonitorImpresoras.Application.Interfaces
 {
@@ -10,7 +10,14 @@ namespace MonitorImpresoras.Application.Interfaces
     /// </summary>
     public interface IPrinterQueryService
     {
-        Task<IEnumerable<PrinterDto>> GetAllAsync(CancellationToken ct = default);
-        Task<PrinterDto?> GetByIdAsync(int id, CancellationToken ct = default);
+        Task<IEnumerable<PrinterQueryDto>> GetAllAsync(CancellationToken ct = default);
+        Task<PrinterQueryDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
+        Task<(IEnumerable<PrinterQueryDto> Items, int Total)> SearchAsync(
+            string? q,
+            int page = 1,
+            int pageSize = 20,
+            string? orderBy = "Name",
+            bool desc = false,
+            CancellationToken ct = default);
     }
 }
