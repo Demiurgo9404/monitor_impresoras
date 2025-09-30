@@ -15,8 +15,22 @@ Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .Enrich.WithExceptionDetails()
-    .WriteTo.Console()
-    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .Enrich.WithProperty("Application", "MonitorImpresoras")
+    .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+    .Enrich.WithMachineName()
+    .Enrich.WithProcessId()
+    .Enrich.WithThreadId()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .WriteTo.File("logs/app_log.txt",
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        fileSizeLimitBytes: 10 * 1024 * 1024) // 10MB por archivo
+    .WriteTo.File("logs/errors-.txt",
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+        restrictedToMinimumLevel: LogEventLevel.Error,
+        rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -108,6 +122,22 @@ builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHand
 // Configuración de CORS
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+            "http://localhost:3000",    // React dev server
+            "http://localhost:5173",   // Vite dev server
+            "http://localhost:4200",   // Angular dev server
+            "https://localhost:3000",  // HTTPS React
+            "https://localhost:5173",  // HTTPS Vite
+            "https://localhost:4200"   // HTTPS Angular
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+
+    // Política más permisiva para desarrollo
     options.AddPolicy("AllowAll", builder =>
     {
         builder.AllowAnyOrigin()
@@ -300,7 +330,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors(app.Environment.IsDevelopment() ? "AllowAll" : "AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -9,6 +9,6 @@ namespace MonitorImpresoras.Domain.Entities
         public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
         public string Method { get; set; } = string.Empty;
 
-        public virtual UserEntity? User { get; set; }
+        public virtual User? User { get; set; }
     }
 }

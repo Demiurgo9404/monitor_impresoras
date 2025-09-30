@@ -1,52 +1,47 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MonitorImpresoras.Application.Interfaces;
 
 namespace MonitorImpresoras.API.Controllers
 {
     [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")]
+    [Route("api/[controller]")]
+    [AllowAnonymous] // Health checks deben ser accesibles sin autenticación
     public class HealthController : ControllerBase
     {
-        private readonly IHealthCheckService _healthCheckService;
+        private readonly HealthCheckService _basicHealthCheck;
+        private readonly IAdvancedHealthCheckService _advancedHealthCheck;
         private readonly ILogger<HealthController> _logger;
 
         public HealthController(
-            IHealthCheckService healthCheckService,
+            HealthCheckService basicHealthCheck,
+            IAdvancedHealthCheckService advancedHealthCheck,
             ILogger<HealthController> logger)
         {
-            _healthCheckService = healthCheckService;
+            _basicHealthCheck = basicHealthCheck;
+            _advancedHealthCheck = advancedHealthCheck;
             _logger = logger;
         }
 
         /// <summary>
-        /// Health check básico - accesible públicamente para load balancers
+        /// Health check básico (estándar ASP.NET)
         /// </summary>
-        /// <returns>Estado básico de la aplicación</returns>
         [HttpGet]
-        [AllowAnonymous] // Público para load balancers y monitoreo externo
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         public async Task<IActionResult> GetBasicHealth()
         {
             try
             {
-                var health = await _healthCheckService.GetBasicHealthAsync();
+                var report = await _basicHealthCheck.CheckHealthAsync();
 
-                var statusCode = health.Status == "Healthy" ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
-
-                return StatusCode(statusCode, health);
+                return report.Status == HealthStatus.Healthy
+                    ? Ok(new { status = "healthy", timestamp = DateTime.UtcNow })
+                    : StatusCode(503, new { status = "unhealthy", timestamp = DateTime.UtcNow });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error en health check básico");
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
-                {
-                    Status = "Unhealthy",
-                    Error = ex.Message,
-                    Timestamp = DateTime.UtcNow
-                });
+                return StatusCode(503, new { status = "error", timestamp = DateTime.UtcNow });
             }
         }
 

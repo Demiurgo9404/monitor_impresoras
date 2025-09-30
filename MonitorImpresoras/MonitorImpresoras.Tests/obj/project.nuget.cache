@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "sI75iiHSjcM=",
+  "dgSpecHash": "th2HMbiqXyY=",
   "success": true,
   "projectFilePath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Tests\\MonitorImpresoras.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Demiurgo\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\castle.core\\5.1.1\\castle.core.5.1.1.nupkg.sha512",
-    "C:\\Users\\Demiurgo\\.nuget\\packages\\coverlet.collector\\6.0.2\\coverlet.collector.6.0.2.nupkg.sha512",
+    "C:\\Users\\Demiurgo\\.nuget\\packages\\coverlet.collector\\6.0.0\\coverlet.collector.6.0.0.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\fluentassertions\\6.12.0\\fluentassertions.6.12.0.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\fluentvalidation\\11.9.0\\fluentvalidation.11.9.0.nupkg.sha512",
     "C:\\Users\\Demiurgo\\.nuget\\packages\\mediatr\\12.2.0\\mediatr.12.2.0.nupkg.sha512",

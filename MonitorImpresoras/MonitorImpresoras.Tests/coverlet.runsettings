@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<CoverageRunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>opencover</Format>
+          <Exclude>
+            <!-- Excluir archivos de test -->
+            <FilePattern>*.Tests.*</FilePattern>
+            <!-- Excluir archivos de configuración -->
+            <FilePattern>appsettings.*</FilePattern>
+            <!-- Excluir archivos de migración -->
+            <FilePattern>**/Migrations/**</FilePattern>
+            <!-- Excluir archivos de infraestructura básica -->
+            <FilePattern>**/obj/**</FilePattern>
+            <FilePattern>**/bin/**</FilePattern>
+          </Exclude>
+          <Include>
+            <!-- Incluir solo código de aplicación -->
+            <FilePattern>**/MonitorImpresoras.API/**/*.cs</FilePattern>
+            <FilePattern>**/MonitorImpresoras.Application/**/*.cs</FilePattern>
+            <FilePattern>**/MonitorImpresoras.Domain/**/*.cs</FilePattern>
+            <FilePattern>**/MonitorImpresoras.Infrastructure/**/*.cs</FilePattern>
+          </Include>
+          <MergeWith>**/coverage.xml</MergeWith>
+          <UseSourceLink>true</UseSourceLink>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</CoverageRunSettings>

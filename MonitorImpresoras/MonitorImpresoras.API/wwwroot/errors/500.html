@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error del Servidor - Monitor de Impresoras</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .error-container {
+            text-align: center;
+            background: white;
+            padding: 3rem;
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 2rem;
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .error-title {
+            font-size: 2rem;
+            margin: 1rem 0;
+            color: #2c3e50;
+        }
+        .error-message {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .error-details {
+            background: #f8f9fa;
+            border-left: 4px solid #e74c3c;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: left;
+            border-radius: 4px;
+        }
+        .error-details h4 {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+        }
+        .error-details p {
+            margin: 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        .back-button {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+            margin-right: 1rem;
+        }
+        .back-button:hover {
+            background: #2980b9;
+        }
+        .refresh-button {
+            display: inline-block;
+            background: #2ecc71;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+        .refresh-button:hover {
+            background: #27ae60;
+        }
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #95a5a6;
+        }
+        .timestamp {
+            font-size: 0.8rem;
+            color: #bdc3c7;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">500</div>
+        <h1 class="error-title">Error del Servidor</h1>
+        <p class="error-message">
+            Ha ocurrido un error interno del servidor. Nuestro equipo ha sido notificado y estamos trabajando para solucionarlo.
+        </p>
+
+        <div class="error-details">
+            <h4>¿Qué puedes hacer?</h4>
+            <p>• Espera unos minutos e intenta nuevamente</p>
+            <p>• Regresa al dashboard principal</p>
+            <p>• Contacta al soporte si el problema persiste</p>
+        </div>
+
+        <div>
+            <a href="/dashboard" class="back-button">← Volver al Dashboard</a>
+            <button onclick="window.location.reload()" class="refresh-button">🔄 Reintentar</button>
+        </div>
+
+        <div class="footer">
+            <p>Monitor de Impresoras - Sistema de Gestión Enterprise</p>
+            <p class="timestamp">Error reportado: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss UTC}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Release\net8.0\MonitorImpresoras.Domain.csproj.AssemblyReference.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Release\net8.0\MonitorImpresoras.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Release\net8.0\MonitorImpresoras.Domain.AssemblyInfoInputs.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Release\net8.0\MonitorImpresoras.Domain.AssemblyInfo.cs
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Release\net8.0\MonitorImpresoras.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Demiurgo\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Domain\obj\Release\net8.0\MonitorImpresoras.Domain.sourcelink.json
