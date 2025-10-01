@@ -26,7 +26,7 @@ public static class DependencyInjection
         }
         catch (Exception ex)
         {
-            var logger = services.BuildServiceProvider().GetService<ILogger<Program>>();
+            var logger = services.BuildServiceProvider().GetService<ILogger>();
             logger?.LogError(ex, "Error al configurar los servicios de la aplicación");
             throw;
         }

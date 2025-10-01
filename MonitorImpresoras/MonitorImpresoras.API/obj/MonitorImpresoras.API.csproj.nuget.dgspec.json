@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj": {}
+    "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj": {
+    "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj",
+        "projectUniqueName": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj",
         "projectName": "MonitorImpresoras.API",
-        "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj",
-        "packagesPath": "C:\\Users\\Demiurgo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\obj\\",
+        "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\MonitorImpresoras.API.csproj",
+        "packagesPath": "C:\\Users\\Advance\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.API\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Demiurgo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Advance\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -26,14 +26,14 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
-                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj"
+              "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
+                "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj"
               },
-              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
-                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj"
+              "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
+                "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj"
               },
-              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj": {
-                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj"
+              "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj": {
+                "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj"
               }
             }
           }
@@ -47,8 +47,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -104,21 +103,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
+    "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj",
+        "projectUniqueName": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj",
         "projectName": "MonitorImpresoras.Application",
-        "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj",
-        "packagesPath": "C:\\Users\\Demiurgo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\obj\\",
+        "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj",
+        "packagesPath": "C:\\Users\\Advance\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Demiurgo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Advance\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -130,8 +129,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
-                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj"
+              "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
+                "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj"
               }
             }
           }
@@ -145,8 +144,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -189,21 +187,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
+    "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj",
+        "projectUniqueName": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj",
         "projectName": "MonitorImpresoras.Domain",
-        "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj",
-        "packagesPath": "C:\\Users\\Demiurgo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\obj\\",
+        "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj",
+        "packagesPath": "C:\\Users\\Advance\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Demiurgo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Advance\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -226,8 +224,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -254,21 +251,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj": {
+    "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj",
+        "projectUniqueName": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj",
         "projectName": "MonitorImpresoras.Infrastructure",
-        "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj",
-        "packagesPath": "C:\\Users\\Demiurgo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\obj\\",
+        "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\MonitorImpresoras.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\Advance\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Demiurgo\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Advance\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -280,11 +277,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
-                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj"
+              "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj": {
+                "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Application\\MonitorImpresoras.Application.csproj"
               },
-              "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
-                "projectPath": "C:\\Users\\Demiurgo\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj"
+              "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj": {
+                "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\MonitorImpresoras.Domain\\MonitorImpresoras.Domain.csproj"
               }
             }
           }
@@ -298,8 +295,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -320,6 +316,18 @@
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.DependencyInjection.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Hosting.Abstractions": {
               "target": "Package",
               "version": "[8.0.0, )"
             },
@@ -348,7 +356,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.414/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
