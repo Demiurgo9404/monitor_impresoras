@@ -1,55 +1,84 @@
+using System;
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using MonitorImpresoras.Application.DTOs;
 using MonitorImpresoras.Application.Interfaces;
+using MonitorImpresoras.Application.Interfaces.Services;
 using MonitorImpresoras.Infrastructure.Data;
 using MonitorImpresoras.Infrastructure.Services;
-using System;
+using MonitorImpresoras.Infrastructure.Services.SNMP;
+using MonitorImpresoras.Infrastructure.Services.WMI;
+using MonitorImpresoras.Infrastructure.Options;
 
 namespace MonitorImpresoras.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructureServices(
+        this IServiceCollection services, 
+        IConfiguration configuration,
+        IHostEnvironment environment)
     {
-        // Configurar DbContext
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(
-                configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
-
-        // Registrar servicios de infraestructura con manejo de errores
+        // Configurar DbContext con manejo de errores
         try
         {
-            // Registrar servicios de aplicación
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("La cadena de conexión 'DefaultConnection' no está configurada.");
+            }
+
+            services.AddDbContext<ApplicationDbContext>((provider, options) =>
+            {
+                options.UseNpgsql(
+                    connectionString,
+                    sqlOptions =>
+                    {
+                        sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorCodesToAdd: null);
+                    });
+
+                if (environment.IsDevelopment())
+                {
+                    options.EnableSensitiveDataLogging();
+                    options.EnableDetailedErrors();
+                }
+            });
+
+            // Registrar servicios de infraestructura
+            services.AddScoped<IPrinterRepository, PrinterRepository>();
             services.AddScoped<IPrinterMonitoringService, PrinterMonitoringService>();
             services.AddScoped<ISnmpService, SnmpService>();
             services.AddScoped<IWindowsPrinterService, WindowsPrinterService>();
-            
-            // Registrar el factory para el DbContext
-            services.AddScoped<ApplicationDbContextFactory>();
-            
-            // Registrar el servicio de fondo para monitoreo de impresoras
-            services.AddHostedService<PrinterMonitoringBackgroundService>();
-            
-            // Configurar el logger
-            services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Information));
-            
-            // Configuración del servicio de monitoreo
-            services.Configure<PrinterMonitoringOptions>(configuration.GetSection("PrinterMonitoring"));
+            services.AddScoped<IPrinterStatusProvider, PrinterStatusProvider>();
+
+            // Configuración de opciones
+            services.Configure<PrinterMonitoringOptions>(
+                configuration.GetSection("PrinterMonitoring"));
+
+            // Configuración de HttpClient
+            services.AddHttpClient();
+
+            // Configuración de health checks
+            services.AddHealthChecks()
+                .AddCheck<PrinterHealthCheck>("printer_health_check");
+
+            return services;
         }
+
         catch (Exception ex)
         {
-            // En un entorno real, deberías registrar este error en un sistema de registro
-            Console.WriteLine($"Error al registrar servicios de infraestructura: {ex.Message}");
-            if (ex.InnerException != null)
-            {
-                Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-            }
-            throw; // Relanzar la excepción para que el sistema sepa que hubo un error
+            var logger = services.BuildServiceProvider().GetService<ILogger<DependencyInjection>>();
+            logger?.LogError(ex, "Error al configurar la base de datos");
+            throw;
         }
-        
-        return services;
     }
 }

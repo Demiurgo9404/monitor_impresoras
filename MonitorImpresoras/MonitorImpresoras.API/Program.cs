@@ -1,149 +1,140 @@
-using Microsoft.OpenApi.Models;
-using System;
 using System.Text;
-using System.Reflection;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MonitorImpresoras.API.Filters;
+using MonitorImpresoras.API.Middleware;
 using MonitorImpresoras.API.Models;
 using MonitorImpresoras.Application;
 using MonitorImpresoras.Domain.Entities;
 using MonitorImpresoras.Infrastructure;
 using MonitorImpresoras.Infrastructure.Data;
+using Serilog;
+using Serilog.Events;
 
+// Configurar el constructor de la aplicación
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+var environment = builder.Environment;
 
-// Configurar el logger
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+// Configurar Serilog para logging estructurado
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 
-// Configurar CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
-});
-
-// Add services to the container.
-builder.Services.AddControllers();
-
-// Configure JWT Authentication
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-builder.Services.AddSingleton(jwtSettings);
-
-// Configure Identity
-builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
-// Configure JWT Authentication
-var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidIssuer = jwtSettings.Issuer,
-        ValidateAudience = true,
-        ValidAudience = jwtSettings.Audience,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
-
-// Add Authorization policies
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User", "Admin"));
-});
-
-// Add Health Checks
-builder.Services.AddHealthChecks();
-
-// Add Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo 
-    { 
-        Title = "Monitor de Impresoras API", 
-        Version = "v1",
-        Description = "API para el monitoreo y gestión de impresoras en red",
-        Contact = new OpenApiContact
-        {
-            Name = "Soporte Técnico",
-            Email = "soporte@monitorimpresoras.com"
-        }
-    });
-
-    // Configuración de autenticación JWT en Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme.\r\n\r\n" +
-                     "Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\n" +
-                     "Example: \"Bearer 12345abcdef\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header,
-            },
-            new List<string>()
-        }
-    });
-    
-    // Configurar la documentación XML
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
-});
-
-// Configure AutoMapper
 try
 {
-    // Configurar AutoMapper para buscar perfiles en todos los ensamblados
+    Log.Information("Iniciando la aplicación...");
+    
+    // Configurar el host para usar Serilog
+    builder.Host.UseSerilog();
+    
+    // Configurar el contexto de la base de datos
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(
+            configuration.GetConnectionString("DefaultConnection"),
+            b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+    
+    // Configurar CORS
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowSpecificOrigins",
+            policy =>
+            {
+                var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "*" };
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+    });
+    
+    // Configurar controladores con opciones personalizadas
+    builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<GlobalExceptionFilter>();
+        options.SuppressAsyncSuffixInActionNames = false;
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+    
+    // Configurar autenticación JWT
+    var jwtSettings = configuration.GetSection("Jwt");
+    var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+    
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidAudience = jwtSettings["Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(key)
+            };
+        });
+        
+    // Configurar Identity
+    builder.Services.AddIdentity<User, IdentityRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+        
+    // Configurar AutoMapper
     builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
     
-    // Add application services
-    builder.Services.AddApplicationServices(builder.Configuration);
+    // Configurar servicios de aplicación e infraestructura
+    builder.Services.AddApplicationServices();
+    builder.Services.AddInfrastructureServices(configuration);
     
-    // Add infrastructure services
-    builder.Services.AddInfrastructureServices(builder.Configuration);
+    // Configurar Health Checks
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<ApplicationDbContext>("database");
     
-    Console.WriteLine("Servicios configurados correctamente.");
+    // Configurar Swagger
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo 
+        { 
+            Title = "Monitor de Impresoras API", 
+            Version = "v1",
+            Description = "API para el monitoreo y gestión de Impresoras",
+            Contact = new OpenApiContact
+            {
+                Name = "Soporte Técnico",
+                Email = "soporte@monitorimpresoras.com"
+            }
+        });
+        
+        // Configurar autenticación JWT en Swagger
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header using the Bearer scheme.\r\n\r\n" +
+                          "Ingrese 'Bearer' [espacio] y luego su token en el campo de texto.\r\n\r\n" +
+                          "Ejemplo: \"Bearer 12345abcdef\"",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+        
+        c.OperationFilter<SecurityRequirementsOperationFilter>();
+    });
 }
 catch (Exception ex)
 {
@@ -158,9 +149,31 @@ catch (Exception ex)
 var app = builder.Build();
 
 // Configurar el manejador global de excepciones
+// Configurar el pipeline de solicitudes HTTP
 if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/error-development");
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c => 
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Monitor de Impresoras API V1");
+        c.RoutePrefix = "api/docs";
+    });
+    
+    // Solo en desarrollo, aplicar migraciones automáticamente
+    using (var scope = app.Services.CreateScope())
+    {
+        try
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            dbContext.Database.Migrate();
+            Log.Information("Migraciones aplicadas correctamente.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error al aplicar migraciones");
+        }
+    }
 }
 else
 {
@@ -215,22 +228,13 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configurar el pipeline de solicitud HTTP
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Monitor de Impresoras API V1");
-        c.RoutePrefix = string.Empty; // Hacer que Swagger UI esté disponible en la raíz
-    });
-    
-    Console.WriteLine("Modo desarrollo activado.");
-}
-
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowAll");
+
+// Habilitar CORS
+app.UseCors("AllowSpecificOrigins");
+
+// Configurar autenticación y autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -239,46 +243,68 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     
-    // Ruta de verificación de estado
-    endpoints.MapHealthChecks("/health");
+    // Health checks
+    endpoints.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        Predicate = _ => true,
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    });
     
     // Ruta de verificación de estado detallada (solo en desarrollo)
     if (app.Environment.IsDevelopment())
     {
-        endpoints.MapHealthChecks("/health/detailed");
-    }
-});
-
-// Configurar el middleware de manejo de errores
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsJsonAsync(new 
-        { 
-            error = "Ha ocurrido un error en el servidor.",
-            message = ex.Message,
-            stackTrace = app.Environment.IsDevelopment() ? ex.StackTrace : null
+        endpoints.MapHealthChecks("/health/detailed", new HealthCheckOptions
+        {
+            Predicate = _ => true,
+            AllowCachingResponses = false,
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
         });
     }
 });
 
-Console.WriteLine("Iniciando la aplicación...");
-try
+// Configurar el middleware de manejo de errores personalizado
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
+// Configurar el manejador de errores para entornos de desarrollo
+if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Monitor de Impresoras API V1");
+        c.RoutePrefix = "swagger";
+    });
+}
+
+// Configurar autenticación y autorización
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Configurar endpoints
+app.MapControllers();
+
+// Configurar health checks
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+Log.Information("Aplicación iniciada correctamente");
+
+// Ejecutar la aplicación
+try
+{{ ... }}
     app.Run();
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Error al iniciar la aplicación: {ex.Message}");
+    Log.Fatal(ex, "Error al iniciar la aplicación");
     throw;
 }
 finally
 {
-    Console.WriteLine("La aplicación se está cerrando...");
+    Log.Information("La aplicación se está cerrando...");
+    Log.CloseAndFlush();
 }

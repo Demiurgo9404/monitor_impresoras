@@ -40,12 +40,31 @@ namespace MonitorImpresoras.Domain.Entities
 
         public int? SnmpPort { get; set; } = 161;
 
+        // Niveles de tóner y tinta
+        public int? BlackInkLevel { get; set; }
+        public int? CyanInkLevel { get; set; }
+        public int? MagentaInkLevel { get; set; }
+        public int? YellowInkLevel { get; set; }
+        public int? BlackTonerLevel { get; set; }
+        public int? CyanTonerLevel { get; set; }
+        public int? MagentaTonerLevel { get; set; }
+        public int? YellowTonerLevel { get; set; }
+
+        // Contadores y estado
         public int? PageCount { get; set; }
+        public int? TotalPagesPrinted { get; set; }
+        public int? TotalPrintsBlack { get; set; }
+        public int? TotalPrintsColor { get; set; }
+        public int? TotalCopies { get; set; }
+        public int? TotalScans { get; set; }
 
+        // Mantenimiento
         public DateTime? LastMaintenance { get; set; }
-
         public int? MaintenanceIntervalDays { get; set; } = 90;
+        public int? DaysUntilMaintenance => LastMaintenance.HasValue ? 
+            MaintenanceIntervalDays - (int)(DateTime.UtcNow - LastMaintenance.Value).TotalDays : null;
 
+        // Estado y errores
         [MaxLength(500)]
         public string Notes { get; set; } = string.Empty;
 
@@ -53,8 +72,13 @@ namespace MonitorImpresoras.Domain.Entities
         public string LastError { get; set; } = string.Empty;
 
         public DateTime? LastChecked { get; set; }
-
         public DateTime? LastSeen { get; set; } = DateTime.UtcNow;
+        
+        // Alertas
+        public bool LowTonerWarning { get; set; }
+        public bool LowInkWarning { get; set; }
+        public bool PaperJam { get; set; }
+        public bool NeedsUserAttention { get; set; }
 
         [NotMapped]
         public bool NeedsMaintenance => LastMaintenance == null ||

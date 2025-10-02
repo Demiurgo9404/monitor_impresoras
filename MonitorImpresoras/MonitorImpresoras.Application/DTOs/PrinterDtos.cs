@@ -12,32 +12,32 @@ namespace MonitorImpresoras.Application.DTOs
         
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         
         [StringLength(200, ErrorMessage = "La descripción no puede tener más de 200 caracteres")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "La dirección IP es obligatoria")]
         [StringLength(15, ErrorMessage = "La dirección IP no es válida")]
-        public string IpAddress { get; set; }
+        public string IpAddress { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El número de serie no puede tener más de 50 caracteres")]
-        public string SerialNumber { get; set; }
+        public string SerialNumber { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El modelo no puede tener más de 50 caracteres")]
-        public string Model { get; set; }
+        public string Model { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "La marca no puede tener más de 50 caracteres")]
-        public string Brand { get; set; }
+        public string Brand { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "La ubicación no puede tener más de 50 caracteres")]
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El departamento no puede tener más de 50 caracteres")]
-        public string Department { get; set; }
+        public string Department { get; set; } = string.Empty;
         
         public bool IsActive { get; set; }
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
         public int? BlackInkLevel { get; set; }
         public int? CyanInkLevel { get; set; }
         public int? MagentaInkLevel { get; set; }
@@ -55,29 +55,29 @@ namespace MonitorImpresoras.Application.DTOs
     {
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         
         [StringLength(200, ErrorMessage = "La descripción no puede tener más de 200 caracteres")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "La dirección IP es obligatoria")]
         [StringLength(15, ErrorMessage = "La dirección IP no es válida")]
-        public string IpAddress { get; set; }
+        public string IpAddress { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El número de serie no puede tener más de 50 caracteres")]
-        public string SerialNumber { get; set; }
+        public string SerialNumber { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El modelo no puede tener más de 50 caracteres")]
-        public string Model { get; set; }
+        public string Model { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "La marca no puede tener más de 50 caracteres")]
-        public string Brand { get; set; }
+        public string Brand { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "La ubicación no puede tener más de 50 caracteres")]
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El departamento no puede tener más de 50 caracteres")]
-        public string Department { get; set; }
+        public string Department { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -89,29 +89,29 @@ namespace MonitorImpresoras.Application.DTOs
         
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         
         [StringLength(200, ErrorMessage = "La descripción no puede tener más de 200 caracteres")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
         
         [Required(ErrorMessage = "La dirección IP es obligatoria")]
         [StringLength(15, ErrorMessage = "La dirección IP no es válida")]
-        public string IpAddress { get; set; }
+        public string IpAddress { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El número de serie no puede tener más de 50 caracteres")]
-        public string SerialNumber { get; set; }
+        public string SerialNumber { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El modelo no puede tener más de 50 caracteres")]
-        public string Model { get; set; }
+        public string Model { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "La marca no puede tener más de 50 caracteres")]
-        public string Brand { get; set; }
+        public string Brand { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "La ubicación no puede tener más de 50 caracteres")]
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
         
         [StringLength(50, ErrorMessage = "El departamento no puede tener más de 50 caracteres")]
-        public string Department { get; set; }
+        public string Department { get; set; } = string.Empty;
         
         public bool? IsActive { get; set; }
     }
@@ -122,9 +122,9 @@ namespace MonitorImpresoras.Application.DTOs
     public class PrinterStatusDto
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string IpAddress { get; set; }
-        public string Status { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string IpAddress { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public int? BlackInkLevel { get; set; }
         public int? CyanInkLevel { get; set; }
         public int? MagentaInkLevel { get; set; }
