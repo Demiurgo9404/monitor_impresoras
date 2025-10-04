@@ -1,21 +1,21 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorImpresoras.Domain", "MonitorImpresoras.Domain\MonitorImpresoras.Domain.csproj", "{F0AFDFE7-3A05-4EB9-9F95-3574F3D34E5E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorImpresoras.Application", "MonitorImpresoras.Application\MonitorImpresoras.Application.csproj", "{4B7A1F8A-599F-4BFF-85CA-29322A5E1899}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorImpresoras.Infrastructure", "MonitorImpresoras.Infrastructure\MonitorImpresoras.Infrastructure.csproj", "{DBA51BA2-C032-49F0-AD21-17F5CD6996DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitorImpresoras.API", "MonitorImpresoras.API\MonitorImpresoras.API.csproj", "{16EA8C85-3B4A-43E6-BE41-47CC1E7A4434}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonitorImpresoras.Tests", "MonitorImpresoras.Tests\MonitorImpresoras.Tests.csproj", "{8B5E8C4D-2F3A-4D8E-9C7B-1A2B3C4D5E6F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonitorImpresoras.Web", "MonitorImpresoras.Web\MonitorImpresoras.Web.csproj", "{7F6E5D4C-3B2A-4E9D-8C7B-6A5B4C3D2E1F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
@@ -69,6 +69,14 @@ Global
 		{16EA8C85-3B4A-43E6-BE41-47CC1E7A4434}.Release|x64.Build.0 = Release|Any CPU
 		{16EA8C85-3B4A-43E6-BE41-47CC1E7A4434}.Release|x86.ActiveCfg = Release|Any CPU
 		{16EA8C85-3B4A-43E6-BE41-47CC1E7A4434}.Release|x86.Build.0 = Release|Any CPU
+		{8B5E8C4D-2F3A-4D8E-9C7B-1A2B3C4D5E6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5E8C4D-2F3A-4D8E-9C7B-1A2B3C4D5E6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5E8C4D-2F3A-4D8E-9C7B-1A2B3C4D5E6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5E8C4D-2F3A-4D8E-9C7B-1A2B3C4D5E6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F6E5D4C-3B2A-4E9D-8C7B-6A5B4C3D2E1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F6E5D4C-3B2A-4E9D-8C7B-6A5B4C3D2E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F6E5D4C-3B2A-4E9D-8C7B-6A5B4C3D2E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F6E5D4C-3B2A-4E9D-8C7B-6A5B4C3D2E1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

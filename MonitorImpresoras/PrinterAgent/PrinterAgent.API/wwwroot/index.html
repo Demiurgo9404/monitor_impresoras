@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrinterAgent Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div id="app">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-robot text-2xl"></i>
+                        <div>
+                            <h1 class="text-xl font-bold">PrinterAgent Dashboard</h1>
+                            <p class="text-indigo-200 text-sm" id="agent-info">Cargando información del agente...</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="connection-status" class="flex items-center space-x-2">
+                            <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                            <span>Conectando...</span>
+                        </span>
+                        <button id="refresh-btn" class="bg-indigo-500 hover:bg-indigo-700 px-4 py-2 rounded">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Agent Health Status -->
+            <div class="bg-white rounded-lg shadow mb-8">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Estado del Agente</h2>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div id="health-indicator" class="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-300 flex items-center justify-center">
+                                <i class="fas fa-question text-white text-xl"></i>
+                            </div>
+                            <p class="text-sm text-gray-600">Estado General</p>
+                            <p id="health-status" class="font-semibold">Desconocido</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600" id="uptime">--</div>
+                            <p class="text-sm text-gray-600">Tiempo Activo</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600" id="printers-monitored">0</div>
+                            <p class="text-sm text-gray-600">Impresoras Monitoreadas</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-red-600" id="active-alerts">0</div>
+                            <p class="text-sm text-gray-600">Alertas Activas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mb-6 flex flex-wrap gap-3">
+                <button id="scan-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                    <i class="fas fa-search mr-2"></i>Escanear Red
+                </button>
+                <button id="report-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">
+                    <i class="fas fa-paper-plane mr-2"></i>Enviar Reporte
+                </button>
+                <button id="metrics-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg">
+                    <i class="fas fa-chart-bar mr-2"></i>Ver Métricas
+                </button>
+            </div>
+
+            <!-- Printers List -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">Impresoras Detectadas</h2>
+                </div>
+                <div class="p-6">
+                    <div id="loading-printers" class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                        <p class="mt-2 text-gray-600">Cargando impresoras...</p>
+                    </div>
+                    <div id="printers-list" class="hidden">
+                        <!-- Printers will be loaded here -->
+                    </div>
+                    <div id="no-printers" class="hidden text-center py-8">
+                        <i class="fas fa-print text-4xl text-gray-300"></i>
+                        <p class="mt-4 text-gray-600">No se han detectado impresoras</p>
+                        <button class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded" onclick="scanNetwork()">
+                            Escanear Red
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Modal -->
+            <div id="metrics-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+                <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+                    <div class="mt-3">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Métricas del Agente</h3>
+                            <button id="close-metrics" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        <div id="metrics-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Metrics will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = '/api/agent';
+        
+        // State
+        let agentHealth = null;
+        let printers = [];
+        let metrics = null;
+
+        // DOM Elements
+        const elements = {
+            agentInfo: document.getElementById('agent-info'),
+            connectionStatus: document.getElementById('connection-status'),
+            healthIndicator: document.getElementById('health-indicator'),
+            healthStatus: document.getElementById('health-status'),
+            uptime: document.getElementById('uptime'),
+            printersMonitored: document.getElementById('printers-monitored'),
+            activeAlerts: document.getElementById('active-alerts'),
+            loadingPrinters: document.getElementById('loading-printers'),
+            printersList: document.getElementById('printers-list'),
+            noPrinters: document.getElementById('no-printers'),
+            metricsModal: document.getElementById('metrics-modal'),
+            metricsContent: document.getElementById('metrics-content'),
+            refreshBtn: document.getElementById('refresh-btn'),
+            scanBtn: document.getElementById('scan-btn'),
+            reportBtn: document.getElementById('report-btn'),
+            metricsBtn: document.getElementById('metrics-btn'),
+            closeMetrics: document.getElementById('close-metrics')
+        };
+
+        // API Functions
+        async function fetchAgentHealth() {
+            try {
+                const response = await axios.get(`${API_BASE}/health`);
+                agentHealth = response.data;
+                updateHealthDisplay();
+                updateConnectionStatus(true);
+            } catch (error) {
+                console.error('Error fetching health:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        async function fetchPrinters() {
+            try {
+                elements.loadingPrinters.classList.remove('hidden');
+                elements.printersList.classList.add('hidden');
+                elements.noPrinters.classList.add('hidden');
+
+                const response = await axios.get(`${API_BASE}/printers`);
+                printers = response.data;
+                renderPrinters();
+            } catch (error) {
+                console.error('Error fetching printers:', error);
+                elements.loadingPrinters.classList.add('hidden');
+                elements.noPrinters.classList.remove('hidden');
+            }
+        }
+
+        async function fetchMetrics() {
+            try {
+                const response = await axios.get(`${API_BASE}/metrics`);
+                metrics = response.data;
+                return metrics;
+            } catch (error) {
+                console.error('Error fetching metrics:', error);
+                return null;
+            }
+        }
+
+        async function scanNetwork() {
+            try {
+                elements.scanBtn.disabled = true;
+                elements.scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Escaneando...';
+                
+                await axios.post(`${API_BASE}/scan`);
+                
+                // Wait a bit then refresh
+                setTimeout(async () => {
+                    await fetchPrinters();
+                    await fetchAgentHealth();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error scanning network:', error);
+                alert('Error iniciando escaneo de red');
+            } finally {
+                elements.scanBtn.disabled = false;
+                elements.scanBtn.innerHTML = '<i class="fas fa-search mr-2"></i>Escanear Red';
+            }
+        }
+
+        async function sendReport() {
+            try {
+                elements.reportBtn.disabled = true;
+                elements.reportBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Enviando...';
+                
+                await axios.post(`${API_BASE}/report`);
+                alert('Reporte enviado exitosamente');
+                
+            } catch (error) {
+                console.error('Error sending report:', error);
+                alert('Error enviando reporte');
+            } finally {
+                elements.reportBtn.disabled = false;
+                elements.reportBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Enviar Reporte';
+            }
+        }
+
+        async function showMetrics() {
+            const metricsData = await fetchMetrics();
+            if (!metricsData) {
+                alert('Error obteniendo métricas');
+                return;
+            }
+
+            const metricsHtml = `
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold mb-2">Descubrimiento</h4>
+                    <p>Total Descubiertas: ${metricsData.totalPrintersDiscovered}</p>
+                    <p>En Línea: ${metricsData.printersOnline}</p>
+                    <p>Fuera de Línea: ${metricsData.printersOffline}</p>
+                    <p>Con Errores: ${metricsData.printersWithErrors}</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold mb-2">Comunicación</h4>
+                    <p>Exitosas: ${metricsData.successfulCommunications}</p>
+                    <p>Fallidas: ${metricsData.failedCommunications}</p>
+                    <p>Tiempo Promedio: ${metricsData.averageResponseTime.toFixed(2)}ms</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold mb-2">Alertas</h4>
+                    <p>Total Generadas: ${metricsData.totalAlertsGenerated}</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h4 class="font-semibold mb-2">Último Escaneo</h4>
+                    <p>Fecha: ${new Date(metricsData.lastNetworkScan).toLocaleString()}</p>
+                    <p>Duración: ${formatDuration(metricsData.networkScanDuration)}</p>
+                </div>
+            `;
+
+            elements.metricsContent.innerHTML = metricsHtml;
+            elements.metricsModal.classList.remove('hidden');
+        }
+
+        // Display Functions
+        function updateConnectionStatus(isConnected) {
+            if (isConnected) {
+                elements.connectionStatus.innerHTML = `
+                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                    <span>Conectado</span>
+                `;
+            } else {
+                elements.connectionStatus.innerHTML = `
+                    <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                    <span>Desconectado</span>
+                `;
+            }
+        }
+
+        function updateHealthDisplay() {
+            if (!agentHealth) return;
+
+            // Update agent info
+            elements.agentInfo.textContent = `Agente activo - Monitoreando ${agentHealth.printersMonitored} impresoras`;
+
+            // Update health indicator
+            if (agentHealth.isHealthy) {
+                elements.healthIndicator.className = 'w-16 h-16 mx-auto mb-2 rounded-full bg-green-500 flex items-center justify-center';
+                elements.healthIndicator.innerHTML = '<i class="fas fa-check text-white text-xl"></i>';
+                elements.healthStatus.textContent = 'Saludable';
+                elements.healthStatus.className = 'font-semibold text-green-600';
+            } else {
+                elements.healthIndicator.className = 'w-16 h-16 mx-auto mb-2 rounded-full bg-red-500 flex items-center justify-center';
+                elements.healthIndicator.innerHTML = '<i class="fas fa-exclamation text-white text-xl"></i>';
+                elements.healthStatus.textContent = 'Con Problemas';
+                elements.healthStatus.className = 'font-semibold text-red-600';
+            }
+
+            // Update metrics
+            elements.uptime.textContent = formatDuration(agentHealth.uptime);
+            elements.printersMonitored.textContent = agentHealth.printersMonitored;
+            elements.activeAlerts.textContent = agentHealth.activeAlerts;
+        }
+
+        function renderPrinters() {
+            elements.loadingPrinters.classList.add('hidden');
+            
+            if (printers.length === 0) {
+                elements.noPrinters.classList.remove('hidden');
+                return;
+            }
+
+            const html = printers.map(printer => `
+                <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-2 rounded-full ${getStatusColor(printer.status)}">
+                                <i class="fas fa-print text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">${printer.name}</h3>
+                                <p class="text-sm text-gray-600">${printer.model || 'Modelo desconocido'}</p>
+                                <p class="text-sm text-gray-500">IP: ${printer.ipAddress}</p>
+                                <p class="text-xs text-gray-400">Última vez visto: ${new Date(printer.lastSeen).toLocaleString()}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeColor(printer.status)}">
+                                ${getStatusText(printer.status)}
+                            </span>
+                            ${printer.metrics ? `
+                                <div class="mt-2 text-xs text-gray-500">
+                                    <p>Páginas: ${printer.metrics.totalPageCount || 0}</p>
+                                    ${printer.metrics.blackToner ? `<p>Tóner: ${printer.metrics.blackToner.currentLevel}%</p>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            elements.printersList.innerHTML = html;
+            elements.printersList.classList.remove('hidden');
+        }
+
+        function getStatusColor(status) {
+            switch (status) {
+                case 1: return 'bg-green-500'; // Online
+                case 2: return 'bg-red-500';   // Offline
+                case 3: return 'bg-yellow-500'; // Error
+                default: return 'bg-gray-500'; // Unknown
+            }
+        }
+
+        function getStatusBadgeColor(status) {
+            switch (status) {
+                case 1: return 'bg-green-100 text-green-800'; // Online
+                case 2: return 'bg-red-100 text-red-800';     // Offline
+                case 3: return 'bg-yellow-100 text-yellow-800'; // Error
+                default: return 'bg-gray-100 text-gray-800';  // Unknown
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 1: return 'En Línea';
+                case 2: return 'Fuera de Línea';
+                case 3: return 'Error';
+                default: return 'Desconocido';
+            }
+        }
+
+        function formatDuration(duration) {
+            if (!duration) return '--';
+            
+            // Parse ISO 8601 duration or assume it's already in a readable format
+            if (typeof duration === 'string' && duration.includes(':')) {
+                return duration;
+            }
+            
+            // If it's a timespan object, format it
+            const parts = duration.split(':');
+            if (parts.length >= 3) {
+                const hours = parseInt(parts[0]);
+                const minutes = parseInt(parts[1]);
+                return `${hours}h ${minutes}m`;
+            }
+            
+            return duration.toString();
+        }
+
+        // Event Listeners
+        elements.refreshBtn.addEventListener('click', async () => {
+            await Promise.all([fetchAgentHealth(), fetchPrinters()]);
+        });
+
+        elements.scanBtn.addEventListener('click', scanNetwork);
+        elements.reportBtn.addEventListener('click', sendReport);
+        elements.metricsBtn.addEventListener('click', showMetrics);
+        elements.closeMetrics.addEventListener('click', () => {
+            elements.metricsModal.classList.add('hidden');
+        });
+
+        // Initialize
+        async function init() {
+            await Promise.all([fetchAgentHealth(), fetchPrinters()]);
+            
+            // Auto-refresh every 30 seconds
+            setInterval(async () => {
+                await fetchAgentHealth();
+            }, 30000);
+            
+            // Auto-refresh printers every 2 minutes
+            setInterval(async () => {
+                await fetchPrinters();
+            }, 120000);
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>

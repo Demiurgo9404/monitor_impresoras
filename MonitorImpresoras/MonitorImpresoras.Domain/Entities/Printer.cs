@@ -5,10 +5,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace MonitorImpresoras.Domain.Entities
 {
     /// <summary>
-    /// Entidad de impresora
+    /// Entidad de impresora - QOPIQ Multi-Tenant
     /// </summary>
     public class Printer : BaseEntity
     {
+        // Multi-tenant support
+        [Required]
+        [MaxLength(50)]
+        public string TenantId { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(50)]
+        public string ProjectId { get; set; } = string.Empty;
+
         [Required]
         [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
@@ -50,13 +59,36 @@ namespace MonitorImpresoras.Domain.Entities
         public int? MagentaTonerLevel { get; set; }
         public int? YellowTonerLevel { get; set; }
 
-        // Contadores y estado
+        // Contadores específicos QOPIQ
         public int? PageCount { get; set; }
         public int? TotalPagesPrinted { get; set; }
         public int? TotalPrintsBlack { get; set; }
         public int? TotalPrintsColor { get; set; }
         public int? TotalCopies { get; set; }
         public int? TotalScans { get; set; }
+        
+        // Contadores de scanner específicos
+        public int? ScannerCounterBW { get; set; }
+        public int? ScannerCounterColor { get; set; }
+        public int? ScannerCounterTotal { get; set; }
+        
+        // Contadores de impresión detallados
+        public int? PrintCounterA4BW { get; set; }
+        public int? PrintCounterA4Color { get; set; }
+        public int? PrintCounterA3BW { get; set; }
+        public int? PrintCounterA3Color { get; set; }
+        
+        // Estado del fusor
+        public int? FuserLevel { get; set; }
+        public int? FuserLifeRemaining { get; set; }
+        public bool? FuserNeedsReplacement { get; set; }
+        
+        // Drum/Tambor
+        public int? DrumLevel { get; set; }
+        public int? DrumLifeRemaining { get; set; }
+        
+        // Waste Toner Box
+        public int? WasteTonerLevel { get; set; }
 
         // Mantenimiento
         public DateTime? LastMaintenance { get; set; }

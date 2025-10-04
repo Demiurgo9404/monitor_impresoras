@@ -8,7 +8,7 @@ namespace MonitorImpresoras.Application.DTOs
     /// </summary>
     public class PrinterDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
@@ -36,15 +36,39 @@ namespace MonitorImpresoras.Application.DTOs
         [StringLength(50, ErrorMessage = "El departamento no puede tener más de 50 caracteres")]
         public string Department { get; set; } = string.Empty;
         
-        public bool IsActive { get; set; }
-        public string Status { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+        public string Status { get; set; } = "Desconocido";
+        public bool IsLocalPrinter { get; set; }
+        [Obsolete("Usar IsLocalPrinter en su lugar")]
+        public bool IsLocal { get => IsLocalPrinter; set => IsLocalPrinter = value; }
+        public bool IsNetworkPrinter { get; set; }
+        public bool IsColorPrinter { get; set; } = true;
+        public string CommunityString { get; set; } = "public";
+        public int? SnmpPort { get; set; } = 161;
         public int? BlackInkLevel { get; set; }
         public int? CyanInkLevel { get; set; }
         public int? MagentaInkLevel { get; set; }
         public int? YellowInkLevel { get; set; }
+        public int? BlackTonerLevel { get; set; }
+        public int? CyanTonerLevel { get; set; }
+        public int? MagentaTonerLevel { get; set; }
+        public int? YellowTonerLevel { get; set; }
         public int? PageCount { get; set; }
+        public int? TotalPagesPrinted { get; set; }
+        public int? TotalPrintsBlack { get; set; }
+        public int? TotalPrintsColor { get; set; }
+        public int? TotalCopies { get; set; }
+        public int? TotalScans { get; set; }
+        public string LastError { get; set; } = string.Empty;
+        public bool NeedsUserAttention { get; set; }
+        public bool PaperJam { get; set; }
+        public bool LowTonerWarning { get; set; }
+        public bool LowInkWarning { get; set; }
+        public DateTime? LastMaintenance { get; set; }
+        public int? MaintenanceIntervalDays { get; set; } = 90;
+        public int? DaysUntilMaintenance { get; set; }
         public DateTime? LastChecked { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
     }
 
@@ -78,6 +102,12 @@ namespace MonitorImpresoras.Application.DTOs
         
         [StringLength(50, ErrorMessage = "El departamento no puede tener más de 50 caracteres")]
         public string Department { get; set; } = string.Empty;
+        
+        public bool IsLocalPrinter { get; set; } = true;
+        public bool IsNetworkPrinter { get; set; } = false;
+        public bool IsColorPrinter { get; set; } = true;
+        public string CommunityString { get; set; } = "public";
+        public int? SnmpPort { get; set; } = 161;
     }
 
     /// <summary>
@@ -85,7 +115,7 @@ namespace MonitorImpresoras.Application.DTOs
     /// </summary>
     public class UpdatePrinterDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
@@ -113,7 +143,12 @@ namespace MonitorImpresoras.Application.DTOs
         [StringLength(50, ErrorMessage = "El departamento no puede tener más de 50 caracteres")]
         public string Department { get; set; } = string.Empty;
         
-        public bool? IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsLocalPrinter { get; set; } = true;
+        public bool IsNetworkPrinter { get; set; } = false;
+        public bool IsColorPrinter { get; set; } = true;
+        public string CommunityString { get; set; } = "public";
+        public int? SnmpPort { get; set; } = 161;
     }
 
     /// <summary>
@@ -121,7 +156,7 @@ namespace MonitorImpresoras.Application.DTOs
     /// </summary>
     public class PrinterStatusDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string IpAddress { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
@@ -131,5 +166,6 @@ namespace MonitorImpresoras.Application.DTOs
         public int? YellowInkLevel { get; set; }
         public int? PageCount { get; set; }
         public DateTime? LastChecked { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 }

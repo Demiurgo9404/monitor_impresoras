@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MonitorImpresoras.Application.DTOs;
+using MonitorImpresoras.Domain.Entities;
 
-namespace MonitorImpresoras.Application.Interfaces.Services
+namespace MonitorImpresoras.Application.Interfaces
 {
     public interface IPrinterMonitoringService
     {
-        Task<IEnumerable<PrinterDto>> GetAllPrintersAsync();
-        Task<PrinterDto> GetPrinterByIdAsync(Guid id);
-        Task<PrinterDto> AddPrinterAsync(PrinterDto printerDto);
-        Task UpdatePrinterAsync(PrinterDto printerDto);
+        Task<IEnumerable<Printer>> GetAllPrintersAsync();
+        Task<Printer?> GetPrinterByIdAsync(Guid id);
+        Task<Printer> AddPrinterAsync(Printer printer);
+        Task UpdatePrinterAsync(Printer printer);
         Task DeletePrinterAsync(Guid id);
         Task CheckPrinterStatusAsync(Guid printerId);
         Task CheckAllPrintersStatusAsync();

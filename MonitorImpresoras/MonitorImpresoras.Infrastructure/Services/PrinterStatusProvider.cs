@@ -1,8 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using MonitorImpresoras.Application.DTOs;
-using MonitorImpresoras.Infrastructure.Services.SNMP;
-using MonitorImpresoras.Infrastructure.Services.WMI;
+using MonitorImpresoras.Application.Interfaces;
 
 namespace MonitorImpresoras.Infrastructure.Services
 {
@@ -24,7 +23,7 @@ namespace MonitorImpresoras.Infrastructure.Services
 
             var status = new PrinterStatusDto
             {
-                Id = printer.Id,
+                Id = (int)printer.Id.GetHashCode(), // Conversión temporal para compatibilidad
                 Name = printer.Name,
                 IpAddress = printer.IpAddress,
                 LastChecked = DateTime.UtcNow

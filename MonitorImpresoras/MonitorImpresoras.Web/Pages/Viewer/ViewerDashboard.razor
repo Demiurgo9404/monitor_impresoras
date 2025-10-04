@@ -1,0 +1,678 @@
+@page "/viewer/dashboard"
+@inject ApiService ApiService
+@inject TenantService TenantService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = "Viewer")]
+
+<PageTitle>Viewer Dashboard - QOPIQ</PageTitle>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gradient">
+                        <i class="fas fa-eye text-info me-2"></i>
+                        Dashboard de Consulta
+                    </h1>
+                    <p class="text-muted mb-0">Visualización de reportes y métricas</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-modern" @onclick="RefreshData">
+                        <i class="fas fa-sync-alt @(isLoading ? "fa-spin" : "")"></i>
+                        Actualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    @if (viewerStats != null)
+    {
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card gradient-info">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon info me-3">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value text-white">@viewerStats.AvailableReports</div>
+                                <div class="metric-label text-white-50">Reportes Disponibles</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card gradient-success">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon success me-3">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value text-white">@viewerStats.DownloadsThisMonth</div>
+                                <div class="metric-label text-white-50">Descargas del Mes</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card gradient-primary">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon primary me-3">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value text-white">@viewerStats.AccessibleProjects</div>
+                                <div class="metric-label text-white-50">Proyectos Accesibles</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card gradient-warning">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon warning me-3">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value text-white">@viewerStats.LastAccessDays</div>
+                                <div class="metric-label text-white-50">Días desde último acceso</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Available Reports -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-custom">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-alt text-primary me-2"></i>
+                        Reportes Disponibles
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" style="width: auto;" @bind="selectedProject" @bind:event="onchange">
+                            <option value="">Todos los proyectos</option>
+                            @if (accessibleProjects != null)
+                            {
+                                @foreach (var project in accessibleProjects)
+                                {
+                                    <option value="@project.Id">@project.Name</option>
+                                }
+                            }
+                        </select>
+                        <select class="form-select form-select-sm" style="width: auto;" @bind="selectedFormat" @bind:event="onchange">
+                            <option value="">Todos los formatos</option>
+                            <option value="PDF">PDF</option>
+                            <option value="Excel">Excel</option>
+                            <option value="CSV">CSV</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (availableReports?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Reporte</th>
+                                        <th>Proyecto</th>
+                                        <th>Formato</th>
+                                        <th>Fecha</th>
+                                        <th>Tamaño</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var report in GetFilteredReports())
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-file-@GetFormatIcon(report.Format) text-@GetFormatColor(report.Format) me-2"></i>
+                                                    <div>
+                                                        <div class="fw-bold">@report.Title</div>
+                                                        <small class="text-muted">@report.Description</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">@report.ProjectName</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@GetFormatColor(report.Format)">@report.Format</span>
+                                            </td>
+                                            <td>
+                                                <div>@report.GeneratedAt.ToString("dd/MM/yyyy")</div>
+                                                <small class="text-muted">@report.GeneratedAt.ToString("HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">@FormatFileSize(report.FileSizeBytes)</small>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex gap-1">
+                                                    <button class="btn btn-sm btn-primary" 
+                                                            @onclick="() => DownloadReport(report)" 
+                                                            title="Descargar">
+                                                        <i class="fas fa-download"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-info" 
+                                                            @onclick="() => ViewReportDetails(report)" 
+                                                            title="Ver detalles">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (totalPages > 1)
+                        {
+                            <div class="d-flex justify-content-center mt-3">
+                                <nav>
+                                    <ul class="pagination pagination-sm">
+                                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                            <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                        </li>
+                                        
+                                        @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                <button class="page-link" @onclick="() => ChangePage(i)">@i</button>
+                                            </li>
+                                        }
+                                        
+                                        <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                                            <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5>No hay reportes disponibles</h5>
+                            <p class="text-muted">No tienes acceso a reportes en este momento o no se han generado reportes para los proyectos asignados.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Access & Recent Downloads -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-custom mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-star text-warning me-2"></i>
+                        Acceso Rápido
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-modern" @onclick="ViewAllReports">
+                            <i class="fas fa-file-alt me-2"></i>
+                            Todos los Reportes
+                        </button>
+                        <button class="btn btn-success btn-modern" @onclick="ViewLatestReports">
+                            <i class="fas fa-clock me-2"></i>
+                            Reportes Recientes
+                        </button>
+                        <button class="btn btn-info btn-modern" @onclick="ViewFavoriteReports">
+                            <i class="fas fa-heart me-2"></i>
+                            Reportes Favoritos
+                        </button>
+                        <button class="btn btn-warning btn-modern" @onclick="ViewDownloadHistory">
+                            <i class="fas fa-history me-2"></i>
+                            Historial de Descargas
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-custom">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-download text-success me-2"></i>
+                        Descargas Recientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (recentDownloads?.Any() == true)
+                    {
+                        <div class="download-history">
+                            @foreach (var download in recentDownloads.Take(5))
+                            {
+                                <div class="download-item d-flex align-items-center mb-3">
+                                    <div class="download-icon me-3">
+                                        <i class="fas fa-file-@GetFormatIcon(download.Format) text-@GetFormatColor(download.Format)"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="download-title">@download.ReportTitle</div>
+                                        <div class="download-details">
+                                            <small class="text-muted">@download.ProjectName</small>
+                                            <small class="text-muted ms-2">@download.DownloadedAt.ToString("dd/MM HH:mm")</small>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            @onclick="() => RedownloadReport(download.ReportId)" 
+                                            title="Descargar nuevamente">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center">
+                            <button class="btn btn-outline-success btn-sm" @onclick="ViewDownloadHistory">
+                                Ver historial completo
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-3">
+                            <i class="fas fa-download fa-2x text-muted mb-2"></i>
+                            <p class="text-muted small">No hay descargas recientes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects Overview -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-custom">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-briefcase text-primary me-2"></i>
+                        Proyectos Accesibles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (accessibleProjects?.Any() == true)
+                    {
+                        <div class="row g-3">
+                            @foreach (var project in accessibleProjects)
+                            {
+                                <div class="col-md-6 col-lg-4 col-xl-3">
+                                    <div class="card project-summary-card h-100">
+                                        <div class="card-body text-center">
+                                            <div class="project-icon mb-3">
+                                                <i class="fas fa-briefcase fa-2x text-primary"></i>
+                                            </div>
+                                            <h6 class="card-title">@project.Name</h6>
+                                            <p class="card-text text-muted small">@project.ClientName</p>
+                                            
+                                            <div class="project-stats">
+                                                <div class="row text-center">
+                                                    <div class="col-6">
+                                                        <div class="stat-value">@project.ReportCount</div>
+                                                        <div class="stat-label">Reportes</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="stat-value">@project.PrinterCount</div>
+                                                        <div class="stat-label">Impresoras</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <button class="btn btn-sm btn-outline-primary mt-2" 
+                                                    @onclick="() => ViewProjectReports(project)">
+                                                <i class="fas fa-eye me-1"></i>
+                                                Ver Reportes
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                            <h5>No hay proyectos accesibles</h5>
+                            <p class="text-muted">Contacta con tu administrador para obtener acceso a proyectos.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Details Modal -->
+<div class="modal fade" id="reportDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle text-info me-2"></i>
+                    Detalles del Reporte
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                @if (selectedReportDetails != null)
+                {
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Título:</label>
+                            <p>@selectedReportDetails.Title</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Proyecto:</label>
+                            <p>@selectedReportDetails.ProjectName</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Formato:</label>
+                            <p><span class="badge bg-@GetFormatColor(selectedReportDetails.Format)">@selectedReportDetails.Format</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tamaño:</label>
+                            <p>@FormatFileSize(selectedReportDetails.FileSizeBytes)</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Generado:</label>
+                            <p>@selectedReportDetails.GeneratedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Generado por:</label>
+                            <p>@selectedReportDetails.GeneratedBy</p>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Descripción:</label>
+                            <p>@selectedReportDetails.Description</p>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                @if (selectedReportDetails != null)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="() => DownloadReport(selectedReportDetails)">
+                        <i class="fas fa-download me-1"></i>
+                        Descargar
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ViewerStats? viewerStats;
+    private List<ViewerReport>? availableReports;
+    private List<AccessibleProject>? accessibleProjects;
+    private List<RecentDownload>? recentDownloads;
+    private ViewerReport? selectedReportDetails;
+    private bool isLoading = false;
+
+    // Filters
+    private string selectedProject = "";
+    private string selectedFormat = "";
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalPages = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var tasks = new[]
+            {
+                ApiService.GetAsync<ViewerStats>("/api/viewer/stats"),
+                ApiService.GetAsync<List<ViewerReport>>("/api/viewer/reports"),
+                ApiService.GetAsync<List<AccessibleProject>>("/api/viewer/projects"),
+                ApiService.GetAsync<List<RecentDownload>>("/api/viewer/downloads/recent")
+            };
+
+            await Task.WhenAll(tasks);
+
+            viewerStats = await tasks[0];
+            availableReports = await tasks[1];
+            accessibleProjects = await tasks[2];
+            recentDownloads = await tasks[3];
+
+            CalculatePagination();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error cargando datos: {ex.Message}", "error");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+        await JSRuntime.InvokeVoidAsync("showToast", "Actualizado", "Datos actualizados correctamente", "success");
+    }
+
+    private List<ViewerReport> GetFilteredReports()
+    {
+        if (availableReports == null) return new List<ViewerReport>();
+
+        var filtered = availableReports.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(selectedProject))
+            filtered = filtered.Where(r => r.ProjectId.ToString() == selectedProject);
+
+        if (!string.IsNullOrEmpty(selectedFormat))
+            filtered = filtered.Where(r => r.Format == selectedFormat);
+
+        var skip = (currentPage - 1) * pageSize;
+        return filtered.Skip(skip).Take(pageSize).ToList();
+    }
+
+    private void CalculatePagination()
+    {
+        if (availableReports == null) return;
+
+        var filteredCount = availableReports.Count();
+        if (!string.IsNullOrEmpty(selectedProject))
+            filteredCount = availableReports.Count(r => r.ProjectId.ToString() == selectedProject);
+        if (!string.IsNullOrEmpty(selectedFormat))
+            filteredCount = availableReports.Count(r => r.Format == selectedFormat);
+
+        totalPages = (int)Math.Ceiling((double)filteredCount / pageSize);
+    }
+
+    private async Task ChangePage(int page)
+    {
+        if (page >= 1 && page <= totalPages)
+        {
+            currentPage = page;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DownloadReport(ViewerReport report)
+    {
+        try
+        {
+            var fileData = await ApiService.DownloadAsync($"/api/viewer/reports/{report.Id}/download");
+            if (fileData != null)
+            {
+                var fileName = $"{report.Title}.{report.Format.ToLower()}";
+                await JSRuntime.InvokeVoidAsync("downloadFile", fileName, "application/octet-stream", fileData);
+                await JSRuntime.InvokeVoidAsync("showToast", "Descarga", "Reporte descargado correctamente", "success");
+                
+                // Refresh recent downloads
+                recentDownloads = await ApiService.GetAsync<List<RecentDownload>>("/api/viewer/downloads/recent");
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error descargando reporte: {ex.Message}", "error");
+        }
+    }
+
+    private async Task ViewReportDetails(ViewerReport report)
+    {
+        selectedReportDetails = report;
+        await JSRuntime.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('reportDetailsModal')).show()");
+    }
+
+    private async Task RedownloadReport(Guid reportId)
+    {
+        var report = availableReports?.FirstOrDefault(r => r.Id == reportId);
+        if (report != null)
+        {
+            await DownloadReport(report);
+        }
+    }
+
+    private async Task ViewProjectReports(AccessibleProject project)
+    {
+        selectedProject = project.Id.ToString();
+        StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("showToast", "Filtrado", $"Mostrando reportes de {project.Name}", "info");
+    }
+
+    private async Task ViewAllReports()
+    {
+        selectedProject = "";
+        selectedFormat = "";
+        currentPage = 1;
+        StateHasChanged();
+    }
+
+    private async Task ViewLatestReports()
+    {
+        // Filter by last 30 days
+        await JSRuntime.InvokeVoidAsync("showToast", "Filtrado", "Mostrando reportes recientes", "info");
+    }
+
+    private async Task ViewFavoriteReports()
+    {
+        await JSRuntime.InvokeVoidAsync("showToast", "Próximamente", "Funcionalidad de favoritos", "info");
+    }
+
+    private async Task ViewDownloadHistory()
+    {
+        await JSRuntime.InvokeVoidAsync("showToast", "Próximamente", "Historial completo de descargas", "info");
+    }
+
+    private string GetFormatIcon(string format)
+    {
+        return format switch
+        {
+            "PDF" => "pdf",
+            "Excel" => "excel",
+            "CSV" => "csv",
+            _ => "file"
+        };
+    }
+
+    private string GetFormatColor(string format)
+    {
+        return format switch
+        {
+            "PDF" => "danger",
+            "Excel" => "success",
+            "CSV" => "info",
+            _ => "secondary"
+        };
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes == 0) return "0 B";
+        
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    // Models
+    public class ViewerStats
+    {
+        public int AvailableReports { get; set; }
+        public int DownloadsThisMonth { get; set; }
+        public int AccessibleProjects { get; set; }
+        public int LastAccessDays { get; set; }
+    }
+
+    public class ViewerReport
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public Guid ProjectId { get; set; }
+        public string ProjectName { get; set; } = "";
+        public string Format { get; set; } = "";
+        public DateTime GeneratedAt { get; set; }
+        public string GeneratedBy { get; set; } = "";
+        public long FileSizeBytes { get; set; }
+    }
+
+    public class AccessibleProject
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public string ClientName { get; set; } = "";
+        public int ReportCount { get; set; }
+        public int PrinterCount { get; set; }
+    }
+
+    public class RecentDownload
+    {
+        public Guid ReportId { get; set; }
+        public string ReportTitle { get; set; } = "";
+        public string ProjectName { get; set; } = "";
+        public string Format { get; set; } = "";
+        public DateTime DownloadedAt { get; set; }
+    }
+}

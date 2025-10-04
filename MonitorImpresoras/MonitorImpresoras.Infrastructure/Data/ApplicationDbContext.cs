@@ -1,12 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Domain.Entities;
 
 namespace MonitorImpresoras.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        private readonly ITenantAccessor _tenantAccessor;
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantAccessor tenantAccessor) : base(options)
         {
+            _tenantAccessor = tenantAccessor;
         }
 
         // Entidades principales
@@ -47,6 +51,35 @@ namespace MonitorImpresoras.Infrastructure.Data
                 .HasOne(ur => ur.Role)
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId);
+
+            // Configurar filtros globales multi-tenant
+            ConfigureTenantFilters(modelBuilder);
+        }
+
+        private void ConfigureTenantFilters(ModelBuilder modelBuilder)
+        {
+            // Filtro global para Printer
+            modelBuilder.Entity<Printer>().HasQueryFilter(p => p.TenantId == _tenantAccessor.TenantId);
+            
+            // Filtro global para User
+            modelBuilder.Entity<User>().HasQueryFilter(u => u.TenantId == _tenantAccessor.TenantId);
+            
+            // Filtro global para Company
+            modelBuilder.Entity<Company>().HasQueryFilter(c => c.TenantId == _tenantAccessor.TenantId);
+            
+            // Filtro global para Project
+            modelBuilder.Entity<Project>().HasQueryFilter(p => p.TenantId == _tenantAccessor.TenantId);
+            
+            // Filtro global para Report
+            modelBuilder.Entity<Report>().HasQueryFilter(r => r.TenantId == _tenantAccessor.TenantId);
+            
+            // Filtro global para PrintJob
+            modelBuilder.Entity<PrintJob>().HasQueryFilter(pj => pj.TenantId == _tenantAccessor.TenantId);
+            
+            // Filtro global para Alert
+            modelBuilder.Entity<Alert>().HasQueryFilter(a => a.TenantId == _tenantAccessor.TenantId);
+
+            // Los Tenants NO tienen filtro (necesitamos acceso global para validación)
         }
     }
 }

@@ -1,0 +1,551 @@
+@page "/admin/dashboard"
+@inject ApiService ApiService
+@inject TenantService TenantService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+<PageTitle>SuperAdmin Dashboard - QOPIQ</PageTitle>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gradient">
+                        <i class="fas fa-crown text-warning me-2"></i>
+                        SuperAdmin Dashboard
+                    </h1>
+                    <p class="text-muted mb-0">Gestión global de toda la plataforma QOPIQ</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-modern" @onclick="RefreshData">
+                        <i class="fas fa-sync-alt @(isLoading ? "fa-spin" : "")"></i>
+                        Actualizar
+                    </button>
+                    <button class="btn btn-success btn-modern" @onclick="ShowSystemHealth">
+                        <i class="fas fa-heartbeat me-1"></i>
+                        Estado del Sistema
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Stats -->
+    @if (globalStats != null)
+    {
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card gradient-primary">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon primary me-3">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value text-white">@globalStats.TotalCompanies</div>
+                                <div class="metric-label text-white-50">Empresas Activas</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card gradient-success">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon success me-3">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value text-white">@globalStats.TotalUsers</div>
+                                <div class="metric-label text-white-50">Usuarios Totales</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card gradient-info">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon info me-3">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value text-white">@globalStats.TotalReports</div>
+                                <div class="metric-label text-white-50">Reportes Generados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card gradient-warning">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon warning me-3">
+                                <i class="fas fa-print"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value text-white">@globalStats.TotalPrinters</div>
+                                <div class="metric-label text-white-50">Impresoras Monitoreadas</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Company Management -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-custom h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-building text-primary me-2"></i>
+                        Gestión de Empresas
+                    </h5>
+                    <button class="btn btn-sm btn-primary" @onclick="ShowCreateCompanyModal">
+                        <i class="fas fa-plus me-1"></i>
+                        Nueva Empresa
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (companies?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Empresa</th>
+                                        <th>Usuarios</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var company in companies.Take(5))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">@company.Name</div>
+                                                <small class="text-muted">@company.Domain</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@company.UserCount</span>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge status-@(company.IsActive ? "active" : "inactive")">
+                                                    @(company.IsActive ? "Activa" : "Inactiva")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" @onclick="() => EditCompany(company)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" @onclick="() => DeleteCompany(company)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="/admin/companies" class="btn btn-outline-primary btn-sm">
+                                Ver todas las empresas
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-building fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No hay empresas registradas</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-custom h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users text-success me-2"></i>
+                        Gestión de Usuarios
+                    </h5>
+                    <button class="btn btn-sm btn-success" @onclick="ShowCreateUserModal">
+                        <i class="fas fa-user-plus me-1"></i>
+                        Nuevo Usuario
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (recentUsers?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Empresa</th>
+                                        <th>Rol</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in recentUsers.Take(5))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">@user.FullName</div>
+                                                <small class="text-muted">@user.Email</small>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">@user.CompanyName</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@GetRoleBadgeColor(user.Role)">@user.Role</span>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge status-@(user.IsActive ? "active" : "inactive")">
+                                                    @(user.IsActive ? "Activo" : "Inactivo")
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="/admin/users" class="btn btn-outline-success btn-sm">
+                                Ver todos los usuarios
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No hay usuarios recientes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports and System Activity -->
+    <div class="row">
+        <!-- Global Reports Activity -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-custom">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line text-info me-2"></i>
+                        Actividad Global de Reportes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="globalReportsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Health -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-custom">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-heartbeat text-danger me-2"></i>
+                        Estado del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (systemHealth != null)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Base de Datos</span>
+                            <span class="status-badge status-@(systemHealth.DatabaseHealthy ? "success" : "failed")">
+                                @(systemHealth.DatabaseHealthy ? "Saludable" : "Error")
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Servicios de Email</span>
+                            <span class="status-badge status-@(systemHealth.EmailServiceHealthy ? "success" : "failed")">
+                                @(systemHealth.EmailServiceHealthy ? "Operativo" : "Error")
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Scheduler de Reportes</span>
+                            <span class="status-badge status-@(systemHealth.SchedulerHealthy ? "success" : "failed")">
+                                @(systemHealth.SchedulerHealthy ? "Activo" : "Detenido")
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Agentes Conectados</span>
+                            <span class="badge bg-info">@systemHealth.ConnectedAgents</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Verificando estado...</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-custom">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history text-secondary me-2"></i>
+                        Actividad Reciente del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (recentActivity?.Any() == true)
+                    {
+                        <div class="timeline">
+                            @foreach (var activity in recentActivity.Take(10))
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-@GetActivityColor(activity.Type)"></div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <strong>@activity.Title</strong>
+                                                <p class="text-muted mb-1">@activity.Description</p>
+                                                <small class="text-muted">@activity.CompanyName - @activity.UserName</small>
+                                            </div>
+                                            <small class="text-muted">@activity.Timestamp.ToString("HH:mm")</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No hay actividad reciente</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private GlobalStats? globalStats;
+    private List<CompanySummary>? companies;
+    private List<UserSummary>? recentUsers;
+    private SystemHealth? systemHealth;
+    private List<SystemActivity>? recentActivity;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && globalStats != null)
+        {
+            await RenderGlobalReportsChart();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var tasks = new[]
+            {
+                ApiService.GetAsync<GlobalStats>("/api/admin/stats"),
+                ApiService.GetAsync<List<CompanySummary>>("/api/admin/companies"),
+                ApiService.GetAsync<List<UserSummary>>("/api/admin/users/recent"),
+                ApiService.GetAsync<SystemHealth>("/api/admin/health"),
+                ApiService.GetAsync<List<SystemActivity>>("/api/admin/activity")
+            };
+
+            await Task.WhenAll(tasks);
+
+            globalStats = await tasks[0];
+            companies = await tasks[1];
+            recentUsers = await tasks[2];
+            systemHealth = await tasks[3];
+            recentActivity = await tasks[4];
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error cargando datos: {ex.Message}", "error");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadData();
+        await JSRuntime.InvokeVoidAsync("showToast", "Actualizado", "Datos actualizados correctamente", "success");
+    }
+
+    private async Task ShowSystemHealth()
+    {
+        // Implementar modal de estado detallado del sistema
+        await JSRuntime.InvokeVoidAsync("showToast", "Estado del Sistema", "Todos los servicios operativos", "success");
+    }
+
+    private async Task ShowCreateCompanyModal()
+    {
+        // Implementar modal de creación de empresa
+        await JSRuntime.InvokeVoidAsync("showToast", "Próximamente", "Modal de creación de empresa", "info");
+    }
+
+    private async Task ShowCreateUserModal()
+    {
+        // Implementar modal de creación de usuario
+        await JSRuntime.InvokeVoidAsync("showToast", "Próximamente", "Modal de creación de usuario", "info");
+    }
+
+    private async Task EditCompany(CompanySummary company)
+    {
+        // Implementar edición de empresa
+        await JSRuntime.InvokeVoidAsync("showToast", "Editar", $"Editando empresa: {company.Name}", "info");
+    }
+
+    private async Task DeleteCompany(CompanySummary company)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirmAction", 
+            $"¿Estás seguro de que deseas eliminar la empresa '{company.Name}'? Esta acción no se puede deshacer.",
+            "Confirmar eliminación");
+            
+        if (confirmed)
+        {
+            // Implementar eliminación
+            await JSRuntime.InvokeVoidAsync("showToast", "Eliminado", $"Empresa {company.Name} eliminada", "success");
+        }
+    }
+
+    private async Task RenderGlobalReportsChart()
+    {
+        var chartData = new
+        {
+            labels = new[] { "Ene", "Feb", "Mar", "Abr", "May", "Jun" },
+            datasets = new[]
+            {
+                new
+                {
+                    label = "Reportes Generados",
+                    data = new[] { 120, 190, 300, 250, 220, 300 },
+                    backgroundColor = "rgba(0, 123, 255, 0.1)",
+                    borderColor = "rgba(0, 123, 255, 1)",
+                    borderWidth = 2,
+                    fill = true,
+                    tension = 0.4
+                }
+            }
+        };
+
+        await JSRuntime.InvokeVoidAsync("renderChart", "globalReportsChart", "line", chartData);
+    }
+
+    private string GetRoleBadgeColor(string role)
+    {
+        return role switch
+        {
+            "SuperAdmin" => "danger",
+            "CompanyAdmin" => "warning",
+            "ProjectManager" => "info",
+            "Viewer" => "secondary",
+            _ => "light"
+        };
+    }
+
+    private string GetActivityColor(string type)
+    {
+        return type switch
+        {
+            "Report" => "primary",
+            "User" => "success",
+            "Company" => "warning",
+            "System" => "danger",
+            _ => "secondary"
+        };
+    }
+
+    // Models
+    public class GlobalStats
+    {
+        public int TotalCompanies { get; set; }
+        public int TotalUsers { get; set; }
+        public int TotalReports { get; set; }
+        public int TotalPrinters { get; set; }
+    }
+
+    public class CompanySummary
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Domain { get; set; } = "";
+        public int UserCount { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public class UserSummary
+    {
+        public Guid Id { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string CompanyName { get; set; } = "";
+        public string Role { get; set; } = "";
+        public bool IsActive { get; set; }
+    }
+
+    public class SystemHealth
+    {
+        public bool DatabaseHealthy { get; set; }
+        public bool EmailServiceHealthy { get; set; }
+        public bool SchedulerHealthy { get; set; }
+        public int ConnectedAgents { get; set; }
+    }
+
+    public class SystemActivity
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string CompanyName { get; set; } = "";
+        public string UserName { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+    }
+}

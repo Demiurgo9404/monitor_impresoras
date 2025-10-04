@@ -247,36 +247,7 @@ namespace MonitorImpresoras.Infrastructure.Services
 
         public async Task<Dictionary<string, object>> CheckPrinterStatusAsync(string printerName)
         {
-            var status = new Dictionary<string, object>();
-            
-            try
-            {
-                var printerStatus = await GetPrinterStatusAsync(printerName);
-                var isOnline = await IsPrinterOnlineAsync(printerName);
-                var pageCount = await GetPrinterPageCountAsync(printerName);
-                
-                var statusMessage = printerStatus.TryGetValue("Status", out var statusValue) ? statusValue?.ToString() : "Unknown";
-                
-                status["IsReady"] = isOnline && statusMessage == "Inactiva";
-                status["StatusMessage"] = statusMessage;
-                status["PagesPrinted"] = pageCount;
-                status["IsOnline"] = isOnline;
-                status["LastChecked"] = DateTime.UtcNow;
-                
-                return status;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al verificar el estado de la impresora {PrinterName}", printerName);
-                status["Error"] = ex.Message;
-                status["IsReady"] = false;
-                status["StatusMessage"] = "Error al verificar el estado";
-                status["PagesPrinted"] = 0;
-                status["IsOnline"] = false;
-                status["LastChecked"] = DateTime.UtcNow;
-                
-                return status;
-            }
+            return await GetPrinterStatusAsync(printerName);
         }
         
         public void Dispose()

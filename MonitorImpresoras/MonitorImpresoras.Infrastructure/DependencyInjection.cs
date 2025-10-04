@@ -8,12 +8,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MonitorImpresoras.Application.DTOs;
 using MonitorImpresoras.Application.Interfaces;
-using MonitorImpresoras.Application.Interfaces.Services;
 using MonitorImpresoras.Infrastructure.Data;
 using MonitorImpresoras.Infrastructure.Services;
-using MonitorImpresoras.Infrastructure.Services.SNMP;
 using MonitorImpresoras.Infrastructure.Services.WMI;
 using MonitorImpresoras.Infrastructure.Options;
+using MonitorImpresoras.Infrastructure.Repositories;
+using MonitorImpresoras.Infrastructure.HealthChecks;
 
 namespace MonitorImpresoras.Infrastructure;
 
@@ -54,10 +54,9 @@ public static class DependencyInjection
             });
 
             // Registrar servicios de infraestructura
-            services.AddScoped<IPrinterRepository, PrinterRepository>();
-            services.AddScoped<IPrinterMonitoringService, PrinterMonitoringService>();
-            services.AddScoped<ISnmpService, SnmpService>();
-            services.AddScoped<IWindowsPrinterService, WindowsPrinterService>();
+            services.AddScoped<Application.Interfaces.IPrinterRepository, PrinterRepository>();
+            services.AddScoped<Application.Interfaces.ISnmpService, SimpleSnmpService>();
+            services.AddScoped<Application.Interfaces.IWindowsPrinterService, WindowsPrinterService>();
             services.AddScoped<IPrinterStatusProvider, PrinterStatusProvider>();
 
             // Configuración de opciones
@@ -76,7 +75,7 @@ public static class DependencyInjection
 
         catch (Exception ex)
         {
-            var logger = services.BuildServiceProvider().GetService<ILogger<DependencyInjection>>();
+            var logger = services.BuildServiceProvider().GetService<ILogger>();
             logger?.LogError(ex, "Error al configurar la base de datos");
             throw;
         }

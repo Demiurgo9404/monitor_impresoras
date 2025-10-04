@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using System.Reflection;
 using AutoMapper;
 using MonitorImpresoras.Application.Mappings;
+using MonitorImpresoras.Application.Interfaces;
+using MonitorImpresoras.Application.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace MonitorImpresoras.Application;
@@ -19,8 +21,8 @@ public static class DependencyInjection
                 cfg.AddProfile<MappingProfile>();
             }, Assembly.GetExecutingAssembly());
             
-            // Registrar otros servicios de la capa de aplicación aquí
-            // services.AddScoped<IMyService, MyService>();
+            // Registrar servicios de la capa de aplicación
+            services.AddScoped<IPrinterMonitoringService, PrinterMonitoringService>();
             
             return services;
         }

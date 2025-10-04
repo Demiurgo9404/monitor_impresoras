@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using MonitorImpresoras.Application.Interfaces.Services;
+using MonitorImpresoras.Application.Interfaces;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 

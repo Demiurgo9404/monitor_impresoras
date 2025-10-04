@@ -67,7 +67,7 @@ namespace MonitorImpresoras.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<PrinterDto>> GetPrinterById(int id)
+        public async Task<ActionResult<PrinterDto>> GetPrinterById(Guid id)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace MonitorImpresoras.API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdatePrinter(int id, UpdatePrinterDto updatePrinterDto)
+        public async Task<IActionResult> UpdatePrinter(Guid id, UpdatePrinterDto updatePrinterDto)
         {
             try
             {
@@ -200,7 +200,7 @@ namespace MonitorImpresoras.API.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeletePrinter(int id)
+        public async Task<IActionResult> DeletePrinter(Guid id)
         {
             try
             {
@@ -232,7 +232,7 @@ namespace MonitorImpresoras.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<PrinterStatusDto>> CheckPrinterStatus(int id)
+        public async Task<ActionResult<PrinterStatusDto>> CheckPrinterStatus(Guid id)
         {
             try
             {
