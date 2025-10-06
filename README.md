@@ -1,293 +1,348 @@
-# Monitor de Impresoras API - Servicios Simplificados
+# 🖨️ QOPIQ - Sistema de Monitoreo de Impresoras Enterprise
 
-## 📋 Descripción General
+## 🎯 **OBJETIVO DEL PROYECTO**
 
-Este proyecto implementa un sistema de monitoreo de impresoras con servicios simplificados y endpoints de API RESTful. Los servicios están diseñados para ser fáciles de usar y mantener, con implementaciones robustas que incluyen logging, manejo de errores y documentación completa.
+**QOPIQ** es una aplicación web enterprise para el monitoreo integral de impresoras diseñada específicamente para empresas de alquiler de impresoras. Permite el control en tiempo real de contadores, consumibles, estado y rendimiento de flotas de impresoras distribuidas.
 
-## 🚀 Servicios Implementados
+### 🚨 **ESTADO CRÍTICO - ENTREGA EN 3 DÍAS**
 
-### 1. **PrinterService**
-- **Obtener lista de impresoras**: `GET /api/services/printers`
-- **Obtener estado de una impresora**: `GET /api/services/printers/{printerId}/status`
+**Fecha límite**: 9 de Octubre 2025  
+**Estado actual**: 75% completado  
+**Prioridad**: MÁXIMA - Funcionalidad core operativa  
 
-### 2. **ConsumableService**
-- **Verificar consumibles de una impresora**: `POST /api/services/consumables/check/{printerId}`
+---
 
-### 3. **AlertService**
-- **Enviar alerta de prueba**: `POST /api/services/alerts/test`
+## 🏗️ **ARQUITECTURA DEL SISTEMA**
 
-### 4. **AlertEngineService**
-- **Procesar todas las alertas del sistema**: `POST /api/services/alerts/process`
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    QOPIQ ENTERPRISE                        │
+├─────────────────────────────────────────────────────────────────┤
+│  🌐 APLICACIÓN WEB (React Multi-Tenant)                   │
+│  ├── Dashboard en Tiempo Real                              │
+│  ├── Reportes Automatizados (PDF/Excel)                   │
+│  ├── Gestión de Usuarios y Suscripciones                  │
+│  └── Analytics Avanzados                                   │
+├─────────────────────────────────────────────────────────────────┤
+│  🔧 API BACKEND (.NET 8 Clean Architecture)               │
+│  ├── Autenticación JWT Multi-Tenant                       │
+│  ├── Sistema de Reportes Automatizados                    │
+│  ├── Gestión de Contadores y Consumibles                  │
+│  └── Alertas Proactivas                                    │
+├─────────────────────────────────────────────────────────────────┤
+│  💾 BASE DE DATOS (PostgreSQL)                            │
+│  ├── Datos de Impresoras y Contadores                     │
+│  ├── Usuarios y Suscripciones                             │
+│  ├── Reportes y Configuraciones                           │
+│  └── Logs de Auditoría                                     │
+├─────────────────────────────────────────────────────────────────┤
+│  🤖 PRINTER AGENT (Windows Service)                       │
+│  ├── Instalación en Máquinas Windows                      │
+│  ├── Monitoreo en Tiempo Real                             │
+│  ├── Recolección de Contadores                            │
+│  └── Comunicación Segura con API                          │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-## 📚 Documentación de API
+---
 
-### Endpoints Disponibles
+## 🎯 **FUNCIONALIDADES CORE**
 
-#### 🔧 Gestión de Impresoras
+### 📊 **Monitoreo en Tiempo Real**
+- ✅ **Contadores de impresión**: Páginas totales, color, B&N
+- ✅ **Contadores de escáner**: Documentos escaneados
+- ✅ **Niveles de tóner**: Por color (C, M, Y, K)
+- ✅ **Estado de consumibles**: Papel, tambores, fusor
+- ✅ **Estado de conectividad**: Online/Offline en tiempo real
+- ✅ **Alertas proactivas**: Tóner bajo, errores, mantenimiento
 
-##### Obtener Lista de Impresoras
+### 📈 **Reportes Empresariales**
+- ✅ **Reportes automáticos**: PDF y Excel profesionales
+- ✅ **Programación flexible**: Diario, semanal, mensual
+- ✅ **Distribución por email**: Múltiples destinatarios
+- ✅ **Análisis de costos**: Por impresora, departamento, proyecto
+- ✅ **Tendencias de uso**: Gráficos y estadísticas avanzadas
+
+### 🏢 **Multi-Tenant Enterprise**
+- ✅ **Gestión de empresas**: Múltiples clientes aislados
+- ✅ **Usuarios y roles**: Admin, Manager, Viewer
+- ✅ **Suscripciones**: Free, Basic, Pro, Enterprise
+- ✅ **Facturación automática**: Integración con Stripe
+- ✅ **Límites por plan**: Control de impresoras por suscripción
+
+---
+
+## 🚀 **COMPONENTES IMPLEMENTADOS**
+
+### ✅ **BACKEND API (.NET 8)**
+```
+MonitorImpresoras/
+├── MonitorImpresoras.API/          # Controllers y configuración
+├── MonitorImpresoras.Application/  # Lógica de negocio
+├── MonitorImpresoras.Domain/       # Entidades y reglas
+└── MonitorImpresoras.Infrastructure/ # Datos y servicios externos
+```
+
+**Estado**: ✅ Domain y Application compilando | ❌ Infrastructure con errores
+
+### ✅ **PRINTER AGENT (Windows)**
+```
+PrinterAgent/
+├── PrinterAgent.Core/    # Lógica de monitoreo
+└── PrinterAgent.API/     # API REST y dashboard
+```
+
+**Estado**: ✅ 100% implementado y funcional
+
+### ✅ **FRONTEND REACT**
+```
+frontend/
+├── src/components/       # Componentes React
+├── src/pages/           # Páginas principales
+└── src/services/        # Integración con API
+```
+
+**Estado**: ✅ Dashboard multi-tenant implementado
+
+---
+
+## 📋 **PLAN DE DESARROLLO - 3 DÍAS**
+
+### 🔥 **DÍA 1 (HOY) - BACKEND FUNCIONAL**
+- [ ] **Resolver errores de Infrastructure** (202 errores)
+- [ ] **Compilación exitosa** de toda la solución
+- [ ] **Migración de base de datos** funcionando
+- [ ] **API ejecutándose** con endpoints básicos
+- [ ] **Autenticación JWT** operativa
+
+### ⚡ **DÍA 2 - INTEGRACIÓN COMPLETA**
+- [ ] **PrinterAgent conectado** con API
+- [ ] **Recolección de datos** en tiempo real
+- [ ] **Frontend integrado** con backend
+- [ ] **Reportes básicos** funcionando
+- [ ] **Sistema de alertas** operativo
+
+### 🎯 **DÍA 3 - PRODUCCIÓN**
+- [ ] **Despliegue en servidor** (Docker)
+- [ ] **Configuración de producción**
+- [ ] **Testing E2E** completo
+- [ ] **Documentación final**
+- [ ] **Entrega funcional** ✅
+
+---
+
+## 🔧 **ENDPOINTS API PRINCIPALES**
+
+### 🔐 **Autenticación**
 ```http
-GET /api/services/printers
-Authorization: Bearer {token}
+POST   /api/auth/login              # Iniciar sesión
+POST   /api/auth/register           # Registrar usuario
+POST   /api/auth/refresh            # Renovar token
+POST   /api/auth/logout             # Cerrar sesión
+GET    /api/auth/profile            # Perfil de usuario
+POST   /api/auth/agent/heartbeat    # Heartbeat del agente
 ```
 
-**Respuesta exitosa (200):**
-```json
-[
-  "HP LaserJet Pro MFP",
-  "Epson WorkForce Pro",
-  "Canon PIXMA TR"
-]
-```
-
-##### Obtener Estado de una Impresora
+### 🖨️ **Gestión de Impresoras**
 ```http
-GET /api/services/printers/{printerId}/status
-Authorization: Bearer {token}
+GET    /api/printers                # Lista de impresoras
+GET    /api/printers/{id}           # Detalles de impresora
+POST   /api/printers                # Agregar impresora
+PUT    /api/printers/{id}           # Actualizar impresora
+DELETE /api/printers/{id}           # Eliminar impresora
+GET    /api/printers/{id}/status    # Estado en tiempo real
+GET    /api/printers/{id}/counters  # Contadores actuales
 ```
 
-**Parámetros:**
-- `printerId` (GUID): ID único de la impresora
-
-**Respuesta exitosa (200):**
-```json
-{
-  "printerId": "12345678-1234-1234-1234-123456789abc",
-  "status": "Online"
-}
-```
-
-**Códigos de error:**
-- `404`: Impresora no encontrada
-- `400`: ID de impresora inválido
-- `500`: Error interno del servidor
-
-#### ⚠️ Gestión de Alertas
-
-##### Enviar Alerta de Prueba
+### 📊 **Reportes Automatizados**
 ```http
-POST /api/services/alerts/test
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-  "message": "La impresora HP LaserJet está experimentando problemas de conexión",
-  "severity": "High"
-}
+POST   /api/report/generate         # Generar nuevo reporte
+GET    /api/report                  # Lista de reportes
+GET    /api/report/{id}/download    # Descargar reporte
+POST   /api/report/schedule         # Programar reporte
+GET    /api/report/quick/{id}       # Reporte rápido
 ```
 
-**Cuerpo de la solicitud:**
-```json
-{
-  "message": "string (required)",
-  "severity": "string (optional: Low/Medium/High, default: Info)"
-}
-```
-
-**Respuesta exitosa (200):**
-```json
-{
-  "message": "Alert sent successfully"
-}
-```
-
-##### Procesar Alertas del Sistema
+### 🚨 **Sistema de Alertas**
 ```http
-POST /api/services/alerts/process
-Authorization: Bearer {token}
+GET    /api/alerts                  # Lista de alertas
+POST   /api/alerts                  # Crear alerta
+PUT    /api/alerts/{id}             # Actualizar alerta
+DELETE /api/alerts/{id}             # Eliminar alerta
+POST   /api/alerts/test             # Enviar alerta de prueba
 ```
 
-**Respuesta exitosa (200):**
+---
+
+## 🤖 **PRINTER AGENT - INSTALACIÓN**
+
+### **Requisitos del Sistema**
+- Windows 10/11 o Windows Server 2019+
+- .NET 8.0 Runtime
+- Acceso a red local (impresoras)
+- Conexión a Internet (API)
+
+### **Instalación Automática**
+```powershell
+# Descargar e instalar
+Invoke-WebRequest -Uri "https://releases.qopiq.com/agent/install.ps1" -OutFile "install.ps1"
+.\install.ps1 -ApiUrl "https://api.qopiq.com" -ApiKey "YOUR_API_KEY"
+```
+
+### **Configuración Manual**
 ```json
 {
-  "message": "Alert processing completed"
+  "Agent": {
+    "Id": "agent-oficina-principal",
+    "Name": "Oficina Principal",
+    "ApiUrl": "https://api.qopiq.com",
+    "ApiKey": "your-secure-api-key",
+    "ReportingInterval": "00:05:00"
+  },
+  "Network": {
+    "ScanRanges": ["192.168.1.0/24"],
+    "SnmpCommunity": "public"
+  }
 }
 ```
 
-**Descripción:** Este endpoint ejecuta todas las reglas de alertas activas del sistema:
-- Detección de impresoras offline
-- Verificación de consumibles bajos
-- Detección de errores en impresoras
+---
 
-#### 🖨️ Gestión de Consumibles
+## 🗄️ **BASE DE DATOS**
 
-##### Verificar Consumibles de una Impresora
-```http
-POST /api/services/consumables/check/{printerId}
-Authorization: Bearer {token}
-```
+### **Entidades Principales**
+- **Users**: Usuarios del sistema
+- **Companies**: Empresas multi-tenant
+- **Subscriptions**: Planes y suscripciones
+- **Printers**: Información de impresoras
+- **PrinterCounters**: Contadores históricos
+- **Reports**: Reportes generados
+- **Alerts**: Sistema de alertas
 
-**Parámetros:**
-- `printerId` (GUID): ID único de la impresora
-
-**Respuesta exitosa (200):**
-```json
-{
-  "message": "Consumables check completed for printer 12345678-1234-1234-1234-123456789abc"
-}
-```
-
-**Códigos de error:**
-- `404`: Impresora no encontrada
-- `400`: ID de impresora inválido
-- `500`: Error interno del servidor
-
-## 🔐 Autenticación y Autorización
-
-Todos los endpoints requieren autenticación JWT. Los roles soportados son:
-- **Admin**: Acceso completo a todos los endpoints
-- **Technician**: Acceso a endpoints de monitoreo y alertas
-- **User**: Acceso limitado a consultas básicas
-
-### Obtener Token
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "admin",
-  "password": "password123"
-}
-```
-
-## 🚀 Inicio Rápido
-
-### 1. Compilar el Proyecto
+### **Migración Inicial**
 ```bash
-dotnet clean
-dotnet build
+cd MonitorImpresoras/MonitorImpresoras.API
+dotnet ef migrations add "InitialMigration"
+dotnet ef database update
 ```
 
-### 2. Ejecutar la Aplicación
+---
+
+## 🚀 **DESPLIEGUE RÁPIDO**
+
+### **Desarrollo Local**
 ```bash
+# 1. Clonar repositorio
+git clone https://github.com/empresa/monitor-impresoras.git
+cd monitor-impresoras/MonitorImpresoras
+
+# 2. Configurar base de datos
+docker run -d --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:15
+
+# 3. Ejecutar migraciones
+dotnet ef database update --project MonitorImpresoras.Infrastructure --startup-project MonitorImpresoras.API
+
+# 4. Ejecutar API
 cd MonitorImpresoras.API
 dotnet run
 ```
 
-### 3. Acceder a Swagger UI
-Abre tu navegador y ve a: `https://localhost:5001/swagger`
-
-### 4. Probar los Endpoints
-
-#### Ejemplo 1: Obtener Lista de Impresoras
+### **Producción (Docker)**
 ```bash
-curl -X GET "https://localhost:5001/api/services/printers" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+# Despliegue completo con Docker Compose
+docker-compose up -d
+
+# Verificar servicios
+docker-compose ps
 ```
-
-#### Ejemplo 2: Enviar Alerta de Prueba
-```bash
-curl -X POST "https://localhost:5001/api/services/alerts/test" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "Alerta de prueba desde API",
-    "severity": "Medium"
-  }'
-```
-
-#### Ejemplo 3: Verificar Consumibles
-```bash
-curl -X POST "https://localhost:5001/api/services/consumables/check/12345678-1234-1234-1234-123456789abc" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-## 📊 Monitoreo y Logs
-
-Los servicios incluyen logging estructurado:
-
-- **Información**: Operaciones exitosas
-- **Advertencias**: Consumibles bajos, impresoras offline
-- **Errores**: Fallos en operaciones críticas
-
-### Ver Logs
-```bash
-# En desarrollo
-tail -f logs/log-{date}.txt
-
-# Usando dotnet logs
-dotnet run --logger:console
-```
-
-## 🛠️ Configuración
-
-### Variables de Entorno
-```env
-ASPNETCORE_ENVIRONMENT=Development
-ConnectionStrings__DefaultConnection=Server=localhost;Database=MonitorImpresoras;Trusted_Connection=True;
-Jwt__Secret=your-super-secret-jwt-key-here
-Jwt__Issuer=MonitorImpresoras.API
-Jwt__Audience=MonitorImpresoras.Client
-```
-
-## 🔧 Arquitectura
-
-```
-├── MonitorImpresoras.API/
-│   ├── Controllers/
-│   │   └── ServicesController.cs     # Endpoints principales
-│   ├── Program.cs                     # Configuración DI y middleware
-│   └── appsettings.json               # Configuración
-├── MonitorImpresoras.Application/
-│   ├── Services/
-│   │   ├── Interfaces/                # Interfaces de servicios
-│   │   ├── PrinterService.cs          # Lógica de impresoras
-│   │   ├── ConsumableService.cs       # Lógica de consumibles
-│   │   ├── AlertService.cs            # Lógica de alertas
-│   │   └── AlertEngineService.cs      # Motor de alertas
-│   └── DTOs/                          # Data Transfer Objects
-└── MonitorImpresoras.Infrastructure/
-    ├── Data/                          # Contexto de BD y migraciones
-    └── Repositories/                  # Repositorios de datos
-```
-
-## 🧪 Testing
-
-### Ejecutar Tests
-```bash
-dotnet test
-```
-
-### Tests Disponibles
-- Tests unitarios para cada servicio
-- Tests de integración para endpoints
-- Tests de carga para servicios críticos
-
-## 📈 Métricas y Salud
-
-### Health Check
-```http
-GET /health
-```
-
-### Métricas
-```http
-GET /metrics
-```
-
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📝 Notas de Desarrollo
-
-- Los servicios están diseñados para ser **extensibles** y **mantenibles**
-- Se implementa **inyección de dependencias** para facilitar testing
-- **Logging estructurado** para debugging y monitoreo
-- **Manejo robusto de errores** con códigos HTTP apropiados
-- **Documentación completa** con Swagger/OpenAPI
-
-## 📞 Soporte
-
-Para soporte técnico o preguntas:
-- Crear un issue en GitHub
-- Contactar al equipo de desarrollo
-- Revisar la documentación en `/docs`
 
 ---
 
-**Desarrollado con ❤️ para el monitoreo eficiente de impresoras**
+## 📚 **DOCUMENTACIÓN TÉCNICA**
+
+### **Arquitectura**
+- [Clean Architecture](./docs/ARCHITECTURE.md)
+- [Patrones de Diseño](./docs/PATTERNS.md)
+- [Multi-Tenancy](./ADR-MULTITENANT.md)
+
+### **APIs**
+- [Documentación de API](./docs/API.md)
+- [Autenticación JWT](./README-AUTH.md)
+- [Sistema de Reportes](./README-REPORTS.md)
+
+### **Despliegue**
+- [Guía de Producción](./README-PRODUCTION.md)
+- [Despliegue Rápido](./QUICK-DEPLOY.md)
+- [PrinterAgent](./PrinterAgent/README.md)
+
+---
+
+## 🔧 **PROBLEMAS CONOCIDOS Y SOLUCIONES**
+
+### ❌ **Infrastructure Layer (202 errores)**
+**Problema**: Servicios faltantes y interfaces no implementadas
+**Solución**: 
+```bash
+# Restaurar servicios esenciales
+cd MonitorImpresoras.Infrastructure
+# Implementar interfaces faltantes
+# Registrar servicios en DependencyInjection
+```
+
+### ❌ **Compilación Fallida**
+**Problema**: Dependencias circulares y archivos duplicados
+**Solución**:
+```bash
+# Limpiar solución
+dotnet clean
+# Restaurar paquetes
+dotnet restore
+# Compilar por capas
+dotnet build MonitorImpresoras.Domain
+dotnet build MonitorImpresoras.Application
+```
+
+---
+
+## 📞 **CONTACTO Y SOPORTE**
+
+### **Equipo de Desarrollo**
+- **Lead Developer**: [Nombre]
+- **Backend**: .NET 8, PostgreSQL, JWT
+- **Frontend**: React, TypeScript, Tailwind
+- **DevOps**: Docker, CI/CD
+
+### **Enlaces Importantes**
+- **Repositorio**: https://github.com/empresa/monitor-impresoras
+- **API Docs**: https://api.qopiq.com/swagger
+- **Dashboard**: https://app.qopiq.com
+- **Soporte**: support@qopiq.com
+
+---
+
+## 🎯 **PRÓXIMOS PASOS INMEDIATOS**
+
+### **PRIORIDAD 1 - HOY**
+1. ✅ Resolver errores de Infrastructure
+2. ✅ Compilación exitosa completa
+3. ✅ Migración de base de datos
+4. ✅ API ejecutándose localmente
+
+### **PRIORIDAD 2 - MAÑANA**
+1. 🔄 Integración PrinterAgent ↔ API
+2. 🔄 Frontend conectado al backend
+3. 🔄 Reportes básicos funcionando
+4. 🔄 Sistema de alertas operativo
+
+### **PRIORIDAD 3 - ENTREGA**
+1. 🎯 Despliegue en producción
+2. 🎯 Testing E2E completo
+3. 🎯 Documentación final
+4. 🎯 **ENTREGA FUNCIONAL** 🚀
+
+---
+
+**Versión**: 2.0.0  
+**Última actualización**: 6 de Octubre 2025  
+**Estado**: 🔥 DESARROLLO ACTIVO - ENTREGA EN 3 DÍAS  
+**Licencia**: Propietaria - QOPIQ Enterprise

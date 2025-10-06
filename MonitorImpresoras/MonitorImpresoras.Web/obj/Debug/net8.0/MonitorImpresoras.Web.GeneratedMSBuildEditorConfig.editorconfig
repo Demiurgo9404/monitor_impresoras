@@ -1,0 +1,99 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = MonitorImpresoras.Web
+build_property.RootNamespace = MonitorImpresoras.Web
+build_property.ProjectDir = C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Components/Reports/QuickReportTemplates.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSZXBvcnRzXFF1aWNrUmVwb3J0VGVtcGxhdGVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Components/Reports/ReportStatsCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSZXBvcnRzXFJlcG9ydFN0YXRzQ2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Components/Reports/ScheduledReportsList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSZXBvcnRzXFNjaGVkdWxlZFJlcG9ydHNMaXN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Admin/CompanyAdminDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cQ29tcGFueUFkbWluRGFzaGJvYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Admin/SuperAdminDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cU3VwZXJBZG1pbkRhc2hib2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Dashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGFzaGJvYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naW4ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Projects/ProjectManagerDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvamVjdHNcUHJvamVjdE1hbmFnZXJEYXNoYm9hcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Reports.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/ScheduledReports.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2NoZWR1bGVkUmVwb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Templates.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGVtcGxhdGVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Viewer/ViewerDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVmlld2VyXFZpZXdlckRhc2hib2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Shared/LoginDisplay.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXExvZ2luRGlzcGxheS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Shared/RedirectToLogin.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFJlZGlyZWN0VG9Mb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Advance/Documents/GitHub/monitor_impresoras/MonitorImpresoras/MonitorImpresoras.Web/Pages/_Host.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0hvc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 

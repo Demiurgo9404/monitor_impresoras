@@ -252,6 +252,10 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.14.0, )"
+            },
             "System.Management": {
               "target": "Package",
               "version": "[8.0.0, )"

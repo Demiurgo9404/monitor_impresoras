@@ -1,16 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Domain.Entities;
 
 namespace MonitorImpresoras.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        private readonly ITenantAccessor _tenantAccessor;
-
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantAccessor tenantAccessor) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-            _tenantAccessor = tenantAccessor;
         }
 
         // Entidades principales
@@ -27,12 +23,25 @@ namespace MonitorImpresoras.Infrastructure.Data
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<TenantUser> TenantUsers { get; set; }
         public DbSet<Plan> Plans { get; set; }
+        
+        // Entidades faltantes
+        public DbSet<Project> Projects { get; set; }
+        public DbSet<Company> Companies { get; set; }
+        
+        // Entidades enterprise
         public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
         public DbSet<CostCalculationHistory> CostCalculationHistories { get; set; }
         public DbSet<MonitoringStats> MonitoringStats { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<UserQuota> UserQuotas { get; set; }
         public DbSet<SubscriptionHistory> SubscriptionHistories { get; set; }
+
+        // Entidades de reportes
+        public DbSet<ScheduledReport> ScheduledReports { get; set; }
+        public DbSet<ReportExecution> ReportExecutions { get; set; }
+        public DbSet<EmailTemplate> EmailTemplates { get; set; }
+        public DbSet<ReportTemplate> ReportTemplates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,34 +61,48 @@ namespace MonitorImpresoras.Infrastructure.Data
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId);
 
-            // Configurar filtros globales multi-tenant
-            ConfigureTenantFilters(modelBuilder);
-        }
+            // Configurar relaciones enterprise
+            modelBuilder.Entity<Subscription>()
+                .HasOne(s => s.User)
+                .WithMany(u => u.Subscriptions)
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-        private void ConfigureTenantFilters(ModelBuilder modelBuilder)
-        {
-            // Filtro global para Printer
-            modelBuilder.Entity<Printer>().HasQueryFilter(p => p.TenantId == _tenantAccessor.TenantId);
-            
-            // Filtro global para User
-            modelBuilder.Entity<User>().HasQueryFilter(u => u.TenantId == _tenantAccessor.TenantId);
-            
-            // Filtro global para Company
-            modelBuilder.Entity<Company>().HasQueryFilter(c => c.TenantId == _tenantAccessor.TenantId);
-            
-            // Filtro global para Project
-            modelBuilder.Entity<Project>().HasQueryFilter(p => p.TenantId == _tenantAccessor.TenantId);
-            
-            // Filtro global para Report
-            modelBuilder.Entity<Report>().HasQueryFilter(r => r.TenantId == _tenantAccessor.TenantId);
-            
-            // Filtro global para PrintJob
-            modelBuilder.Entity<PrintJob>().HasQueryFilter(pj => pj.TenantId == _tenantAccessor.TenantId);
-            
-            // Filtro global para Alert
-            modelBuilder.Entity<Alert>().HasQueryFilter(a => a.TenantId == _tenantAccessor.TenantId);
+            modelBuilder.Entity<Invoice>()
+                .HasOne(i => i.Subscription)
+                .WithMany(s => s.Invoices)
+                .HasForeignKey(i => i.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Los Tenants NO tienen filtro (necesitamos acceso global para validación)
+            // Configurar precisión decimal
+            modelBuilder.Entity<Subscription>()
+                .Property(s => s.MonthlyPrice)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.Amount)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.TaxAmount)
+                .HasPrecision(10, 2);
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.TotalAmount)
+                .HasPrecision(10, 2);
+
+            // Índices para mejor rendimiento
+            modelBuilder.Entity<Subscription>()
+                .HasIndex(s => new { s.UserId, s.Status })
+                .HasDatabaseName("IX_Subscriptions_UserId_Status");
+
+            modelBuilder.Entity<Invoice>()
+                .HasIndex(i => new { i.SubscriptionId, i.Status })
+                .HasDatabaseName("IX_Invoices_SubscriptionId_Status");
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.CompanyName)
+                .HasDatabaseName("IX_Users_CompanyName");
         }
     }
 }

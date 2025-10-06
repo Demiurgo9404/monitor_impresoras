@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using MonitorImpresoras.Application.DTOs;
 using MonitorImpresoras.Application.Interfaces;
 using MonitorImpresoras.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,78 +10,50 @@ using System.Text;
 
 namespace MonitorImpresoras.Infrastructure.Services
 {
-    /// <summary>
-    /// Implementación del servicio JWT
-    /// </summary>
     public class JwtService : IJwtService
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<JwtService> _logger;
-        private readonly string _secretKey;
-        private readonly string _issuer;
-        private readonly string _audience;
-        private readonly int _expirationMinutes;
 
         public JwtService(IConfiguration configuration, ILogger<JwtService> logger)
         {
             _configuration = configuration;
             _logger = logger;
-            
-            _secretKey = _configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key not configured");
-            _issuer = _configuration["Jwt:Issuer"] ?? "QopiqAPI";
-            _audience = _configuration["Jwt:Audience"] ?? "QopiqClient";
-            _expirationMinutes = int.Parse(_configuration["Jwt:ExpirationInMinutes"] ?? "1440");
         }
 
-        public string GenerateToken(User user, string tenantId, string[] permissions)
+        public async Task<string> GenerateAccessTokenAsync(User user)
         {
             try
             {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_secretKey);
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                    _configuration["Jwt:Key"] ?? "super-secret-key-for-development-only-change-in-production"));
 
-                var claims = new List<Claim>
+                var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var claims = new[]
                 {
-                    new(ClaimTypes.NameIdentifier, user.Id),
-                    new(ClaimTypes.Email, user.Email ?? string.Empty),
-                    new(ClaimTypes.Name, user.GetFullName()),
-                    new(QopiqClaims.TenantId, tenantId),
-                    new(QopiqClaims.Role, user.Role),
-                    new(QopiqClaims.FullName, user.GetFullName()),
-                    new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+                    new Claim(ClaimTypes.NameIdentifier, user.Id?.ToString() ?? ""),
+                    new Claim(ClaimTypes.Email, user.Email ?? ""),
+                    new Claim(ClaimTypes.Name, user.Name ?? user.UserName ?? ""),
+                    new Claim("tenant_id", user.CompanyId?.ToString() ?? "")
                 };
 
-                // Agregar CompanyId si existe
-                if (user.CompanyId.HasValue)
-                {
-                    claims.Add(new Claim(QopiqClaims.CompanyId, user.CompanyId.Value.ToString()));
-                }
+                var token = new JwtSecurityToken(
+                    issuer: _configuration["Jwt:Issuer"] ?? "MonitorImpresoras",
+                    audience: _configuration["Jwt:Audience"] ?? "MonitorImpresoras",
+                    claims: claims,
+                    expires: DateTime.UtcNow.AddHours(24),
+                    signingCredentials: credentials
+                );
 
-                // Agregar permisos
-                foreach (var permission in permissions)
-                {
-                    claims.Add(new Claim(QopiqClaims.Permissions, permission));
-                }
-
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(claims),
-                    Expires = DateTime.UtcNow.AddMinutes(_expirationMinutes),
-                    Issuer = _issuer,
-                    Audience = _audience,
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-                };
-
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var tokenString = tokenHandler.WriteToken(token);
-
-                _logger.LogDebug("JWT token generated for user {UserId} in tenant {TenantId}", user.Id, tenantId);
-                return tokenString;
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                
+                _logger.LogInformation("Generated access token for user {UserId}", user.Id);
+                return await Task.FromResult(tokenString);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating JWT token for user {UserId}", user.Id);
+                _logger.LogError(ex, "Error generating access token for user {UserId}", user.Id);
                 throw;
             }
         }
@@ -94,84 +66,87 @@ namespace MonitorImpresoras.Infrastructure.Services
             return Convert.ToBase64String(randomNumber);
         }
 
-        public ClaimsPrincipal? ValidateToken(string token)
+        public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
         {
             try
             {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_secretKey);
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                    _configuration["Jwt:Key"] ?? "super-secret-key-for-development-only-change-in-production"));
 
-                var validationParameters = new TokenValidationParameters
+                var tokenValidationParameters = new TokenValidationParameters
                 {
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidIssuer = _issuer,
-                    ValidateAudience = true,
-                    ValidAudience = _audience,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
+                    IssuerSigningKey = key,
+                    ValidateLifetime = false
                 };
 
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-                
-                if (validatedToken is JwtSecurityToken jwtToken && 
-                    jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+
+                if (securityToken is not JwtSecurityToken jwtSecurityToken || 
+                    !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return principal;
+                    throw new SecurityTokenException("Invalid token");
                 }
 
-                return null;
+                return principal;
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Token validation failed");
+                _logger.LogError(ex, "Error getting principal from expired token");
                 return null;
             }
         }
 
-        public ClaimsPrincipal? GetClaimsFromToken(string token)
+        public bool ValidateToken(string token)
         {
             try
             {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var jsonToken = tokenHandler.ReadJwtToken(token);
-                
-                var claims = jsonToken.Claims.ToList();
-                var identity = new ClaimsIdentity(claims);
-                return new ClaimsPrincipal(identity);
+                var principal = GetPrincipalFromExpiredToken(token);
+                return principal != null;
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogWarning(ex, "Error reading claims from token");
-                return null;
+                return false;
             }
-        }
-
-        public string? GetTenantIdFromToken(string token)
-        {
-            var claims = GetClaimsFromToken(token);
-            return claims?.FindFirst(QopiqClaims.TenantId)?.Value;
         }
 
         public string? GetUserIdFromToken(string token)
         {
-            var claims = GetClaimsFromToken(token);
-            return claims?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        }
-
-        public bool IsTokenExpired(string token)
-        {
             try
             {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var jsonToken = tokenHandler.ReadJwtToken(token);
-                
-                return jsonToken.ValidTo <= DateTime.UtcNow;
+                var principal = GetPrincipalFromExpiredToken(token);
+                return principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             }
             catch
             {
-                return true; // Si no se puede leer, consideramos que está expirado
+                return null;
+            }
+        }
+
+        public Dictionary<string, string> GetClaimsFromToken(string token)
+        {
+            try
+            {
+                var principal = GetPrincipalFromExpiredToken(token);
+                var claims = new Dictionary<string, string>();
+
+                if (principal != null)
+                {
+                    foreach (var claim in principal.Claims)
+                    {
+                        claims[claim.Type] = claim.Value;
+                    }
+                }
+
+                return claims;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting claims from token");
+                return new Dictionary<string, string>();
             }
         }
     }
