@@ -28,3 +28,4 @@ namespace PrinterAgent.Core.Services
         Task<PrinterInfo?> GetPrinterDetailsAsync(string ipAddress, CancellationToken cancellationToken = default);
     }
 }
+

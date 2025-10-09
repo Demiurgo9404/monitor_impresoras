@@ -248,3 +248,4 @@ systemctl start printer-agent
 **Versión**: 1.0.0  
 **Última actualización**: Octubre 2025  
 **Licencia**: Propietaria - Monitor de Impresoras Enterprise
+

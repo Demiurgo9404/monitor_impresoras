@@ -1,9 +1,0 @@
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.csproj.AssemblyReference.cache
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.AssemblyInfoInputs.cache
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.AssemblyInfo.cs
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.csproj.CoreCompileInputs.cache
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.RazorAssemblyInfo.cache
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.RazorAssemblyInfo.cs
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\MonitorImpresoras.Web\obj\Debug\net8.0\MonitorImpresoras.Web.sourcelink.json

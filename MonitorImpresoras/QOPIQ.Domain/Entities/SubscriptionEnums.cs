@@ -1,0 +1,4 @@
+namespace QOPIQ.Domain.Entities
+{
+}
+

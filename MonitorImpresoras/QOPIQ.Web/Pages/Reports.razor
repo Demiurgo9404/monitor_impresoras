@@ -1,0 +1,643 @@
+@page "/reports"
+@inject ApiService ApiService
+@inject TenantService TenantService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Reportes - QOPIQ</PageTitle>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gradient">
+                        <i class="fas fa-file-alt me-2"></i>
+                        Gestión de Reportes
+                    </h1>
+                    <p class="text-muted mb-0">Administra y genera reportes de impresoras</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-modern" @onclick="RefreshReports">
+                        <i class="fas fa-sync-alt @(isLoading ? "fa-spin" : "")"></i>
+                        Actualizar
+                    </button>
+                    <AuthorizeView Roles="SuperAdmin,CompanyAdmin,ProjectManager">
+                        <button class="btn btn-success btn-modern" @onclick="ShowGenerateModal">
+                            <i class="fas fa-plus me-1"></i>
+                            Generar Reporte
+                        </button>
+                    </AuthorizeView>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Report Templates -->
+    <AuthorizeView Roles="SuperAdmin,CompanyAdmin,ProjectManager">
+        <QuickReportTemplates OnReportGenerated="RefreshReports" />
+    </AuthorizeView>
+
+    <!-- Report Stats -->
+    @if (reportStats != null)
+    {
+        <ReportStatsCard stats="reportStats" />
+    }
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-custom">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Buscar</label>
+                            <input type="text" class="form-control" @bind="searchTerm" @bind:event="oninput" 
+                                   placeholder="Buscar por título o proyecto..." />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Tipo</label>
+                            <select class="form-select" @bind="selectedType">
+                                <option value="">Todos</option>
+                                <option value="Monthly">Mensual</option>
+                                <option value="Weekly">Semanal</option>
+                                <option value="Custom">Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Formato</label>
+                            <select class="form-select" @bind="selectedFormat">
+                                <option value="">Todos</option>
+                                <option value="PDF">PDF</option>
+                                <option value="Excel">Excel</option>
+                                <option value="CSV">CSV</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Estado</label>
+                            <select class="form-select" @bind="selectedStatus">
+                                <option value="">Todos</option>
+                                <option value="Generated">Generado</option>
+                                <option value="Sent">Enviado</option>
+                                <option value="Failed">Fallido</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Fecha</label>
+                            <div class="d-flex gap-1">
+                                <input type="date" class="form-control" @bind="dateFrom" />
+                                <input type="date" class="form-control" @bind="dateTo" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card table-modern">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Reportes (@(reportsList?.TotalCount ?? 0))
+                    </h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted">Mostrar:</span>
+                        <select class="form-select form-select-sm" style="width: auto;" @bind="pageSize" @bind:event="onchange">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Cargando reportes...</p>
+                        </div>
+                    }
+                    else if (reportsList?.Reports?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Proyecto</th>
+                                        <th>Tipo</th>
+                                        <th>Formato</th>
+                                        <th>Estado</th>
+                                        <th>Fecha</th>
+                                        <th>Tamaño</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var report in reportsList.Reports)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold">@report.Title</div>
+                                                @if (report.EmailSent)
+                                                {
+                                                    <small class="text-success">
+                                                        <i class="fas fa-envelope me-1"></i>
+                                                        Enviado por email
+                                                    </small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark">@report.ProjectName</span>
+                                            </td>
+                                            <td>@report.ReportType</td>
+                                            <td>
+                                                <span class="badge bg-info">@report.FileFormat</span>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge status-@report.Status.ToLower()">
+                                                    @GetStatusText(report.Status)
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div>@report.GeneratedAt.ToString("dd/MM/yyyy")</div>
+                                                <small class="text-muted">@report.GeneratedAt.ToString("HH:mm")</small>
+                                            </td>
+                                            <td>@FormatFileSize(report.FileSizeBytes)</td>
+                                            <td>
+                                                <div class="d-flex gap-1">
+                                                    <button class="btn btn-sm btn-outline-primary" 
+                                                            @onclick="() => DownloadReport(report.Id)" 
+                                                            title="Descargar">
+                                                        <i class="fas fa-download"></i>
+                                                    </button>
+                                                    
+                                                    <AuthorizeView Roles="SuperAdmin,CompanyAdmin,ProjectManager">
+                                                        @if (!report.EmailSent && report.Status == "Generated")
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-success" 
+                                                                    @onclick="() => ResendEmail(report.Id)" 
+                                                                    title="Enviar por email">
+                                                                <i class="fas fa-envelope"></i>
+                                                            </button>
+                                                        }
+                                                        
+                                                        <button class="btn btn-sm btn-outline-danger" 
+                                                                @onclick="() => DeleteReport(report.Id)" 
+                                                                title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </AuthorizeView>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        @if (reportsList.TotalPages > 1)
+                        {
+                            <div class="card-footer bg-white">
+                                <nav>
+                                    <ul class="pagination pagination-sm mb-0 justify-content-center">
+                                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                                            <button class="page-link" @onclick="() => ChangePage(currentPage - 1)">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                        </li>
+                                        
+                                        @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(reportsList.TotalPages, currentPage + 2); i++)
+                                        {
+                                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                                <button class="page-link" @onclick="() => ChangePage(i)">@i</button>
+                                            </li>
+                                        }
+                                        
+                                        <li class="page-item @(currentPage >= reportsList.TotalPages ? "disabled" : "")">
+                                            <button class="page-link" @onclick="() => ChangePage(currentPage + 1)">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </nav>
+                                
+                                <div class="text-center mt-2">
+                                    <small class="text-muted">
+                                        Mostrando @((currentPage - 1) * pageSize + 1) - @Math.Min(currentPage * pageSize, reportsList.TotalCount) 
+                                        de @reportsList.TotalCount reportes
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5>No hay reportes</h5>
+                            <p class="text-muted">No se encontraron reportes con los filtros aplicados.</p>
+                            <AuthorizeView Roles="SuperAdmin,CompanyAdmin,ProjectManager">
+                                <button class="btn btn-primary" @onclick="ShowGenerateModal">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Generar primer reporte
+                                </button>
+                            </AuthorizeView>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Report Modal -->
+<div class="modal fade" id="generateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-magic text-primary me-2"></i>
+                    Generar Nuevo Reporte
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <EditForm Model="@generateRequest" OnValidSubmit="@GenerateReport">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Proyecto *</label>
+                            <InputSelect @bind-Value="generateRequest.ProjectId" class="form-select">
+                                <option value="">Selecciona un proyecto...</option>
+                                @if (projects != null)
+                                {
+                                    @foreach (var project in projects)
+                                    {
+                                        <option value="@project.Id">@project.Name (@project.ClientName)</option>
+                                    }
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => generateRequest.ProjectId)" class="text-danger" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de Reporte *</label>
+                            <InputSelect @bind-Value="generateRequest.ReportType" class="form-select">
+                                <option value="">Selecciona tipo...</option>
+                                <option value="Monthly">Mensual</option>
+                                <option value="Weekly">Semanal</option>
+                                <option value="Custom">Personalizado</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => generateRequest.ReportType)" class="text-danger" />
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Título del Reporte *</label>
+                            <InputText @bind-Value="generateRequest.Title" class="form-control" 
+                                       placeholder="Ej: Reporte Mensual - Enero 2024" />
+                            <ValidationMessage For="@(() => generateRequest.Title)" class="text-danger" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Inicio *</label>
+                            <InputDate @bind-Value="generateRequest.PeriodStart" class="form-control" />
+                            <ValidationMessage For="@(() => generateRequest.PeriodStart)" class="text-danger" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Fin *</label>
+                            <InputDate @bind-Value="generateRequest.PeriodEnd" class="form-control" />
+                            <ValidationMessage For="@(() => generateRequest.PeriodEnd)" class="text-danger" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Formato *</label>
+                            <InputSelect @bind-Value="generateRequest.Format" class="form-select">
+                                <option value="PDF">PDF</option>
+                                <option value="Excel">Excel</option>
+                                <option value="Both">PDF + Excel</option>
+                            </InputSelect>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Opciones</label>
+                            <div class="form-check">
+                                <InputCheckbox @bind-Value="generateRequest.SendByEmail" class="form-check-input" id="sendEmail" />
+                                <label class="form-check-label" for="sendEmail">
+                                    Enviar por email automáticamente
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Contenido a Incluir</label>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <InputCheckbox @bind-Value="generateRequest.IncludeCounters" class="form-check-input" id="includeCounters" />
+                                        <label class="form-check-label" for="includeCounters">Contadores</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <InputCheckbox @bind-Value="generateRequest.IncludeConsumables" class="form-check-input" id="includeConsumables" />
+                                        <label class="form-check-label" for="includeConsumables">Consumibles</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <InputCheckbox @bind-Value="generateRequest.IncludeCosts" class="form-check-input" id="includeCosts" />
+                                        <label class="form-check-label" for="includeCosts">Costos</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <InputCheckbox @bind-Value="generateRequest.IncludeCharts" class="form-check-input" id="includeCharts" />
+                                        <label class="form-check-label" for="includeCharts">Gráficos</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        @if (generateRequest.SendByEmail)
+                        {
+                            <div class="col-12">
+                                <label class="form-label">Destinatarios de Email</label>
+                                <textarea class="form-control" rows="3" @bind="emailRecipientsText"
+                                          placeholder="Ingresa emails separados por comas&#10;ejemplo@empresa.com, otro@empresa.com"></textarea>
+                                <small class="form-text text-muted">Separa múltiples emails con comas</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isGenerating">
+                        @if (isGenerating)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>Generando...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-magic me-1"></i>
+                            <span>Generar Reporte</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ReportListResponse? reportsList;
+    private ReportStats? reportStats;
+    private List<ProjectSummary>? projects;
+    private bool isLoading = true;
+    private bool isGenerating = false;
+    
+    // Filters
+    private string searchTerm = "";
+    private string selectedType = "";
+    private string selectedFormat = "";
+    private string selectedStatus = "";
+    private DateTime? dateFrom;
+    private DateTime? dateTo;
+    
+    // Pagination
+    private int currentPage = 1;
+    private int pageSize = 25;
+    
+    // Generate form
+    private GenerateReportRequest generateRequest = new();
+    private string emailRecipientsText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        
+        // Set default dates
+        generateRequest.PeriodStart = DateTime.UtcNow.AddMonths(-1);
+        generateRequest.PeriodEnd = DateTime.UtcNow;
+        generateRequest.Format = "PDF";
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var reportsTask = LoadReports();
+            var projectsTask = TenantService.GetTenantProjectsAsync();
+            var statsTask = ApiService.GetAsync<ReportStats>("/api/report/stats");
+
+            await Task.WhenAll(reportsTask, projectsTask, statsTask);
+
+            projects = await projectsTask;
+            reportStats = await statsTask;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error cargando datos: {ex.Message}", "error");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadReports()
+    {
+        var queryParams = new List<string>
+        {
+            $"pageNumber={currentPage}",
+            $"pageSize={pageSize}"
+        };
+
+        if (!string.IsNullOrEmpty(searchTerm))
+            queryParams.Add($"search={Uri.EscapeDataString(searchTerm)}");
+        if (!string.IsNullOrEmpty(selectedType))
+            queryParams.Add($"type={selectedType}");
+        if (!string.IsNullOrEmpty(selectedFormat))
+            queryParams.Add($"format={selectedFormat}");
+        if (!string.IsNullOrEmpty(selectedStatus))
+            queryParams.Add($"status={selectedStatus}");
+        if (dateFrom.HasValue)
+            queryParams.Add($"dateFrom={dateFrom.Value:yyyy-MM-dd}");
+        if (dateTo.HasValue)
+            queryParams.Add($"dateTo={dateTo.Value:yyyy-MM-dd}");
+
+        var query = string.Join("&", queryParams);
+        reportsList = await ApiService.GetAsync<ReportListResponse>($"/api/report?{query}");
+    }
+
+    private async Task RefreshReports()
+    {
+        await LoadReports();
+        await JSRuntime.InvokeVoidAsync("showToast", "Actualizado", "Lista de reportes actualizada", "success");
+    }
+
+    private async Task ChangePage(int page)
+    {
+        if (page >= 1 && page <= (reportsList?.TotalPages ?? 1))
+        {
+            currentPage = page;
+            await LoadReports();
+        }
+    }
+
+    private async Task ShowGenerateModal()
+    {
+        generateRequest = new GenerateReportRequest
+        {
+            PeriodStart = DateTime.UtcNow.AddMonths(-1),
+            PeriodEnd = DateTime.UtcNow,
+            Format = "PDF",
+            IncludeCounters = true,
+            IncludeConsumables = true,
+            IncludeCosts = true,
+            IncludeCharts = true
+        };
+        emailRecipientsText = "";
+
+        await JSRuntime.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('generateModal')).show()");
+    }
+
+    private async Task GenerateReport()
+    {
+        isGenerating = true;
+        StateHasChanged();
+
+        try
+        {
+            if (generateRequest.SendByEmail && !string.IsNullOrEmpty(emailRecipientsText))
+            {
+                generateRequest.EmailRecipients = emailRecipientsText
+                    .Split(',')
+                    .Select(e => e.Trim())
+                    .Where(e => !string.IsNullOrEmpty(e))
+                    .ToArray();
+            }
+
+            var result = await ApiService.PostAsync<GenerateReportRequest, ReportSummary>("/api/report/generate", generateRequest);
+            
+            if (result != null)
+            {
+                await JSRuntime.InvokeVoidAsync("eval", "bootstrap.Modal.getInstance(document.getElementById('generateModal')).hide()");
+                await JSRuntime.InvokeVoidAsync("showToast", "Reporte Generado", "El reporte se ha generado correctamente", "success");
+                await LoadReports();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error generando reporte: {ex.Message}", "error");
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DownloadReport(Guid reportId)
+    {
+        try
+        {
+            var fileData = await ApiService.DownloadAsync($"/api/report/{reportId}/download");
+            if (fileData != null)
+            {
+                var report = reportsList?.Reports?.FirstOrDefault(r => r.Id == reportId);
+                var fileName = $"{report?.Title ?? "reporte"}.{report?.FileFormat?.ToLower() ?? "pdf"}";
+                
+                await JSRuntime.InvokeVoidAsync("downloadFile", fileName, "application/octet-stream", fileData);
+                await JSRuntime.InvokeVoidAsync("showToast", "Descarga", "Reporte descargado correctamente", "success");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error descargando reporte: {ex.Message}", "error");
+        }
+    }
+
+    private async Task ResendEmail(Guid reportId)
+    {
+        try
+        {
+            var success = await ApiService.PostAsync<object, bool>($"/api/report/{reportId}/resend-email", new { });
+            if (success)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Email Enviado", "Reporte reenviado por email", "success");
+                await LoadReports();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error enviando email: {ex.Message}", "error");
+        }
+    }
+
+    private async Task DeleteReport(Guid reportId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirmAction", 
+            "¿Estás seguro de que deseas eliminar este reporte? Esta acción no se puede deshacer.",
+            "Confirmar eliminación");
+            
+        if (confirmed)
+        {
+            try
+            {
+                var success = await ApiService.DeleteAsync($"/api/report/{reportId}");
+                if (success)
+                {
+                    await JSRuntime.InvokeVoidAsync("showToast", "Eliminado", "Reporte eliminado correctamente", "success");
+                    await LoadReports();
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error eliminando reporte: {ex.Message}", "error");
+            }
+        }
+    }
+
+    private string GetStatusText(string status)
+    {
+        return status switch
+        {
+            "Generated" => "Generado",
+            "Sent" => "Enviado",
+            "Failed" => "Fallido",
+            "Pending" => "Pendiente",
+            _ => status
+        };
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes == 0) return "0 B";
+        
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
+

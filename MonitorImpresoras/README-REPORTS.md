@@ -381,3 +381,4 @@ curl -X GET "http://localhost:5278/api/scheduledreport" \
 - Exportación a Google Drive / OneDrive
 
 **¡El sistema de reportes automatizados está 100% funcional y listo para uso en producción! 🚀**
+

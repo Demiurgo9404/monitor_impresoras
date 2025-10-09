@@ -238,3 +238,4 @@ Write-Host "  Detener servicio: Stop-Service $serviceName"
 Write-Host "  Ver logs: Get-Content '$InstallPath\logs\agent-*.txt' -Tail 50"
 Write-Host ""
 Write-Host "Para desinstalar: sc.exe delete $serviceName" -ForegroundColor Yellow
+

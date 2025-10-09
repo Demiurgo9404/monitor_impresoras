@@ -1,3 +1,0 @@
-namespace MonitorImpresoras.Domain.Entities
-{
-}

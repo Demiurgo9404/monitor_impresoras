@@ -195,3 +195,4 @@ Verificar que el token JWT sea válido y no haya expirado
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+

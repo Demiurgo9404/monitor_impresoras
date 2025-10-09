@@ -34,7 +34,7 @@ curl -sSL https://raw.githubusercontent.com/tu-usuario/monitor-impresoras/main/d
 ```bash
 # 1. Clonar repositorio
 git clone https://github.com/tu-usuario/monitor-impresoras.git
-cd monitor-impresoras/MonitorImpresoras
+cd monitor-impresoras/QOPIQ
 
 # 2. Configurar variables
 cp .env.example .env
@@ -344,3 +344,4 @@ Tu sistema Monitor de Impresoras está ahora completamente configurado y listo p
 **📚 Documentación**: https://docs.monitor-impresoras.com  
 **🐛 Issues**: https://github.com/tu-usuario/monitor-impresoras/issues  
 **💬 Comunidad**: https://discord.gg/monitor-impresoras
+

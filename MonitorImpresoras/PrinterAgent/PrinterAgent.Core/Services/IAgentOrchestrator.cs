@@ -68,3 +68,4 @@ namespace PrinterAgent.Core.Services
         event EventHandler<PrinterAlert> AlertGenerated;
     }
 }
+

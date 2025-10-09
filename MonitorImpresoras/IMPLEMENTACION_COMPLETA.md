@@ -110,9 +110,9 @@ psql -d monitor_tenant_enterprise -f Reports/PostgreSQL_Reports.sql
     "TenantEnterprise": "Host=localhost;Database=monitor_tenant_enterprise;Username=postgres;Password=Roximar2025"
   },
   "Jwt": {
-    "Issuer": "MonitorImpresorasAPI",
-    "Audience": "MonitorImpresorasClient",
-    "Key": "SuperSecretKeyForMonitorImpresoras2025!"
+    "Issuer": "QOPIQAPI",
+    "Audience": "QOPIQClient",
+    "Key": "SuperSecretKeyForQOPIQ2025!"
   },
   "SmtpSettings": {
     "Host": "smtp.gmail.com",
@@ -129,7 +129,7 @@ psql -d monitor_tenant_enterprise -f Reports/PostgreSQL_Reports.sql
 
 #### 2.1 Compilar y Ejecutar
 ```bash
-# Desde la carpeta MonitorImpresoras.API
+# Desde la carpeta QOPIQ.API
 dotnet build
 dotnet run
 ```
@@ -353,3 +353,4 @@ El sistema de reportes programados multi-tenant está listo para uso en producci
 - ✅ **PostgreSQL optimizado** con queries de alto rendimiento
 
 El sistema es escalable, mantenible y listo para entornos de producción con las mejores prácticas de seguridad y arquitectura implementadas.
+

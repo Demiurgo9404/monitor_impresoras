@@ -1,0 +1,688 @@
+@page "/scheduled-reports"
+@inject ApiService ApiService
+@inject TenantService TenantService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Reportes Programados - QOPIQ</PageTitle>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gradient">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Calendario de Reportes
+                    </h1>
+                    <p class="text-muted mb-0">Visualiza y gestiona reportes programados</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-modern" @onclick="RefreshCalendar">
+                        <i class="fas fa-sync-alt @(isLoading ? "fa-spin" : "")"></i>
+                        Actualizar
+                    </button>
+                    <AuthorizeView Roles="SuperAdmin,CompanyAdmin,ProjectManager">
+                        <button class="btn btn-success btn-modern" @onclick="ShowCreateModal">
+                            <i class="fas fa-plus me-1"></i>
+                            Programar Reporte
+                        </button>
+                    </AuthorizeView>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Stats -->
+    @if (calendarStats != null)
+    {
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon success me-3">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value">@calendarStats.ActiveSchedules</div>
+                                <div class="metric-label">Activos</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon warning me-3">
+                                <i class="fas fa-pause-circle"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value">@calendarStats.InactiveSchedules</div>
+                                <div class="metric-label">Pausados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon info me-3">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value">@calendarStats.NextExecutions</div>
+                                <div class="metric-label">Próximas 24h</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon danger me-3">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value">@calendarStats.FailedExecutions</div>
+                                <div class="metric-label">Fallos Recientes</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Calendar View -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-custom">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar me-2"></i>
+                        Vista de Calendario
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="calendarView" id="monthView" autocomplete="off" checked @onchange="() => ChangeView('month')">
+                        <label class="btn btn-outline-primary btn-sm" for="monthView">Mes</label>
+                        
+                        <input type="radio" class="btn-check" name="calendarView" id="weekView" autocomplete="off" @onchange="() => ChangeView('week')">
+                        <label class="btn btn-outline-primary btn-sm" for="weekView">Semana</label>
+                        
+                        <input type="radio" class="btn-check" name="calendarView" id="listView" autocomplete="off" @onchange="() => ChangeView('list')">
+                        <label class="btn btn-outline-primary btn-sm" for="listView">Lista</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando calendario...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Cargando reportes programados...</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (currentView == "list")
+                        {
+                            <ScheduledReportsList 
+                                ScheduledReports="scheduledReports" 
+                                OnEdit="EditScheduledReport"
+                                OnToggle="ToggleScheduledReport"
+                                OnDelete="DeleteScheduledReport"
+                                OnExecute="ExecuteScheduledReport" />
+                        }
+                        else
+                        {
+                            <div id="calendar-container" class="calendar-modern">
+                                <!-- Calendar will be rendered here via JS -->
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Scheduled Report Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-plus text-primary me-2"></i>
+                    @(editingSchedule?.Id != null ? "Editar" : "Programar") Reporte
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <EditForm Model="@scheduleRequest" OnValidSubmit="@SaveScheduledReport">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Proyecto *</label>
+                            <InputSelect @bind-Value="scheduleRequest.ProjectId" class="form-select">
+                                <option value="">Selecciona un proyecto...</option>
+                                @if (projects != null)
+                                {
+                                    @foreach (var project in projects)
+                                    {
+                                        <option value="@project.Id">@project.Name (@project.ClientName)</option>
+                                    }
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => scheduleRequest.ProjectId)" class="text-danger" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Tipo de Reporte *</label>
+                            <InputSelect @bind-Value="scheduleRequest.ReportType" class="form-select">
+                                <option value="">Selecciona tipo...</option>
+                                <option value="Monthly">Mensual</option>
+                                <option value="Weekly">Semanal</option>
+                                <option value="Daily">Diario</option>
+                                <option value="Custom">Personalizado</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => scheduleRequest.ReportType)" class="text-danger" />
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Título del Reporte *</label>
+                            <InputText @bind-Value="scheduleRequest.Title" class="form-control" 
+                                       placeholder="Ej: Reporte Mensual Automático" />
+                            <ValidationMessage For="@(() => scheduleRequest.Title)" class="text-danger" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Formato *</label>
+                            <InputSelect @bind-Value="scheduleRequest.Format" class="form-select">
+                                <option value="PDF">PDF</option>
+                                <option value="Excel">Excel</option>
+                                <option value="Both">PDF + Excel</option>
+                            </InputSelect>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Programación *</label>
+                            <InputSelect @bind-Value="scheduleRequest.CronExpression" class="form-select" @onchange="OnCronExpressionChange">
+                                <option value="">Selecciona frecuencia...</option>
+                                <option value="0 0 1 * *">Mensual (día 1 a las 00:00)</option>
+                                <option value="0 0 * * 1">Semanal (lunes a las 00:00)</option>
+                                <option value="0 0 * * *">Diario (00:00)</option>
+                                <option value="0 9 * * 1-5">Diario laborable (09:00)</option>
+                                <option value="custom">Personalizado...</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => scheduleRequest.CronExpression)" class="text-danger" />
+                        </div>
+                        
+                        @if (showCustomCron)
+                        {
+                            <div class="col-12">
+                                <label class="form-label">Expresión Cron Personalizada</label>
+                                <InputText @bind-Value="customCronExpression" class="form-control" 
+                                           placeholder="0 0 * * * (formato: minuto hora día mes día-semana)" />
+                                <small class="form-text text-muted">
+                                    Ejemplo: "0 9 1 * *" = Primer día del mes a las 9:00 AM
+                                </small>
+                            </div>
+                        }
+                        
+                        <div class="col-12">
+                            <div class="form-check">
+                                <InputCheckbox @bind-Value="scheduleRequest.IsActive" class="form-check-input" id="isActive" />
+                                <label class="form-check-label" for="isActive">
+                                    Activar programación inmediatamente
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Destinatarios de Email</label>
+                            <textarea class="form-control" rows="3" @bind="emailRecipientsText"
+                                      placeholder="Ingresa emails separados por comas&#10;ejemplo@empresa.com, otro@empresa.com"></textarea>
+                            <small class="form-text text-muted">Los reportes se enviarán automáticamente a estos emails</small>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Contenido a Incluir</label>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <InputCheckbox @bind-Value="scheduleRequest.IncludeCounters" class="form-check-input" id="includeCounters" />
+                                        <label class="form-check-label" for="includeCounters">Contadores</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <InputCheckbox @bind-Value="scheduleRequest.IncludeConsumables" class="form-check-input" id="includeConsumables" />
+                                        <label class="form-check-label" for="includeConsumables">Consumibles</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <InputCheckbox @bind-Value="scheduleRequest.IncludeCosts" class="form-check-input" id="includeCosts" />
+                                        <label class="form-check-label" for="includeCosts">Costos</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-check">
+                                        <InputCheckbox @bind-Value="scheduleRequest.IncludeCharts" class="form-check-input" id="includeCharts" />
+                                        <label class="form-check-label" for="includeCharts">Gráficos</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(nextExecutionText))
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Próxima ejecución:</strong> @nextExecutionText
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-save me-1"></i>
+                            <span>@(editingSchedule?.Id != null ? "Actualizar" : "Programar")</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<ScheduledReportSummary>? scheduledReports;
+    private ScheduledReportStats? calendarStats;
+    private List<ProjectSummary>? projects;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string currentView = "month";
+    
+    // Form data
+    private CreateScheduledReportRequest scheduleRequest = new();
+    private ScheduledReportSummary? editingSchedule;
+    private string emailRecipientsText = "";
+    private string customCronExpression = "";
+    private bool showCustomCron = false;
+    private string nextExecutionText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        
+        // Initialize form
+        scheduleRequest.IsActive = true;
+        scheduleRequest.Format = "PDF";
+        scheduleRequest.IncludeCounters = true;
+        scheduleRequest.IncludeConsumables = true;
+        scheduleRequest.IncludeCosts = true;
+        scheduleRequest.IncludeCharts = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeCalendar();
+        }
+        else if (scheduledReports != null && currentView != "list")
+        {
+            await UpdateCalendarEvents();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var scheduledTask = ApiService.GetAsync<List<ScheduledReportSummary>>("/api/scheduledreport");
+            var statsTask = ApiService.GetAsync<ScheduledReportStats>("/api/scheduledreport/stats");
+            var projectsTask = TenantService.GetTenantProjectsAsync();
+
+            await Task.WhenAll(scheduledTask, statsTask, projectsTask);
+
+            scheduledReports = await scheduledTask;
+            calendarStats = await statsTask;
+            projects = await projectsTask;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error cargando datos: {ex.Message}", "error");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshCalendar()
+    {
+        await LoadData();
+        await JSRuntime.InvokeVoidAsync("showToast", "Actualizado", "Calendario actualizado", "success");
+    }
+
+    private async Task ChangeView(string view)
+    {
+        currentView = view;
+        StateHasChanged();
+        
+        if (view != "list")
+        {
+            await Task.Delay(100); // Wait for DOM update
+            await InitializeCalendar();
+        }
+    }
+
+    private async Task InitializeCalendar()
+    {
+        if (currentView == "list") return;
+        
+        var events = scheduledReports?.Select(sr => new
+        {
+            id = sr.Id.ToString(),
+            title = sr.Title,
+            start = sr.NextExecution?.ToString("yyyy-MM-ddTHH:mm:ss"),
+            backgroundColor = GetEventColor(sr.IsActive, sr.LastExecutionStatus),
+            borderColor = GetEventColor(sr.IsActive, sr.LastExecutionStatus),
+            textColor = "#ffffff",
+            extendedProps = new
+            {
+                projectName = sr.ProjectName,
+                reportType = sr.ReportType,
+                cronExpression = sr.CronExpression,
+                isActive = sr.IsActive,
+                lastExecution = sr.LastExecution?.ToString("yyyy-MM-ddTHH:mm:ss"),
+                lastStatus = sr.LastExecutionStatus
+            }
+        }).ToArray() ?? new object[0];
+
+        await JSRuntime.InvokeVoidAsync("initializeCalendar", currentView, events);
+    }
+
+    private async Task UpdateCalendarEvents()
+    {
+        if (currentView == "list") return;
+        
+        var events = scheduledReports?.Select(sr => new
+        {
+            id = sr.Id.ToString(),
+            title = sr.Title,
+            start = sr.NextExecution?.ToString("yyyy-MM-ddTHH:mm:ss"),
+            backgroundColor = GetEventColor(sr.IsActive, sr.LastExecutionStatus),
+            borderColor = GetEventColor(sr.IsActive, sr.LastExecutionStatus),
+            textColor = "#ffffff",
+            extendedProps = new
+            {
+                projectName = sr.ProjectName,
+                reportType = sr.ReportType,
+                cronExpression = sr.CronExpression,
+                isActive = sr.IsActive,
+                lastExecution = sr.LastExecution?.ToString("yyyy-MM-ddTHH:mm:ss"),
+                lastStatus = sr.LastExecutionStatus
+            }
+        }).ToArray() ?? new object[0];
+
+        await JSRuntime.InvokeVoidAsync("updateCalendarEvents", events);
+    }
+
+    private string GetEventColor(bool isActive, string? lastStatus)
+    {
+        if (!isActive) return "#6c757d"; // Gray for inactive
+        
+        return lastStatus switch
+        {
+            "Success" => "#28a745", // Green for success
+            "Failed" => "#dc3545",  // Red for failed
+            _ => "#007bff"          // Blue for pending/unknown
+        };
+    }
+
+    private async Task ShowCreateModal()
+    {
+        editingSchedule = null;
+        scheduleRequest = new CreateScheduledReportRequest
+        {
+            IsActive = true,
+            Format = "PDF",
+            IncludeCounters = true,
+            IncludeConsumables = true,
+            IncludeCosts = true,
+            IncludeCharts = true
+        };
+        emailRecipientsText = "";
+        showCustomCron = false;
+        nextExecutionText = "";
+
+        await JSRuntime.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('scheduleModal')).show()");
+    }
+
+    private async Task EditScheduledReport(ScheduledReportSummary schedule)
+    {
+        editingSchedule = schedule;
+        scheduleRequest = new CreateScheduledReportRequest
+        {
+            ProjectId = schedule.ProjectId,
+            ReportType = schedule.ReportType,
+            Title = schedule.Title,
+            CronExpression = schedule.CronExpression,
+            Format = schedule.Format,
+            IsActive = schedule.IsActive,
+            IncludeCounters = schedule.IncludeCounters,
+            IncludeConsumables = schedule.IncludeConsumables,
+            IncludeCosts = schedule.IncludeCosts,
+            IncludeCharts = schedule.IncludeCharts
+        };
+        
+        emailRecipientsText = string.Join(", ", schedule.EmailRecipients ?? new string[0]);
+        showCustomCron = !IsStandardCronExpression(schedule.CronExpression);
+        if (showCustomCron)
+        {
+            customCronExpression = schedule.CronExpression;
+        }
+        
+        await UpdateNextExecutionText();
+        await JSRuntime.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('scheduleModal')).show()");
+    }
+
+    private async Task SaveScheduledReport()
+    {
+        isSaving = true;
+        StateHasChanged();
+
+        try
+        {
+            if (showCustomCron && !string.IsNullOrEmpty(customCronExpression))
+            {
+                scheduleRequest.CronExpression = customCronExpression;
+            }
+
+            if (!string.IsNullOrEmpty(emailRecipientsText))
+            {
+                scheduleRequest.EmailRecipients = emailRecipientsText
+                    .Split(',')
+                    .Select(e => e.Trim())
+                    .Where(e => !string.IsNullOrEmpty(e))
+                    .ToArray();
+            }
+
+            if (editingSchedule?.Id != null)
+            {
+                var updateRequest = new UpdateScheduledReportRequest
+                {
+                    Title = scheduleRequest.Title,
+                    CronExpression = scheduleRequest.CronExpression,
+                    Format = scheduleRequest.Format,
+                    IsActive = scheduleRequest.IsActive,
+                    EmailRecipients = scheduleRequest.EmailRecipients,
+                    IncludeCounters = scheduleRequest.IncludeCounters,
+                    IncludeConsumables = scheduleRequest.IncludeConsumables,
+                    IncludeCosts = scheduleRequest.IncludeCosts,
+                    IncludeCharts = scheduleRequest.IncludeCharts
+                };
+                
+                var updated = await ApiService.PutAsync<UpdateScheduledReportRequest, ScheduledReportSummary>($"/api/scheduledreport/{editingSchedule.Id}", updateRequest);
+                if (updated != null)
+                {
+                    await JSRuntime.InvokeVoidAsync("showToast", "Actualizado", "Reporte programado actualizado", "success");
+                }
+            }
+            else
+            {
+                var created = await ApiService.PostAsync<CreateScheduledReportRequest, ScheduledReportSummary>("/api/scheduledreport", scheduleRequest);
+                if (created != null)
+                {
+                    await JSRuntime.InvokeVoidAsync("showToast", "Creado", "Reporte programado creado", "success");
+                }
+            }
+
+            await JSRuntime.InvokeVoidAsync("eval", "bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide()");
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error guardando: {ex.Message}", "error");
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleScheduledReport(ScheduledReportSummary schedule)
+    {
+        try
+        {
+            var success = await ApiService.PostAsync<object, bool>($"/api/scheduledreport/{schedule.Id}/toggle", new { });
+            if (success)
+            {
+                var action = schedule.IsActive ? "pausado" : "activado";
+                await JSRuntime.InvokeVoidAsync("showToast", "Estado Cambiado", $"Reporte {action} correctamente", "success");
+                await LoadData();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error cambiando estado: {ex.Message}", "error");
+        }
+    }
+
+    private async Task DeleteScheduledReport(ScheduledReportSummary schedule)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirmAction", 
+            $"¿Estás seguro de que deseas eliminar la programación '{schedule.Title}'? Esta acción no se puede deshacer.",
+            "Confirmar eliminación");
+            
+        if (confirmed)
+        {
+            try
+            {
+                var success = await ApiService.DeleteAsync($"/api/scheduledreport/{schedule.Id}");
+                if (success)
+                {
+                    await JSRuntime.InvokeVoidAsync("showToast", "Eliminado", "Programación eliminada correctamente", "success");
+                    await LoadData();
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error eliminando: {ex.Message}", "error");
+            }
+        }
+    }
+
+    private async Task ExecuteScheduledReport(ScheduledReportSummary schedule)
+    {
+        try
+        {
+            var success = await ApiService.PostAsync<object, bool>($"/api/scheduledreport/{schedule.Id}/execute", new { });
+            if (success)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Ejecutado", "Reporte ejecutado manualmente", "success");
+                await LoadData();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error ejecutando reporte: {ex.Message}", "error");
+        }
+    }
+
+    private async Task OnCronExpressionChange(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        showCustomCron = value == "custom";
+        
+        if (!showCustomCron)
+        {
+            scheduleRequest.CronExpression = value ?? "";
+        }
+        
+        await UpdateNextExecutionText();
+        StateHasChanged();
+    }
+
+    private async Task UpdateNextExecutionText()
+    {
+        try
+        {
+            var cronExpression = showCustomCron ? customCronExpression : scheduleRequest.CronExpression;
+            if (!string.IsNullOrEmpty(cronExpression))
+            {
+                var nextExecution = await ApiService.PostAsync<object, DateTime?>("/api/scheduledreport/next-execution", new { cronExpression });
+                nextExecutionText = nextExecution?.ToString("dd/MM/yyyy HH:mm") ?? "Expresión inválida";
+            }
+            else
+            {
+                nextExecutionText = "";
+            }
+        }
+        catch
+        {
+            nextExecutionText = "Expresión inválida";
+        }
+    }
+
+    private bool IsStandardCronExpression(string cronExpression)
+    {
+        var standardExpressions = new[]
+        {
+            "0 0 1 * *",    // Monthly
+            "0 0 * * 1",    // Weekly
+            "0 0 * * *",    // Daily
+            "0 9 * * 1-5"   // Daily workdays
+        };
+        
+        return standardExpressions.Contains(cronExpression);
+    }
+}
+

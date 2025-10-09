@@ -79,3 +79,4 @@ namespace PrinterAgent.Core.Models
         public DateTime Timestamp { get; set; }
     }
 }
+

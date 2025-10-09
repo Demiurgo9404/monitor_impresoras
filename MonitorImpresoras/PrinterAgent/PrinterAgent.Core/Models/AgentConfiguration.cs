@@ -55,3 +55,4 @@ namespace PrinterAgent.Core.Models
         public string LogPath { get; set; } = "logs";
     }
 }
+

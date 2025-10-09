@@ -48,3 +48,4 @@ namespace PrinterAgent.Core.Services
         Task<bool> TestConnectivityAsync(CancellationToken cancellationToken = default);
     }
 }
+

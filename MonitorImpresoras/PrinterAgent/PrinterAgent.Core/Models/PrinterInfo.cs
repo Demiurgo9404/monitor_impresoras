@@ -82,3 +82,4 @@ namespace PrinterAgent.Core.Models
         Critical = 3
     }
 }
+

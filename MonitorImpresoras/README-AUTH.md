@@ -374,3 +374,4 @@ curl -X GET "http://localhost:5278/api/project/my-projects" \
 4. **Día 6**: Despliegue y testing
 
 **¡El sistema de autenticación multi-tenant está completamente funcional! 🚀**
+

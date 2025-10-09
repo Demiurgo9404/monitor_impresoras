@@ -302,3 +302,4 @@ $diagnostics | ConvertTo-Json -Depth 3
 **Versión**: 1.0.0  
 **Fecha**: Octubre 2025  
 **Autor**: Equipo Monitor de Impresoras
+

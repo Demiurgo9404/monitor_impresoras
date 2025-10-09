@@ -1,0 +1,539 @@
+@page "/"
+@inject TenantService TenantService
+@inject ApiService ApiService
+@inject IJSRuntime JSRuntime
+@attribute [Authorize]
+
+<PageTitle>Dashboard - QOPIQ</PageTitle>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gradient">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Dashboard
+                    </h1>
+                    @if (companyInfo != null)
+                    {
+                        <p class="text-muted mb-0">Bienvenido a @companyInfo.Name</p>
+                    }
+                </div>
+                <div>
+                    <button class="btn btn-primary btn-modern" @onclick="RefreshData">
+                        <i class="fas fa-sync-alt @(isLoading ? "fa-spin" : "")"></i>
+                        Actualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading && stats == null)
+    {
+        <!-- Loading state -->
+        <div class="row">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3 text-muted">Cargando dashboard...</p>
+            </div>
+        </div>
+    }
+    else if (stats != null)
+    {
+        <!-- Metrics Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card fade-in">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon primary me-3">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value">@stats.TotalReports</div>
+                                <div class="metric-label">Total Reportes</div>
+                                <div class="metric-change positive">
+                                    <i class="fas fa-arrow-up"></i> +@stats.ReportsThisMonth este mes
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card fade-in">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon success me-3">
+                                <i class="fas fa-print"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value">@stats.ActivePrinters</div>
+                                <div class="metric-label">Impresoras Activas</div>
+                                <div class="text-muted small">de @stats.TotalPrinters total</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card fade-in">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon info me-3">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value">@stats.ActiveProjects</div>
+                                <div class="metric-label">Proyectos Activos</div>
+                                <div class="text-muted small">en monitoreo</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card fade-in">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="metric-icon warning me-3">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="metric-value">@stats.ScheduledReports</div>
+                                <div class="metric-label">Reportes Programados</div>
+                                <div class="text-muted small">automatizados</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-lg-8 mb-3">
+                <div class="card shadow-custom">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            Tendencia de Reportes (Últimos 30 días)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 300px;">
+                            <canvas id="reportsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-3">
+                <div class="card shadow-custom">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-pie text-success me-2"></i>
+                            Estado de Impresoras
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 300px;">
+                            <canvas id="printersChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-custom">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-bolt text-warning me-2"></i>
+                            Acciones Rápidas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <a href="/reports" class="btn btn-outline-primary w-100 btn-modern">
+                                    <i class="fas fa-file-alt fa-2x mb-2 d-block"></i>
+                                    <strong>Ver Reportes</strong>
+                                    <small class="d-block text-muted">Gestionar reportes existentes</small>
+                                </a>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <button class="btn btn-outline-success w-100 btn-modern" @onclick="GenerateQuickReport">
+                                    <i class="fas fa-magic fa-2x mb-2 d-block"></i>
+                                    <strong>Reporte Rápido</strong>
+                                    <small class="d-block text-muted">Generar reporte inmediato</small>
+                                </button>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <a href="/calendar" class="btn btn-outline-info w-100 btn-modern">
+                                    <i class="fas fa-calendar-plus fa-2x mb-2 d-block"></i>
+                                    <strong>Programar Reporte</strong>
+                                    <small class="d-block text-muted">Automatizar reportes</small>
+                                </a>
+                            </div>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <a href="/templates" class="btn btn-outline-warning w-100 btn-modern">
+                                    <i class="fas fa-palette fa-2x mb-2 d-block"></i>
+                                    <strong>Ver Templates</strong>
+                                    <small class="d-block text-muted">Explorar formatos</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row">
+            <div class="col-lg-8 mb-3">
+                <div class="card shadow-custom">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-history text-info me-2"></i>
+                            Actividad Reciente
+                        </h5>
+                        <a href="/reports" class="btn btn-sm btn-outline-primary">Ver todos</a>
+                    </div>
+                    <div class="card-body">
+                        @if (recentReports?.Any() == true)
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var report in recentReports.Take(5))
+                                {
+                                    <div class="list-group-item border-0 px-0">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">@report.Title</h6>
+                                                <p class="mb-1 text-muted small">
+                                                    <i class="fas fa-project-diagram me-1"></i>
+                                                    @report.ProjectName
+                                                </p>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    @FormatDateTime(report.GeneratedAt)
+                                                </small>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="status-badge status-@report.Status.ToLower()">
+                                                    @report.Status
+                                                </span>
+                                                <div class="small text-muted mt-1">
+                                                    @FormatFileSize(report.FileSizeBytes)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No hay reportes recientes</p>
+                                <button class="btn btn-primary" @onclick="GenerateQuickReport">
+                                    Generar primer reporte
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 mb-3">
+                <div class="card shadow-custom">
+                    <div class="card-header bg-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle text-primary me-2"></i>
+                            Información del Sistema
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (companyInfo != null)
+                        {
+                            <div class="mb-3">
+                                <strong>Empresa:</strong>
+                                <div class="text-muted">@companyInfo.Name</div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Proyectos:</strong>
+                                <div class="text-muted">@companyInfo.TotalProjects activos</div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Impresoras:</strong>
+                                <div class="text-muted">@companyInfo.ActivePrinters monitoreadas</div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Miembro desde:</strong>
+                                <div class="text-muted">@FormatDate(companyInfo.CreatedAt)</div>
+                            </div>
+                        }
+                        
+                        <hr>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="/printers" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-print me-1"></i>
+                                Gestionar Impresoras
+                            </a>
+                            <AuthorizeView Roles="SuperAdmin,CompanyAdmin,ProjectManager">
+                                <a href="/projects" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-briefcase me-1"></i>
+                                    Gestionar Proyectos
+                                </a>
+                            </AuthorizeView>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Error state -->
+        <div class="row">
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h4>Error al cargar el dashboard</h4>
+                <p class="text-muted">No se pudieron cargar los datos del dashboard.</p>
+                <button class="btn btn-primary" @onclick="RefreshData">
+                    <i class="fas fa-sync-alt"></i> Reintentar
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private DashboardStats? stats;
+    private CompanyInfo? companyInfo;
+    private List<ReportSummary>? recentReports;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && stats != null)
+        {
+            await InitializeCharts();
+        }
+    }
+
+    private async Task LoadDashboardData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Cargar datos en paralelo
+            var statsTask = TenantService.GetTenantStatsAsync();
+            var companyTask = TenantService.GetCurrentCompanyInfoAsync();
+            var reportsTask = ApiService.GetAsync<ReportListResponse>("/api/report?pageSize=5");
+
+            await Task.WhenAll(statsTask, companyTask, reportsTask);
+
+            stats = await statsTask;
+            companyInfo = await companyTask;
+            var reportsResponse = await reportsTask;
+            recentReports = reportsResponse?.Reports;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error cargando dashboard: {ex.Message}", "error");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadDashboardData();
+        
+        if (stats != null)
+        {
+            await InitializeCharts();
+        }
+        
+        await JSRuntime.InvokeVoidAsync("showToast", "Actualizado", "Dashboard actualizado correctamente", "success");
+    }
+
+    private async Task InitializeCharts()
+    {
+        if (stats?.ReportsChart?.Any() == true)
+        {
+            var reportsChartConfig = new
+            {
+                type = "line",
+                data = new
+                {
+                    labels = stats.ReportsChart.Select(x => x.Label).ToArray(),
+                    datasets = new[]
+                    {
+                        new
+                        {
+                            label = "Reportes Generados",
+                            data = stats.ReportsChart.Select(x => x.Value).ToArray(),
+                            borderColor = "#2563eb",
+                            backgroundColor = "rgba(37, 99, 235, 0.1)",
+                            tension = 0.4,
+                            fill = true
+                        }
+                    }
+                },
+                options = new
+                {
+                    responsive = true,
+                    maintainAspectRatio = false,
+                    plugins = new
+                    {
+                        legend = new { display = false }
+                    },
+                    scales = new
+                    {
+                        y = new
+                        {
+                            beginAtZero = true,
+                            grid = new { color = "#f1f5f9" }
+                        },
+                        x = new
+                        {
+                            grid = new { display = false }
+                        }
+                    }
+                }
+            };
+
+            await JSRuntime.InvokeVoidAsync("createChart", "reportsChart", reportsChartConfig);
+        }
+
+        if (stats?.PrintersChart?.Any() == true)
+        {
+            var printersChartConfig = new
+            {
+                type = "doughnut",
+                data = new
+                {
+                    labels = stats.PrintersChart.Select(x => x.Label).ToArray(),
+                    datasets = new[]
+                    {
+                        new
+                        {
+                            data = stats.PrintersChart.Select(x => x.Value).ToArray(),
+                            backgroundColor = new[] { "#10b981", "#f59e0b", "#ef4444" },
+                            borderWidth = 0
+                        }
+                    }
+                },
+                options = new
+                {
+                    responsive = true,
+                    maintainAspectRatio = false,
+                    plugins = new
+                    {
+                        legend = new
+                        {
+                            position = "bottom",
+                            labels = new
+                            {
+                                padding = 20,
+                                usePointStyle = true
+                            }
+                        }
+                    }
+                }
+            };
+
+            await JSRuntime.InvokeVoidAsync("createChart", "printersChart", printersChartConfig);
+        }
+    }
+
+    private async Task GenerateQuickReport()
+    {
+        try
+        {
+            var projects = await TenantService.GetTenantProjectsAsync();
+            if (!projects.Any())
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Sin proyectos", "No hay proyectos disponibles para generar reportes", "warning");
+                return;
+            }
+
+            var firstProject = projects.First();
+            var quickReportRequest = new GenerateReportRequest
+            {
+                ProjectId = firstProject.Id,
+                ReportType = "Monthly",
+                PeriodStart = DateTime.UtcNow.AddMonths(-1),
+                PeriodEnd = DateTime.UtcNow,
+                Format = "PDF",
+                Title = $"Reporte Rápido - {firstProject.Name}",
+                IncludeCounters = true,
+                IncludeConsumables = true,
+                IncludeCosts = true,
+                IncludeCharts = true
+            };
+
+            var report = await ApiService.PostAsync<GenerateReportRequest, ReportSummary>("/api/report/generate", quickReportRequest);
+            
+            if (report != null)
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", "Reporte Generado", "Reporte generado correctamente", "success");
+                await RefreshData();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("showToast", "Error", $"Error generando reporte: {ex.Message}", "error");
+        }
+    }
+
+    private string FormatDateTime(DateTime dateTime)
+    {
+        return dateTime.ToString("dd/MM/yyyy HH:mm");
+    }
+
+    private string FormatDate(DateTime dateTime)
+    {
+        return dateTime.ToString("dd/MM/yyyy");
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes == 0) return "0 B";
+        
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
+

@@ -22,7 +22,7 @@ systemctl start docker
 ```bash
 # Clonar repositorio
 git clone https://github.com/tu-usuario/monitor-impresoras.git
-cd monitor-impresoras/MonitorImpresoras
+cd monitor-impresoras/QOPIQ
 
 # Copiar configuración de ejemplo
 cp .env.example .env
@@ -273,3 +273,4 @@ cp -r /opt/monitor-impresoras/.env /backup/$(date +%Y%m%d)/
 **🎉 ¡Tu sistema Monitor de Impresoras está listo para producción!**
 
 Para soporte: [GitHub Issues](https://github.com/tu-usuario/monitor-impresoras/issues)
+
