@@ -2,6 +2,7 @@ using QOPIQ.Domain.Entities;
 using QOPIQ.Application.DTOs;
 using System.Security.Claims;
 using QOPIQ.Application.Interfaces.MultiTenancy;
+using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Application.Interfaces
 {

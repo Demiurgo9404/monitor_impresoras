@@ -1,5 +1,5 @@
 using System;
-using QOPIQ.Domain.Enums;
+using QOPIQ.Domain.Common;
 
 namespace QOPIQ.Domain.Entities
 {
@@ -19,14 +19,19 @@ namespace QOPIQ.Domain.Entities
         public string? Description { get; set; }
 
         /// <summary>
+        /// The subscription level/tier
+        /// </summary>
+        public QOPIQ.Domain.Enums.SubscriptionLevel Level { get; set; } = QOPIQ.Domain.Enums.SubscriptionLevel.Free;
+
+        /// <summary>
         /// Status of the subscription
         /// </summary>
-        public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active;
+        public QOPIQ.Domain.Enums.SubscriptionStatus Status { get; set; } = QOPIQ.Domain.Enums.SubscriptionStatus.Active;
 
         /// <summary>
         /// Billing cycle for the subscription
         /// </summary>
-        public BillingCycle BillingCycle { get; set; } = BillingCycle.Monthly;
+        public QOPIQ.Domain.Enums.BillingCycle BillingCycle { get; set; } = QOPIQ.Domain.Enums.BillingCycle.Monthly;
 
         /// <summary>
         /// Price per billing cycle

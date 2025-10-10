@@ -1,4 +1,4 @@
-using QOPIQ.Application.Interfaces;
+using QOPIQ.Application.Interfaces.MultiTenancy;
 using System.Net;
 
 namespace QOPIQ.API.Middleware

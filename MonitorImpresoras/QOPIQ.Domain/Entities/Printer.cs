@@ -27,7 +27,7 @@ namespace QOPIQ.Domain.Entities
         /// <summary>
         /// Printer status
         /// </summary>
-        public PrinterStatus Status { get; set; } = PrinterStatus.Unknown;
+        public PrinterStatus Status { get; set; } = PrinterStatus.Offline;
 
         /// <summary>
         /// Last known status message

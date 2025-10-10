@@ -41,11 +41,6 @@ namespace QOPIQ.Domain.Entities
         public bool IsActive { get; set; } = true;
 
         /// <summary>
-        /// Date and time when the user was created
-        /// </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary>
         /// Date and time of the last login
         /// </summary>
         public DateTime? LastLogin { get; set; }

@@ -1,5 +1,5 @@
 using System;
-using QOPIQ.Domain.Enums;
+using QOPIQ.Domain.Common;
 
 namespace QOPIQ.Domain.Entities
 {
@@ -11,7 +11,7 @@ namespace QOPIQ.Domain.Entities
         /// <summary>
         /// Type of consumable (toner, drum, waste container, etc.)
         /// </summary>
-        public ConsumableType Type { get; set; }
+        public QOPIQ.Domain.Enums.ConsumableType Type { get; set; }
 
         /// <summary>
         /// Current level of the consumable (percentage)

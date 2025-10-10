@@ -21,10 +21,18 @@ namespace QOPIQ.Application.Interfaces.MultiTenancy
         string? TenantId { get; }
 
         /// <summary>
-        /// Establece el ID del tenant actual.
+        /// Establece el ID del tenant actual y su información adicional.
         /// </summary>
-        /// <param name="tenantId">The tenant ID to set.</param>
-        /// <exception cref="System.ArgumentException">Thrown when <paramref name="tenantId"/> is null or whitespace.</exception>
-        void SetTenant(string tenantId);
+        /// <param name="tenantId">El ID del tenant a establecer.</param>
+        /// <param name="tenantInfo">Información adicional del tenant (opcional).</param>
+        /// <exception cref="System.ArgumentException">Se lanza cuando <paramref name="tenantId"/> es nulo o vacío.</exception>
+        void SetTenant(string tenantId, object? tenantInfo = null);
+
+        /// <summary>
+        /// Obtiene el ID del tenant de forma asíncrona.
+        /// </summary>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <returns>El ID del tenant o null si no se puede determinar.</returns>
+        Task<string?> GetTenantIdAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "DjOnTHzV2no=",
+  "dgSpecHash": "bpvjbvJ2Z+Y=",
   "success": true,
-  "projectFilePath": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj",
+  "projectFilePath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Advance\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.0\\microsoft.aspnetcore.cryptography.internal.8.0.0.nupkg.sha512",
     "C:\\Users\\Advance\\.nuget\\packages\\microsoft.aspnetcore.cryptography.keyderivation\\8.0.0\\microsoft.aspnetcore.cryptography.keyderivation.8.0.0.nupkg.sha512",

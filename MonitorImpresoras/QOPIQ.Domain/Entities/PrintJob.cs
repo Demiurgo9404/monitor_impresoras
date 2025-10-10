@@ -1,4 +1,5 @@
 using System;
+using QOPIQ.Domain.Common;
 using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Domain.Entities

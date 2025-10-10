@@ -7,7 +7,7 @@ using Moq;
 using QOPIQ.Application.Interfaces.MultiTenancy;
 using QOPIQ.Domain.Entities;
 using QOPIQ.Infrastructure.Data;
-using QOPIQ.Infrastructure.Services.MultiTenancy;
+using QOPIQ.Infrastructure;
 using Xunit;
 
 namespace QOPIQ.Tests.Services.MultiTenancy

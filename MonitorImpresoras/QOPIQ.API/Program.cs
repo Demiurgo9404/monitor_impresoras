@@ -5,11 +5,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using QOPIQ.API.Middleware;
 using QOPIQ.Application;
-using QOPIQ.Application.Interfaces;
+using QOPIQ.Application.Interfaces.MultiTenancy;
 using QOPIQ.Domain.Entities;
 using QOPIQ.Infrastructure;
 using QOPIQ.Infrastructure.Data;
-using QOPIQ.Infrastructure.Services;
 using Serilog;
 using System.Text;
 

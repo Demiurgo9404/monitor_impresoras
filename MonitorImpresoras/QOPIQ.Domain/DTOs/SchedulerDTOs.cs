@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using QOPIQ.Domain.Entities;
+using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Domain.DTOs
 {
@@ -119,7 +120,7 @@ namespace QOPIQ.Domain.DTOs
         public string ConnectionString { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime? ExpiresAt { get; set; }
-        public SubscriptionTier Tier { get; set; }
+        public QOPIQ.Domain.Enums.SubscriptionLevel Tier { get; set; }
     }
 
     /// <summary>

@@ -10,6 +10,7 @@
     <AnalysisLevel>8.0</AnalysisLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,18 +36,11 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
     
-    <!-- Seguridad -->
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     
     <!-- Windows Management -->
     <PackageReference Include="System.Management" Version="8.0.0" />
-    
-    <!-- Utilidades -->
-    <PackageReference Include="Serilog" Version="3.1.1" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,9 +48,11 @@
     <ProjectReference Include="..\QOPIQ.Domain\QOPIQ.Domain.csproj" />
   </ItemGroup>
 
-  <!-- Incluir todos los archivos .cs en la carpeta Services y subcarpetas -->
+  <!-- Incluir archivos .cs en la raíz y carpetas -->
   <ItemGroup>
+    <Compile Include="*.cs" />
     <Compile Include="Services\**\*.cs" />
+    <Compile Include="Data\**\*.cs" />
   </ItemGroup>
   
   <!-- Incluir archivos de configuración como contenido -->

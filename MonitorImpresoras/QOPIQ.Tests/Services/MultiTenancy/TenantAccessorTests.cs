@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using QOPIQ.Application.Interfaces.MultiTenancy;
-using QOPIQ.Infrastructure.Services.MultiTenancy;
+using QOPIQ.Infrastructure;
 using Xunit;
 
 namespace QOPIQ.Tests.Services.MultiTenancy
