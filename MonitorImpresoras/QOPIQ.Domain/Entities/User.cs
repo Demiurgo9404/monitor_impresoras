@@ -1,88 +1,93 @@
-using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
+using System.Collections.Generic;
+using QOPIQ.Domain.Common;
+using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Domain.Entities
 {
     /// <summary>
-    /// Entidad de usuario del sistema - QOPIQ Multi-Tenant
+    /// Represents a user in the system
     /// </summary>
-    public class User : IdentityUser<string>
+    public class User : BaseEntity
     {
-        // Multi-tenant support
-        [Required]
-        [MaxLength(50)]
-        public string TenantId { get; set; } = string.Empty;
-
-        public Guid? CompanyId { get; set; }
-        
-        [MaxLength(200)]
-        public string CompanyName { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(100)]
+        /// <summary>
+        /// User's first name
+        /// </summary>
         public string FirstName { get; set; } = string.Empty;
 
-        [Required]
-        [MaxLength(100)]
+        /// <summary>
+        /// User's last name
+        /// </summary>
         public string LastName { get; set; } = string.Empty;
-        
-        [MaxLength(100)]
-        public string Name { get; set; } = string.Empty;
 
-        [MaxLength(500)]
-        public string Department { get; set; } = string.Empty;
+        /// <summary>
+        /// User's email address (used for login)
+        /// </summary>
+        public string Email { get; set; } = string.Empty;
 
-        [MaxLength(50)]
-        public string Role { get; set; } = "User"; // SuperAdmin, CompanyAdmin, ProjectManager, User, Viewer
+        /// <summary>
+        /// Hashed password
+        /// </summary>
+        public string PasswordHash { get; set; } = string.Empty;
 
-        [Required]
+        /// <summary>
+        /// User's role in the system
+        /// </summary>
+        public UserRole Role { get; set; } = UserRole.User;
+
+        /// <summary>
+        /// Indicates if the user is active
+        /// </summary>
         public bool IsActive { get; set; } = true;
 
-        [MaxLength(500)]
-        public string RefreshToken { get; set; } = string.Empty;
-
-        public DateTime? RefreshTokenExpiryTime { get; set; }
-        
-        // Propiedades de auditoría como BaseEntity
+        /// <summary>
+        /// Date and time when the user was created
+        /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        [NotMapped]
-        public string FullName => $"{FirstName} {LastName}".Trim();
+        /// <summary>
+        /// Date and time of the last login
+        /// </summary>
+        public DateTime? LastLogin { get; set; }
 
-        // Navigation properties
-        public virtual Company? Company { get; set; }
-        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+        /// <summary>
+        /// User's department
+        /// </summary>
+        public string? Department { get; set; }
+
+        /// <summary>
+        /// User's job title
+        /// </summary>
+        public string? JobTitle { get; set; }
+
+        /// <summary>
+        /// User's phone number
+        /// </summary>
+        public string? PhoneNumber { get; set; }
+
+        /// <summary>
+        /// User's profile image URL
+        /// </summary>
+        public string? ProfileImageUrl { get; set; }
+
+        /// <summary>
+        /// Indicates if the user's email is confirmed
+        /// </summary>
+        public bool EmailConfirmed { get; set; } = false;
+
+        /// <summary>
+        /// Security stamp for user's security-related operations
+        /// </summary>
+        public string? SecurityStamp { get; set; }
+
+        /// <summary>
+        /// Tenant ID for multi-tenancy
+        /// </summary>
+        public Guid TenantId { get; set; }
+
+        /// <summary>
+        /// Navigation property for user's print jobs
+        /// </summary>
         public virtual ICollection<PrintJob> PrintJobs { get; set; } = new List<PrintJob>();
-        public virtual ICollection<ProjectUser> ProjectUsers { get; set; } = new List<ProjectUser>();
-        public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
-
-        /// <summary>
-        /// Obtiene el nombre completo del usuario
-        /// </summary>
-        public string GetFullName()
-        {
-            return $"{FirstName} {LastName}".Trim();
-        }
-
-        /// <summary>
-        /// Verifica si el refresh token es válido
-        /// </summary>
-        public bool IsRefreshTokenValid()
-        {
-            return !string.IsNullOrEmpty(RefreshToken) &&
-                   RefreshTokenExpiryTime.HasValue &&
-                   RefreshTokenExpiryTime.Value > DateTime.UtcNow;
-        }
-        
-        /// <summary>
-        /// Marca la entidad como actualizada
-        /// </summary>
-        public void MarkAsUpdated()
-        {
-            UpdatedAt = DateTime.UtcNow;
-        }
     }
 }
-

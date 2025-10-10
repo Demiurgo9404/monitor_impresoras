@@ -1,8 +1,11 @@
 using QOPIQ.Domain.Entities;
+using QOPIQ.Application.DTOs;
 using System.Security.Claims;
+using QOPIQ.Application.Interfaces.MultiTenancy;
 
 namespace QOPIQ.Application.Interfaces
 {
+    // Servicio JWT para manejo de tokens
     public interface IJwtService
     {
         Task<string> GenerateAccessTokenAsync(User user);
@@ -11,92 +14,60 @@ namespace QOPIQ.Application.Interfaces
         bool ValidateToken(string token);
         string? GetUserIdFromToken(string token);
         Dictionary<string, string> GetClaimsFromToken(string token);
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
     }
 
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
+    // Servicio de suscripciones
     public interface ISubscriptionService
     {
+        /// <summary>
+        /// Obtiene la suscripción activa de un usuario
+        /// </summary>
         Task<Subscription?> GetActiveSubscriptionAsync(Guid userId);
+
+        /// <summary>
+        /// Crea una nueva suscripción para un usuario
+        /// </summary>
         Task<Subscription> CreateSubscriptionAsync(Guid userId, SubscriptionPlan plan);
+
+        /// <summary>
+        /// Crea una factura para una suscripción
+        /// </summary>
         Task<Invoice> CreateInvoiceAsync(Guid subscriptionId, decimal amount);
+
+        /// <summary>
+        /// Cancela una suscripción existente
+        /// </summary>
+        Task CancelSubscriptionAsync(Guid subscriptionId, string? reason = null);
+
+        /// <summary>
+        /// Marca una factura como pagada
+        /// </summary>
         Task MarkInvoiceAsPaidAsync(Guid invoiceId);
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
+
+        /// <summary>
+        /// Obtiene el historial de facturas de una suscripción
+        /// </summary>
+        Task<IEnumerable<Invoice>> GetInvoicesForSubscriptionAsync(Guid subscriptionId);
     }
 
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
+    // Servicio de impresoras Windows
     public interface IWindowsPrinterService
     {
         Task<List<Printer>> GetLocalPrintersAsync();
         Task<bool> IsPrinterOnlineAsync(string printerName);
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
+        Task<PrinterStatusInfo> GetPrinterStatusAsync(string printerName);
+        Task<PrinterCounters> GetPrinterCountersAsync(string printerName);
     }
 
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
+    // Servicio SNMP para impresoras de red
     public interface ISnmpService
     {
         Task<bool> TestConnectionAsync(string ipAddress, string community = "public");
         Task<Dictionary<string, object>> GetPrinterInfoAsync(string ipAddress, string community = "public");
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
+        Task<PrinterCounters> GetPrinterCountersAsync(string ipAddress, string community = "public");
     }
 
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
+    // Repositorio de impresoras
     public interface IPrinterRepository
     {
         Task<List<Printer>> GetAllAsync();
@@ -104,62 +75,37 @@ namespace QOPIQ.Application.Interfaces
         Task<Printer> AddAsync(Printer printer);
         Task UpdateAsync(Printer printer);
         Task DeleteAsync(Guid id);
-    
+    }
+
+    // Acceso al tenant actual se encuentra en QOPIQ.Application.Interfaces.MultiTenancy.ITenantAccessor
+
+    // Servicio de autenticación
     public interface IAuthService
     {
-        Task<string> LoginAsync(string email, string password);
+        Task<AuthResponseDto> LoginAsync(LoginDto loginDto, string tenantId);
+        Task<AuthResponseDto> RefreshTokenAsync(string token, string refreshToken);
         Task<bool> ValidateTokenAsync(string token);
+        Task<bool> LogoutAsync(string userId);
     }
 
+    // Servicio de correo electrónico
     public interface IEmailService
     {
-        Task SendEmailAsync(string to, string subject, string body);
+        Task SendEmailAsync(string to, string subject, string body, bool isHtml = false);
+        Task SendTemplateEmailAsync(string to, string templateName, object model);
     }
 
+    // Servicio de gestión de tenants
     public interface ITenantService
     {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
-    public interface ITenantAccessor
-    {
-        string? TenantId { get; 
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
+        Task<Tenant> GetTenantByIdAsync(string tenantId);
+        Task<IEnumerable<Tenant>> GetAllTenantsAsync();
+        Task<bool> CreateTenantAsync(Tenant tenant);
+        Task<bool> UpdateTenantAsync(Tenant tenant);
+        Task<bool> DeleteTenantAsync(string tenantId);
     }
 
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-        void SetTenant(string tenantId);
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
-    }
-
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
+    // Servicio de gestión de compañías
     public interface ICompanyService
     {
         Task<List<Company>> GetAllAsync(string tenantId);
@@ -167,24 +113,9 @@ namespace QOPIQ.Application.Interfaces
         Task<Company> CreateAsync(Company company);
         Task UpdateAsync(Company company);
         Task DeleteAsync(Guid id, string tenantId);
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
     }
 
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
+    // Servicio de gestión de proyectos
     public interface IProjectService
     {
         Task<List<Project>> GetAllAsync(string tenantId);
@@ -192,47 +123,17 @@ namespace QOPIQ.Application.Interfaces
         Task<Project> CreateAsync(Project project);
         Task UpdateAsync(Project project);
         Task DeleteAsync(Guid id, string tenantId);
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
     }
 
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
+    // Servicio de generación de reportes
     public interface IReportService
     {
         Task<byte[]> GenerateReportAsync(string tenantId, string reportType, DateTime startDate, DateTime endDate);
         Task<List<Report>> GetReportsAsync(string tenantId);
         Task<Report?> GetReportByIdAsync(Guid id, string tenantId);
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
     }
 
-    public interface IEmailService
-    {
-        Task SendEmailAsync(string to, string subject, string body);
-    }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
+    // Servicio de reportes programados
     public interface IScheduledReportService
     {
         Task<List<ScheduledReport>> GetAllAsync(string tenantId);
@@ -240,39 +141,24 @@ namespace QOPIQ.Application.Interfaces
         Task<ScheduledReport> CreateAsync(ScheduledReport scheduledReport);
         Task UpdateAsync(ScheduledReport scheduledReport);
         Task DeleteAsync(Guid id, string tenantId);
-    
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
+        Task ProcessScheduledReportsAsync();
     }
 
-    public interface IEmailService
+    // Servicio de datos para reportes
+    public interface IReportDataService
     {
-        Task SendEmailAsync(string to, string subject, string body);
+        Task<ReportDataDto> GetReportDataAsync(string tenantId, DateTime startDate, DateTime endDate);
     }
 
-    public interface ITenantService
+    // Generador de reportes PDF
+    public interface IPdfReportGenerator
     {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
-    public interface IAuthService
-    {
-        Task<string> LoginAsync(string email, string password);
-        Task<bool> ValidateTokenAsync(string token);
+        byte[] GeneratePdfReport(ReportDataDto data);
     }
 
-    public interface IEmailService
+    // Generador de reportes Excel
+    public interface IExcelReportGenerator
     {
-        Task SendEmailAsync(string to, string subject, string body);
+        byte[] GenerateExcelReport(ReportDataDto data);
     }
-
-    public interface ITenantService
-    {
-        Task<List<Tenant>> GetAllAsync();
-        Task<Tenant?> GetByIdAsync(Guid id);
-    }}
-
-
+}

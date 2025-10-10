@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "XxfVSClu8M4=",
+  "dgSpecHash": "P4bDmesL5G0=",
   "success": true,
-  "projectFilePath": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj",
+  "projectFilePath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Advance\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\Advance\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

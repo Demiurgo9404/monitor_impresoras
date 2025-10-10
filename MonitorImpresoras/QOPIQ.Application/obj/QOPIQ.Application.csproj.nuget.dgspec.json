@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj": {}
+    "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj": {}
   },
   "projects": {
-    "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj": {
+    "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj",
+        "projectUniqueName": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj",
         "projectName": "QOPIQ.Application",
-        "projectPath": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj",
+        "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\QOPIQ.Application.csproj",
         "packagesPath": "C:\\Users\\Advance\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\obj\\",
+        "outputPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Application\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Advance\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -26,8 +26,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj": {
-                "projectPath": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj"
+              "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj": {
+                "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj"
               }
             }
           }
@@ -88,14 +88,14 @@
         }
       }
     },
-    "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj": {
+    "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj",
+        "projectUniqueName": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj",
         "projectName": "QOPIQ.Domain",
-        "projectPath": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj",
+        "projectPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\QOPIQ.Domain.csproj",
         "packagesPath": "C:\\Users\\Advance\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\obj\\",
+        "outputPath": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Advance\\AppData\\Roaming\\NuGet\\NuGet.Config"

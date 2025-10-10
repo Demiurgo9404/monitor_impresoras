@@ -1,43 +1,71 @@
-using QOPIQ.Domain.Common;
+using System;
 using QOPIQ.Domain.Enums;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QOPIQ.Domain.Entities
 {
     /// <summary>
-    /// Entidad para consumibles de impresora
+    /// Represents a printer consumable (toner, drum, waste container, etc.)
     /// </summary>
     public class PrinterConsumable : BaseEntity
     {
-        [Required]
-        public Guid PrinterId { get; set; }
-
-        [Required]
-        [MaxLength(100)]
-        public string Name { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(100)]
-        public string PartName { get; set; } = string.Empty;
-
-        [Required]
+        /// <summary>
+        /// Type of consumable (toner, drum, waste container, etc.)
+        /// </summary>
         public ConsumableType Type { get; set; }
 
-        public int CurrentLevel { get; set; } // Nivel actual (0-100)
+        /// <summary>
+        /// Current level of the consumable (percentage)
+        /// </summary>
+        public int Level { get; set; }
 
-        public int? WarningLevel { get; set; } // Nivel para alerta
+        /// <summary>
+        /// Indicates if the consumable is low (below threshold)
+        /// </summary>
+        public bool IsLow { get; set; }
 
-        public int? CriticalLevel { get; set; } // Nivel crítico
+        /// <summary>
+        /// Indicates if the consumable is empty
+        /// </summary>
+        public bool IsEmpty { get; set; }
 
-        public DateTime? LastUpdated { get; set; }
+        /// <summary>
+        /// Color of the consumable (for color printers)
+        /// </summary>
+        public string? Color { get; set; }
 
-        [MaxLength(500)]
-        public string Notes { get; set; } = string.Empty;
+        /// <summary>
+        /// Model/Part number of the consumable
+        /// </summary>
+        public string? Model { get; set; }
 
-        // Navigation property
-        [ForeignKey("PrinterId")]
-        public virtual Printer Printer { get; set; } = null!;
+        /// <summary>
+        /// Date when the consumable was installed
+        /// </summary>
+        public DateTime? InstalledDate { get; set; }
+
+        /// <summary>
+        /// Expected lifespan (in pages)
+        /// </summary>
+        public int? ExpectedYield { get; set; }
+
+        /// <summary>
+        /// Current page count since installation
+        /// </summary>
+        public int? CurrentPageCount { get; set; }
+
+        /// <summary>
+        /// Foreign key to the associated printer
+        /// </summary>
+        public Guid PrinterId { get; set; }
+
+        /// <summary>
+        /// Navigation property to the associated printer
+        /// </summary>
+        public virtual Printer? Printer { get; set; }
+
+        /// <summary>
+        /// Tenant ID for multi-tenancy
+        /// </summary>
+        public Guid TenantId { get; set; }
     }
 }
-

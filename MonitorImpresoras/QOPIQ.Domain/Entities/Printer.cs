@@ -1,125 +1,117 @@
+using System;
 using QOPIQ.Domain.Common;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Domain.Entities
 {
     /// <summary>
-    /// Entidad de impresora - QOPIQ Multi-Tenant
+    /// Represents a printer in the system
     /// </summary>
     public class Printer : BaseEntity
     {
-        // Multi-tenant support
-        [Required]
-        [MaxLength(50)]
-        public string TenantId { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(50)]
-        public string ProjectId { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(100)]
+        /// <summary>
+        /// Printer name
+        /// </summary>
         public string Name { get; set; } = string.Empty;
 
-        [Required]
-        [MaxLength(100)]
+        /// <summary>
+        /// Printer model
+        /// </summary>
         public string Model { get; set; } = string.Empty;
 
-        [Required]
-        [MaxLength(100)]
-        public string SerialNumber { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(50)]
+        /// <summary>
+        /// Printer IP address
+        /// </summary>
         public string IpAddress { get; set; } = string.Empty;
 
-        [MaxLength(200)]
-        public string Location { get; set; } = string.Empty;
+        /// <summary>
+        /// Printer status
+        /// </summary>
+        public PrinterStatus Status { get; set; } = PrinterStatus.Unknown;
 
-        [MaxLength(50)]
-        public string Status { get; set; } = "Unknown";
+        /// <summary>
+        /// Last known status message
+        /// </summary>
+        public string? StatusMessage { get; set; }
 
+        /// <summary>
+        /// Date and time of the last status update
+        /// </summary>
+        public DateTime? LastStatusUpdate { get; set; }
+
+        /// <summary>
+        /// Indicates if the printer is online
+        /// </summary>
         public bool IsOnline { get; set; }
 
-        public bool IsLocalPrinter { get; set; }
+        /// <summary>
+        /// Printer location
+        /// </summary>
+        public string? Location { get; set; }
 
-        [MaxLength(50)]
-        public string CommunityString { get; set; } = "public";
+        /// <summary>
+        /// Department where the printer is located
+        /// </summary>
+        public string? Department { get; set; }
 
-        public int? SnmpPort { get; set; } = 161;
+        /// <summary>
+        /// Printer serial number
+        /// </summary>
+        public string? SerialNumber { get; set; }
 
-        // Niveles de tóner y tinta
-        public int? BlackInkLevel { get; set; }
-        public int? CyanInkLevel { get; set; }
-        public int? MagentaInkLevel { get; set; }
-        public int? YellowInkLevel { get; set; }
-        public int? BlackTonerLevel { get; set; }
-        public int? CyanTonerLevel { get; set; }
-        public int? MagentaTonerLevel { get; set; }
-        public int? YellowTonerLevel { get; set; }
+        /// <summary>
+        /// Printer MAC address
+        /// </summary>
+        public string? MacAddress { get; set; }
 
-        // Contadores específicos QOPIQ
+        /// <summary>
+        /// Printer firmware version
+        /// </summary>
+        public string? FirmwareVersion { get; set; }
+
+        /// <summary>
+        /// Printer page count (total)
+        /// </summary>
         public int? PageCount { get; set; }
-        public int? TotalPagesPrinted { get; set; }
-        public int? TotalPrintsBlack { get; set; }
-        public int? TotalPrintsColor { get; set; }
-        public int? TotalCopies { get; set; }
-        public int? TotalScans { get; set; }
-        
-        // Contadores de scanner específicos
-        public int? ScannerCounterBW { get; set; }
-        public int? ScannerCounterColor { get; set; }
-        public int? ScannerCounterTotal { get; set; }
-        
-        // Contadores de impresión detallados
-        public int? PrintCounterA4BW { get; set; }
-        public int? PrintCounterA4Color { get; set; }
-        public int? PrintCounterA3BW { get; set; }
-        public int? PrintCounterA3Color { get; set; }
-        
-        // Estado del fusor
-        public int? FuserLevel { get; set; }
-        public int? FuserLifeRemaining { get; set; }
-        public bool? FuserNeedsReplacement { get; set; }
-        
-        // Drum/Tambor
-        public int? DrumLevel { get; set; }
-        public int? DrumLifeRemaining { get; set; }
-        
-        // Waste Toner Box
-        public int? WasteTonerLevel { get; set; }
 
-        // Mantenimiento
-        public DateTime? LastMaintenance { get; set; }
-        public int? MaintenanceIntervalDays { get; set; } = 90;
-        public int? DaysUntilMaintenance => LastMaintenance.HasValue ? 
-            MaintenanceIntervalDays - (int)(DateTime.UtcNow - LastMaintenance.Value).TotalDays : null;
+        /// <summary>
+        /// Printer color mode (color/monochrome)
+        /// </summary>
+        public bool IsColor { get; set; }
 
-        // Estado y errores
-        [MaxLength(500)]
-        public string Notes { get; set; } = string.Empty;
+        /// <summary>
+        /// Indicates if the printer is a multifunction device
+        /// </summary>
+        public bool IsMultifunction { get; set; }
 
-        [MaxLength(1000)]
-        public string LastError { get; set; } = string.Empty;
+        /// <summary>
+        /// Date and time when the printer was added to the system
+        /// </summary>
+        public DateTime AddedDate { get; set; } = DateTime.UtcNow;
 
-        public DateTime? LastChecked { get; set; }
-        public DateTime? LastSeen { get; set; } = DateTime.UtcNow;
-        
-        // Alertas
-        public bool LowTonerWarning { get; set; }
-        public bool LowInkWarning { get; set; }
-        public bool PaperJam { get; set; }
-        public bool NeedsUserAttention { get; set; }
+        /// <summary>
+        /// Date and time of the last maintenance
+        /// </summary>
+        public DateTime? LastMaintenanceDate { get; set; }
 
-        [NotMapped]
-        public bool NeedsMaintenance => LastMaintenance == null ||
-                                     (MaintenanceIntervalDays.HasValue &&
-                                      LastMaintenance.Value.AddDays(MaintenanceIntervalDays.Value) <= DateTime.UtcNow);
+        /// <summary>
+        /// Next scheduled maintenance date
+        /// </summary>
+        public DateTime? NextMaintenanceDate { get; set; }
 
-        // Navigation properties
-        public virtual ICollection<PrintJob> PrintJobs { get; set; } = new List<PrintJob>();
-        public virtual ICollection<PrinterConsumable> ConsumableParts { get; set; } = new List<PrinterConsumable>();
+        /// <summary>
+        /// Tenant ID for multi-tenancy
+        /// </summary>
+        public Guid TenantId { get; set; }
+
+        /// <summary>
+        /// Navigation property for consumables
+        /// </summary>
+        public virtual ICollection<Consumable> Consumables { get; set; } = new List<Consumable>();
+
+        /// <summary>
+        /// Navigation property for alerts
+        /// </summary>
+        public virtual ICollection<Alert> Alerts { get; set; } = new List<Alert>();
     }
 }
-

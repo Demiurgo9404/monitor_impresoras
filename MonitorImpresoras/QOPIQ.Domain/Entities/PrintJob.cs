@@ -1,55 +1,91 @@
-using QOPIQ.Domain.Common;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System;
+using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Domain.Entities
 {
     /// <summary>
-    /// Entidad de trabajo de impresión
+    /// Represents a print job in the system
     /// </summary>
     public class PrintJob : BaseEntity
     {
-        [Required]
-        public Guid PrinterId { get; set; }
+        /// <summary>
+        /// Name of the print job
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
 
-        [MaxLength(450)]
-        public string UserId { get; set; } = string.Empty; // Usuario que realizó la impresión
+        /// <summary>
+        /// Status of the print job
+        /// </summary>
+        public PrintJobStatus Status { get; set; } = PrintJobStatus.Queued;
 
-        [Required]
-        [MaxLength(100)]
-        public string DocumentName { get; set; } = string.Empty;
+        /// <summary>
+        /// Number of pages in the print job
+        /// </summary>
+        public int PageCount { get; set; } = 1;
 
-        [Required]
-        public int Pages { get; set; }
-
+        /// <summary>
+        /// Number of copies
+        /// </summary>
         public int Copies { get; set; } = 1;
 
-        [MaxLength(50)]
-        public string Status { get; set; } = "Unknown";
-
-        public DateTime? StartedAt { get; set; }
-
-        public DateTime? CompletedAt { get; set; }
-
+        /// <summary>
+        /// Indicates if the print job is in color
+        /// </summary>
         public bool IsColor { get; set; }
 
+        /// <summary>
+        /// Indicates if the print job is double-sided
+        /// </summary>
         public bool IsDuplex { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal Cost { get; set; }
+        /// <summary>
+        /// Size of the print job in bytes
+        /// </summary>
+        public long SizeInBytes { get; set; }
 
-        [MaxLength(500)]
-        public string Notes { get; set; } = string.Empty;
+        /// <summary>
+        /// Date and time when the print job was submitted
+        /// </summary>
+        public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
 
-        [MaxLength(100)]
-        public string JobId { get; set; } = string.Empty; // ID del trabajo en el spooler
+        /// <summary>
+        /// Date and time when the print job started processing
+        /// </summary>
+        public DateTime? StartedAt { get; set; }
 
-        // Navigation properties
-        [ForeignKey("PrinterId")]
-        public virtual Printer Printer { get; set; } = null!;
+        /// <summary>
+        /// Date and time when the print job was completed
+        /// </summary>
+        public DateTime? CompletedAt { get; set; }
 
-        [ForeignKey("UserId")]
-        public virtual User User { get; set; } = null!;
+        /// <summary>
+        /// Error message if the print job failed
+        /// </summary>
+        public string? ErrorMessage { get; set; }
+
+        /// <summary>
+        /// Foreign key to the associated printer
+        /// </summary>
+        public Guid PrinterId { get; set; }
+
+        /// <summary>
+        /// Navigation property to the associated printer
+        /// </summary>
+        public virtual Printer? Printer { get; set; }
+
+        /// <summary>
+        /// Foreign key to the user who submitted the print job
+        /// </summary>
+        public string? UserId { get; set; }
+
+        /// <summary>
+        /// Navigation property to the user who submitted the print job
+        /// </summary>
+        public virtual User? User { get; set; }
+
+        /// <summary>
+        /// Tenant ID for multi-tenancy
+        /// </summary>
+        public Guid TenantId { get; set; }
     }
 }
-

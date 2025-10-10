@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QOPIQ.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+009e3e68571eb203aacd86a6d4779cfa4d2cd636")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b8d85ae6ba060abd97ca0d2bed9db0951613900f")]
 [assembly: System.Reflection.AssemblyProductAttribute("QOPIQ.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QOPIQ.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
