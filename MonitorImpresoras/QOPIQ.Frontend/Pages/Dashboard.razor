@@ -1,0 +1,356 @@
+@page "/dashboard"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.Extensions.Options
+@using Microsoft.JSInterop
+@inject IPrinterService PrinterService
+@inject IOptions<FrontendOptions> Opt
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<div class="dashboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>📊 Dashboard de Impresoras</h3>
+        <div>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="RefreshData">
+                <span class="oi oi-reload"></span> Actualizar
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2">Cargando datos del dashboard...</p>
+        </div>
+    }
+    else
+    {
+        <!-- Tarjetas de Resumen -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card card-stat ok">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Activas</h5>
+                        <p class="display-5 mb-0">@stats.ActiveCount</p>
+                        <small>@(list?.Count > 0 ? $"{stats.ActiveCount * 100 / list.Count}% del total" : "")</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card card-stat warning">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Con Advertencias</h5>
+                        <p class="display-5 mb-0">@stats.WarningCount</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card card-stat bad">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Inactivas/Error</h5>
+                        <p class="display-5 mb-0">@stats.InactiveCount</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card card-stat total">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Total</h5>
+                        <p class="display-5 mb-0">@stats.Total</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">Estado de las Impresoras</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart" style="width: 100%; height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Últimas Actualizaciones</h5>
+                        <a href="/printers" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        @if (recentPrinters?.Any() == true)
+                        {
+                            @foreach (var printer in recentPrinters.Take(5))
+                            {
+                                <a href="@($"/printers/form/{printer.Id}")
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@printer.Name</h6>
+                                        <small class="badge @(printer.Status?.ToLower() == "online" ? "ok" : "bad")">
+                                            @printer.Status
+                                        </small>
+                                    </div>
+                                    <p class="mb-1">@printer.Model</p>
+                                    <small>@printer.IpAddress</small>
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <div class="p-3 text-center text-muted">
+                                No hay impresoras recientes
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Impresoras -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Todas las Impresoras</h5>
+                <div class="input-group" style="max-width: 300px;">
+                    <input type="text" class="form-control form-control-sm" placeholder="Buscar..." 
+                           @bind="searchTerm" @oninput="OnSearchInput" />
+                    <button class="btn btn-outline-secondary btn-sm" type="button" @onclick="SearchPrinters">
+                        <span class="oi oi-magnifying-glass"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Modelo</th>
+                            <th>IP</th>
+                            <th>Ubicación</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (filteredPrinters?.Any() == true)
+                        {
+                            @foreach (var printer in filteredPrinters)
+                            {
+                                <tr>
+                                    <td>@printer.Name</td>
+                                    <td>@printer.Model</td>
+                                    <td>@printer.IpAddress</td>
+                                    <td>@(printer.Location ?? "-")</td>
+                                    <td>
+                                        <span class="badge @(printer.Status?.ToLower() == "online" ? "ok" : "bad")">
+                                            @printer.Status
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                @onclick="() => ViewPrinter(printer.Id)">
+                                            Ver Detalles
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    No se encontraron impresoras
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<PrinterDto>? list;
+    private List<PrinterDto>? filteredPrinters;
+    private List<PrinterDto>? recentPrinters;
+    private HubConnection? hub;
+    private bool isLoading = true;
+    private string searchTerm = string.Empty;
+    private PrinterStatsDto stats = new();
+    private IJSObjectReference? module;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+        await InitializeSignalR();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/chart.js");
+            await UpdateChart();
+        }
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            // Cargar datos en paralelo
+            var printersTask = PrinterService.GetAllAsync();
+            var statsTask = PrinterService.GetStatsAsync();
+            
+            await Task.WhenAll(printersTask, statsTask);
+
+            list = await printersTask;
+            stats = await statsTask;
+            
+            // Actualizar listas
+            filteredPrinters = new List<PrinterDto>(list);
+            recentPrinters = list.OrderByDescending(p => p.LastUpdated).ToList();
+            
+            // Actualizar gráfico
+            if (module != null)
+            {
+                await UpdateChart();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar datos del dashboard: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdateChart()
+    {
+        if (module != null && stats != null)
+        {
+            await module.InvokeVoidAsync("updateChart", 
+                stats.ActiveCount, 
+                stats.WarningCount,
+                stats.InactiveCount);
+        }
+    }
+
+    private async Task InitializeSignalR()
+    {
+        try
+        {
+            hub = new HubConnectionBuilder()
+                .WithUrl($"{Opt.Value.SignalRHub}")
+                .WithAutomaticReconnect()
+                .Build();
+
+            hub.On<Guid, string>("ReceivePrinterStatus", async (id, status) =>
+            {
+                var item = list?.FirstOrDefault(x => x.Id == id);
+                if (item != null)
+                {
+                    item.Status = status;
+                    item.LastUpdated = DateTime.UtcNow;
+                    
+                    // Actualizar estadísticas
+                    stats = await PrinterService.GetStatsAsync();
+                    await UpdateChart();
+                    
+                    // Actualizar lista de recientes
+                    recentPrinters = list!
+                        .OrderByDescending(p => p.LastUpdated)
+                        .Take(5)
+                        .ToList();
+                        
+                    await InvokeAsync(StateHasChanged);
+                }
+            });
+
+            await hub.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al conectar con SignalR: {ex.Message}");
+        }
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? string.Empty;
+        FilterPrinters();
+    }
+
+    private async Task SearchPrinters()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredPrinters = new List<PrinterDto>(list ?? new());
+        }
+        else
+        {
+            filteredPrinters = await PrinterService.SearchAsync(searchTerm);
+        }
+        StateHasChanged();
+    }
+
+    private void FilterPrinters()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredPrinters = new List<PrinterDto>(list ?? new());
+        }
+        else
+        {
+            var term = searchTerm.ToLower();
+            filteredPrinters = list?
+                .Where(p => p.Name.ToLower().Contains(term) ||
+                           p.Model.ToLower().Contains(term) ||
+                           p.IpAddress.Contains(term) ||
+                           (p.Location != null && p.Location.ToLower().Contains(term)))
+                .ToList() ?? new();
+        }
+    }
+
+    private void ViewPrinter(Guid id)
+    {
+        Navigation.NavigateTo($"/printers/form/{id}");
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadDashboardData();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (hub is not null)
+            {
+                await hub.DisposeAsync();
+            }
+            
+            if (module is not null)
+            {
+                await module.DisposeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al limpiar recursos: {ex.Message}");
+        }
+    }
+}

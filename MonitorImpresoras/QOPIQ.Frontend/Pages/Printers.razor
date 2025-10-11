@@ -1,0 +1,121 @@
+@page "/printers"
+@using QOPIQ.Frontend.Shared
+@inject IPrinterService PrinterService
+@inject NavigationManager Nav
+
+<h3>🖨️ Gestión de Impresoras</h3>
+
+<div class="d-flex justify-content-between mb-3">
+    <button class="btn btn-success" @onclick="()=>Nav.NavigateTo("/printers/form")">➕ Nueva Impresora</button>
+    <button class="btn btn-outline-secondary" @onclick="CargarDatos">🔄 Actualizar</button>
+</div>
+
+@if (printers == null)
+{
+    <p>Cargando...</p>
+}
+else if (!printers.Any())
+{
+    <p>No hay impresoras registradas.</p>
+}
+else
+{
+    <table class="table table-hover table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Nombre</th>
+                <th>Modelo</th>
+                <th>IP</th>
+                <th>Ubicación</th>
+                <th>Estado</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in printers)
+        {
+            if (editandoId == p.Id)
+            {
+                <tr>
+                    <td><input class="form-control" @bind="editPrinter.Name" /></td>
+                    <td><input class="form-control" @bind="editPrinter.Model" /></td>
+                    <td><input class="form-control" @bind="editPrinter.IpAddress" /></td>
+                    <td><input class="form-control" @bind="editPrinter.Location" /></td>
+                    <td><span class="badge @(p.Status=="Online"?"ok":"bad")">@p.Status</span></td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-success me-1" @onclick="GuardarEdicion">💾 Guardar</button>
+                        <button class="btn btn-sm btn-secondary" @onclick="CancelarEdicion">✖ Cancelar</button>
+                    </td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td>@p.Name</td>
+                    <td>@p.Model</td>
+                    <td>@p.IpAddress</td>
+                    <td>@p.Location</td>
+                    <td><span class="badge @(p.Status=="Online"?"ok":"bad")">@p.Status</span></td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="()=>Editar(p)">✏️</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="()=>Eliminar(p.Id)">🗑️</button>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+}
+
+<ConfirmDialog @ref="confirmDialog" OnConfirm="ConfirmarEliminacion" />
+
+@code {
+    private List<PrinterDto>? printers;
+    private ConfirmDialog? confirmDialog;
+    private Guid idAEliminar;
+    private Guid? editandoId;
+    private PrinterUpdateDto editPrinter = new();
+
+    protected override async Task OnInitializedAsync() => await CargarDatos();
+
+    private async Task CargarDatos()
+    {
+        printers = await PrinterService.GetAllAsync();
+        StateHasChanged();
+    }
+
+    private void Editar(PrinterDto p)
+    {
+        editandoId = p.Id;
+        editPrinter = new PrinterUpdateDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Model = p.Model,
+            IpAddress = p.IpAddress,
+            Location = p.Location,
+            IsActive = true
+        };
+    }
+
+    private async Task GuardarEdicion()
+    {
+        await PrinterService.UpdateAsync(editPrinter);
+        editandoId = null;
+        await CargarDatos();
+    }
+
+    private void CancelarEdicion() => editandoId = null;
+
+    private void Eliminar(Guid id)
+    {
+        idAEliminar = id;
+        confirmDialog?.Show("¿Estás seguro de eliminar esta impresora?");
+    }
+
+    private async Task ConfirmarEliminacion()
+    {
+        await PrinterService.DeleteAsync(idAEliminar);
+        await CargarDatos();
+    }
+}

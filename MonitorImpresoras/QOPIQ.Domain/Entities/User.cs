@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 using QOPIQ.Domain.Common;
 using QOPIQ.Domain.Enums;
 using UserRoleEntity = QOPIQ.Domain.Entities.UserRole;
@@ -9,7 +10,7 @@ namespace QOPIQ.Domain.Entities
     /// <summary>
     /// Represents a user in the system
     /// </summary>
-    public class User : BaseAuditableEntity
+    public class User : IdentityUser<Guid>
     {
         /// <summary>
         /// User's first name
@@ -20,16 +21,6 @@ namespace QOPIQ.Domain.Entities
         /// User's last name
         /// </summary>
         public string LastName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// User's email address (used for login)
-        /// </summary>
-        public string Email { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Hashed password
-        /// </summary>
-        public string PasswordHash { get; set; } = string.Empty;
 
         /// <summary>
         /// User's role type in the system
@@ -59,7 +50,7 @@ namespace QOPIQ.Domain.Entities
         /// <summary>
         /// User's phone number
         /// </summary>
-        public string? PhoneNumber { get; set; }
+        public new string? PhoneNumber { get; set; }
 
         /// <summary>
         /// User's profile image URL
@@ -69,12 +60,12 @@ namespace QOPIQ.Domain.Entities
         /// <summary>
         /// Indicates if the user's email is confirmed
         /// </summary>
-        public bool EmailConfirmed { get; set; } = false;
+        public new bool EmailConfirmed { get; set; } = false;
 
         /// <summary>
         /// Security stamp for user's security-related operations
         /// </summary>
-        public string? SecurityStamp { get; set; }
+        public new string? SecurityStamp { get; set; }
 
         /// <summary>
         /// Tenant ID for multi-tenancy

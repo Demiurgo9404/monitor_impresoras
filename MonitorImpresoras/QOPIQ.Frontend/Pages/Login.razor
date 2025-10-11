@@ -1,0 +1,73 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@using QOPIQ.Frontend.Providers
+@inject IAuthService Auth
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthState
+
+<h3>Iniciar sesión</h3>
+
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <InputText id="email" @bind-Value="loginModel.Email" class="form-control" placeholder="usuario@ejemplo.com" />
+        <ValidationMessage For="@(() => loginModel.Email)" />
+    </div>
+
+    <div class="form-group">
+        <label for="password">Contraseña</label>
+        <InputText id="password" @bind-Value="loginModel.Password" type="password" class="form-control" placeholder="••••••••" />
+        <ValidationMessage For="@(() => loginModel.Password)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger mt-3">@errorMessage</div>
+    }
+</EditForm>
+
+@code {
+    private LoginModel loginModel = new() { Email = "admin@qopiq.com", Password = "Admin@123" };
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            errorMessage = null;
+            var token = await Auth.LoginAsync(loginModel.Email, loginModel.Password);
+            
+            if (string.IsNullOrEmpty(token))
+            {
+                errorMessage = "Usuario o contraseña incorrectos.";
+                return;
+            }
+
+            if (AuthState is JwtAuthStateProvider jwtAuthState)
+            {
+                await jwtAuthState.MarkUserAsAuthenticated(token);
+                Nav.NavigateTo("/dashboard", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error al iniciar sesión. Por favor, intente nuevamente.";
+            Console.Error.WriteLine(ex);
+        }
+    }
+
+    public class LoginModel
+    {
+        [Required(ErrorMessage = "El correo electrónico es obligatorio")]
+        [EmailAddress(ErrorMessage = "El correo electrónico no es válido")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

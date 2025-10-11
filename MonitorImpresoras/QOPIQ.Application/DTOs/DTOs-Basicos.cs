@@ -1,43 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace QOPIQ.Application.DTOs
 {
-    // DTOs básicos para compilación
-    public class PrinterDto
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string IpAddress { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public bool IsOnline { get; set; }
-    }
-
-    public class CreatePrinterDto
-    {
-        [Required]
-        public string Name { get; set; } = string.Empty;
-        
-        [Required]
-        public string IpAddress { get; set; } = string.Empty;
-        
-        public string Location { get; set; } = string.Empty;
-    }
-
-    public class UpdatePrinterDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public string IpAddress { get; set; } = string.Empty;
-        public string Location { get; set; } = string.Empty;
-    }
-
-    public class PrinterStatusDto
-    {
-        public Guid Id { get; set; }
-        public string Status { get; set; } = string.Empty;
-        public bool IsOnline { get; set; }
-        public DateTime LastSeen { get; set; }
-    }
-
     public class ReportDto
     {
         public Guid Id { get; set; }
@@ -52,48 +18,53 @@ namespace QOPIQ.Application.DTOs
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class CompanyDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+        public string Address { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
     }
 
     // DTOs para Company
     public class CompanyListDto
     {
-        public List<CompanyDto> Companies { get; set; } = new();
-        public int TotalCount { get; set; }
-        public int PageNumber { get; set; }
-        public int PageSize { get; set; }
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
     }
 
     public class CreateCompanyDto
     {
         [Required]
+        [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
         public string Name { get; set; } = string.Empty;
-        
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-        
-        public string TaxId { get; set; } = string.Empty;
+
+        [StringLength(200, ErrorMessage = "La dirección no puede tener más de 200 caracteres")]
         public string Address { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
+
+        [Phone]
         public string Phone { get; set; } = string.Empty;
     }
 
     public class UpdateCompanyDto
     {
+        [Required]
+        public Guid Id { get; set; }
+
+        [Required]
+        [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
         public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string TaxId { get; set; } = string.Empty;
+
+        [StringLength(200, ErrorMessage = "La dirección no puede tener más de 200 caracteres")]
         public string Address { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
+
+        [Phone]
         public string Phone { get; set; } = string.Empty;
     }
 
@@ -101,49 +72,55 @@ namespace QOPIQ.Application.DTOs
     public class CreateProjectDto
     {
         [Required]
+        [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
         public string Name { get; set; } = string.Empty;
-        
+
+        [StringLength(500, ErrorMessage = "La descripción no puede tener más de 500 caracteres")]
         public string Description { get; set; } = string.Empty;
-        
+
         [Required]
         public Guid CompanyId { get; set; }
-        
-        public string ClientName { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string ContactPerson { get; set; } = string.Empty;
-        public string ContactEmail { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime StartDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
     }
 
     public class UpdateProjectDto
     {
+        [Required]
+        public Guid Id { get; set; }
+
+        [Required]
+        [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
         public string Name { get; set; } = string.Empty;
+
+        [StringLength(500, ErrorMessage = "La descripción no puede tener más de 500 caracteres")]
         public string Description { get; set; } = string.Empty;
-        public string ClientName { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string ContactPerson { get; set; } = string.Empty;
-        public string ContactEmail { get; set; } = string.Empty;
     }
 
     public class AssignUserToProjectDto
     {
         [Required]
+        public Guid ProjectId { get; set; }
+
+        [Required]
         public string UserId { get; set; } = string.Empty;
-        
-        public string Role { get; set; } = string.Empty;
     }
 
     // DTOs para Reports
     public class GenerateReportDto
     {
         [Required]
-        public Guid ProjectId { get; set; }
-        
-        [Required]
         public string ReportType { get; set; } = string.Empty;
-        
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public Guid? ProjectId { get; set; }
+        public Guid? CompanyId { get; set; }
         public string Format { get; set; } = "PDF";
+        public Dictionary<string, string> Parameters { get; set; } = new();
     }
 
     // DTOs para ScheduledReport
@@ -152,30 +129,31 @@ namespace QOPIQ.Application.DTOs
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string ReportType { get; set; } = string.Empty;
-        public string CronExpression { get; set; } = string.Empty;
+        public string Schedule { get; set; } = string.Empty; // CRON expression
+        public string Recipients { get; set; } = string.Empty; // Comma-separated emails
         public bool IsActive { get; set; }
         public DateTime? LastRun { get; set; }
         public DateTime? NextRun { get; set; }
-        public DateTime CreatedAt { get; set; }
     }
 
     public class CreateScheduledReportDto
     {
         [Required]
+        [StringLength(100, ErrorMessage = "El nombre no puede tener más de 100 caracteres")]
         public string Name { get; set; } = string.Empty;
-        
-        [Required]
-        public Guid ProjectId { get; set; }
-        
+
         [Required]
         public string ReportType { get; set; } = string.Empty;
-        
+
         [Required]
-        public string CronExpression { get; set; } = string.Empty;
-        
-        public string Format { get; set; } = "PDF";
-        public List<string> Recipients { get; set; } = new();
+        public string Schedule { get; set; } = string.Empty; // CRON expression
+
+        [Required]
+        [EmailAddress]
+        public string Recipients { get; set; } = string.Empty; // Comma-separated emails
+
         public bool IsActive { get; set; } = true;
+        public Dictionary<string, string> Parameters { get; set; } = new();
     }
 
     // UserDto movido a AuthDtos.cs
@@ -183,20 +161,19 @@ namespace QOPIQ.Application.DTOs
     public class AgentHeartbeatDto
     {
         public string AgentId { get; set; } = string.Empty;
-        public string Version { get; set; } = string.Empty;
-        public DateTime Timestamp { get; set; }
         public string Status { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public Dictionary<string, string> Metrics { get; set; } = new();
     }
 
     public class TenantDto
     {
         public Guid Id { get; set; }
-        public string TenantKey { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public string CompanyName { get; set; } = string.Empty;
-        public string AdminEmail { get; set; } = string.Empty;
+        public string ConnectionString { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 
     public class DashboardStatsDto

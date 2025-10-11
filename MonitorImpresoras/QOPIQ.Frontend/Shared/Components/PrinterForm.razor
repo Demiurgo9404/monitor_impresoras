@@ -1,0 +1,72 @@
+@using QOPIQ.Frontend.Models
+@using System.ComponentModel.DataAnnotations
+
+<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-3">
+        <label for="name">Nombre *</label>
+        <InputText id="name" @bind-Value="Model.Name" class="form-control" />
+        <ValidationMessage For="@(() => Model.Name)" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="model">Modelo *</label>
+        <InputText id="model" @bind-Value="Model.Model" class="form-control" />
+        <ValidationMessage For="@(() => Model.Model)" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="ipAddress">Dirección IP *</label>
+        <InputText id="ipAddress" @bind-Value="Model.IpAddress" class="form-control" />
+        <ValidationMessage For="@(() => Model.IpAddress)" />
+    </div>
+
+    <div class="form-group mb-3">
+        <label for="location">Ubicación</label>
+        <InputText id="location" @bind-Value="Model.Location" class="form-control" />
+        <ValidationMessage For="@(() => Model.Location)" />
+    </div>
+
+    @if (IsEdit)
+    {
+        <div class="form-group form-check mb-3">
+            <InputCheckbox id="isActive" @bind-Value="IsActive" class="form-check-input" />
+            <label class="form-check-label" for="isActive">Activo</label>
+        </div>
+    }
+
+    <div class="form-actions">
+        <button type="button" class="btn btn-secondary me-2" @onclick="OnCancel">Cancelar</button>
+        <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public bool IsEdit { get; set; } = false;
+    [Parameter] public PrinterCreateDto Model { get; set; } = new();
+    [Parameter] public EventCallback<PrinterCreateDto> OnSubmit { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    
+    private bool IsActive { get; set; } = true;
+    private string SubmitButtonText => IsEdit ? "Actualizar" : "Crear";
+
+    protected override void OnParametersSet()
+    {
+        if (IsEdit && Model is PrinterUpdateDto updateDto)
+        {
+            IsActive = updateDto.IsActive;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (IsEdit && Model is PrinterUpdateDto updateDto)
+        {
+            updateDto.IsActive = IsActive;
+        }
+        
+        await OnSubmit.InvokeAsync(Model);
+    }
+}

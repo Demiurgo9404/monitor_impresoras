@@ -1,0 +1,84 @@
+@page "/printers/form"
+@page "/printers/form/{Id:guid}"
+@inject IPrinterService PrinterService
+@inject NavigationManager Nav
+
+<PageTitle>@(IsEdit ? "Editar Impresora" : "Nueva Impresora")</PageTitle>
+
+<div class="card">
+    <div class="card-header">
+        <h3>@(IsEdit ? "✏️ Editar Impresora" : "➕ Nueva Impresora")</h3>
+    </div>
+    <div class="card-body">
+        <PrinterForm 
+            Model="@Model" 
+            IsEdit="@IsEdit"
+            OnSubmit="HandleSubmit"
+            OnCancel="HandleCancel" />
+    </div>
+</div>
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger mt-3">
+        @errorMessage
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    
+    private bool IsEdit => Id != null;
+    private string? errorMessage;
+    private PrinterCreateDto Model { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEdit && Id.HasValue)
+        {
+            try 
+            {
+                var printer = await PrinterService.GetByIdAsync(Id.Value);
+                if (printer != null)
+                {
+                    Model = new PrinterUpdateDto
+                    {
+                        Id = printer.Id,
+                        Name = printer.Name,
+                        Model = printer.Model,
+                        IpAddress = printer.IpAddress,
+                        Location = printer.Location,
+                        IsActive = true
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Error al cargar la impresora: {ex.Message}";
+            }
+        }
+
+    private async Task HandleSubmit(PrinterCreateDto model)
+    {
+        try
+        {
+            if (IsEdit && Id.HasValue)
+            {
+                await PrinterService.UpdateAsync(model);
+            }
+            else
+            {
+                await PrinterService.CreateAsync(model);
+            }
+            Nav.NavigateTo("/printers");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al guardar la impresora: {ex.Message}";
+        }
+    }
+
+    private void HandleCancel()
+    {
+        Nav.NavigateTo("/printers");
+    }

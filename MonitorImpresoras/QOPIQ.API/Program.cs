@@ -18,15 +18,21 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// 🔹 Base de datos
-builder.Services.AddInfrastructure(builder.Configuration);
+// 🔹 Base de datos y configuración de Identity
+builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
 
 // 🔹 Servicios de aplicación
 builder.Services.AddScoped<IPrinterService, PrinterService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPrinterHubContext, PrinterHubContext>();
 
 // 🔹 Configuración JWT
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters

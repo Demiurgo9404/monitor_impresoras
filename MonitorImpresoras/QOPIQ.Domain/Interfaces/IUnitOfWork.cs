@@ -28,4 +28,5 @@ namespace QOPIQ.Domain.Interfaces
         /// Revierte la transacción actual
         /// </summary>
         Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
+    }
 }

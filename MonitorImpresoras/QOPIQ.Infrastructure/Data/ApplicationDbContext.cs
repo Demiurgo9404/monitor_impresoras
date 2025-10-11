@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using QOPIQ.Domain.Entities;
 using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Infrastructure.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -14,9 +16,6 @@ namespace QOPIQ.Infrastructure.Data
         public DbSet<Printer> Printers { get; set; }
         public DbSet<Alert> Alerts { get; set; }
         public DbSet<PrinterCounters> PrinterCounters { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Role> Roles { get; set; }
-        public DbSet<QOPIQ.Domain.Entities.UserRole> UserRoles { get; set; }
         public DbSet<PrintJob> PrintJobs { get; set; }
         public DbSet<PrinterConsumable> PrinterConsumables { get; set; }
         public DbSet<Report> Reports { get; set; }
@@ -44,22 +43,9 @@ namespace QOPIQ.Infrastructure.Data
         public DbSet<EmailTemplate> EmailTemplates { get; set; }
         public DbSet<ReportTemplate> ReportTemplates { get; set; }
         
-        // Seguridad y autenticación
-        public DbSet<RefreshToken> RefreshTokens { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
-            // Configurar relaciones muchos a muchos
-            modelBuilder.Entity<QOPIQ.Domain.Entities.UserRole>()
-                .HasKey(ur => new { ur.UserId, ur.RoleId });
-            
-            modelBuilder.Entity<QOPIQ.Domain.Entities.UserRole>()
-                .HasOne(ur => ur.User)
-                .WithMany(u => u.UserRoles)
-                .HasForeignKey(ur => ur.UserId);
-            
             modelBuilder.Entity<QOPIQ.Domain.Entities.UserRole>()
                 .HasOne(ur => ur.Role)
                 .WithMany(r => r.UserRoles)

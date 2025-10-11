@@ -19,11 +19,6 @@ namespace QOPIQ.Domain.Entities
         public DateTime ExpiresAt { get; set; }
 
         /// <summary>
-        /// Date and time when the token was created
-        /// </summary>
-        public DateTime CreatedAt { get; set; }
-
-        /// <summary>
         /// Indicates if the token has been revoked
         /// </summary>
         public bool IsRevoked { get; set; }

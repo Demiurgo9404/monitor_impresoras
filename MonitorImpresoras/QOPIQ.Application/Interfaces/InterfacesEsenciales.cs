@@ -6,17 +6,6 @@ using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Application.Interfaces
 {
-    // Servicio JWT para manejo de tokens
-    public interface IJwtService
-    {
-        Task<string> GenerateAccessTokenAsync(User user);
-        string GenerateRefreshToken();
-        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
-        bool ValidateToken(string token);
-        string? GetUserIdFromToken(string token);
-        Dictionary<string, string> GetClaimsFromToken(string token);
-    }
-
     // Servicio de suscripciones
     public interface ISubscriptionService
     {

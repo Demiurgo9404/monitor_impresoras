@@ -1,196 +1,117 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
-using QOPIQ.API.Hubs;
+using QOPIQ.Application.DTOs;
 using QOPIQ.Application.Interfaces;
 using QOPIQ.Domain.Entities;
-using QOPIQ.Domain.Enums;
-using QOPIQ.Domain.Interfaces;
-using QOPIQ.Domain.Models;
 
 namespace QOPIQ.Application.Services
 {
     public class PrinterService : IPrinterService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<PrinterService> _logger;
-        private readonly IHubContext<PrinterHub> _hubContext;
+        private readonly List<Printer> _printers = new();
 
-        public PrinterService(
-            IUnitOfWork unitOfWork, 
-            ILogger<PrinterService> logger,
-            IHubContext<PrinterHub> hubContext)
+        public async Task<IEnumerable<PrinterDto>> GetAllAsync()
         {
-            _unitOfWork = unitOfWork;
-            _logger = logger;
-            _hubContext = hubContext;
+            return await Task.FromResult(_printers.ConvertAll(p => new PrinterDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Model = p.Model,
+                IpAddress = p.IpAddress,
+                Status = p.Status,
+                Location = p.Location,
+                LastUpdated = DateTime.UtcNow
+            }));
         }
 
-        public async Task<IEnumerable<Printer>> GetAllPrintersAsync()
+        public async Task<PrinterDto> GetPrinterByIdAsync(Guid id)
         {
-            try
+            var printer = _printers.Find(p => p.Id == id);
+            if (printer == null) return null;
+
+            return await Task.FromResult(new PrinterDto
             {
-                return await _unitOfWork.Printers.GetAllAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener todas las impresoras");
-                throw;
-            }
+                Id = printer.Id,
+                Name = printer.Name,
+                Model = printer.Model,
+                IpAddress = printer.IpAddress,
+                Status = printer.Status,
+                Location = printer.Location,
+                LastUpdated = DateTime.UtcNow
+            });
         }
 
-        public async Task<Printer> AddPrinterAsync(PrinterCreateDto printerDto)
+        public async Task AddPrinterAsync(PrinterCreateDto dto)
         {
-            try
+            var printer = new Printer
             {
-                var printer = new Printer
-                {
-                    Id = Guid.NewGuid(),
-                    Name = printerDto.Name,
-                    IpAddress = printerDto.IpAddress,
-                    Model = printerDto.Model,
-                    Status = PrinterStatus.Offline.ToString(),
-                    LastChecked = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow
-                };
+                Id = Guid.NewGuid(),
+                Name = dto.Name,
+                Model = dto.Model,
+                IpAddress = dto.IpAddress,
+                Location = dto.Location,
+                Status = "Online",
+                CreatedAt = DateTime.UtcNow
+            };
 
-                await _unitOfWork.Printers.AddAsync(printer);
-                await _unitOfWork.SaveChangesAsync();
-
-                // Notificar a los clientes sobre la nueva impresora
-                await NotifyPrinterStatusChange(printer.Id, printer.Status);
-
-                return printer;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al agregar una nueva impresora");
-                throw;
-            }
+            _printers.Add(printer);
+            await Task.CompletedTask;
         }
 
-        public async Task<bool> CheckPrinterStatusAsync(string ipAddress)
+        public async Task UpdatePrinterAsync(Printer printer)
         {
-            try
+            var existing = _printers.Find(p => p.Id == printer.Id);
+            if (existing != null)
             {
-                using var ping = new Ping();
-                var reply = await ping.SendPingAsync(ipAddress, 1000);
-                return reply.Status == IPStatus.Success;
+                existing.Name = printer.Name;
+                existing.Model = printer.Model;
+                existing.IpAddress = printer.IpAddress;
+                existing.Status = printer.Status;
+                existing.Location = printer.Location;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al verificar el estado de la impresora con IP {ipAddress}");
-                return false;
-            }
-        }
-        
-        private async Task NotifyPrinterStatusChange(Guid printerId, string status)
-        {
-            try
-            {
-                await _hubContext.Clients.All.SendAsync("ReceivePrinterStatus", printerId.ToString(), status);
-                _logger.LogInformation($"Notificación de estado enviada para la Impressora {printerId}: {status}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al enviar notificación de estado para la Impressora {printerId}");
-            }
+            await Task.CompletedTask;
         }
 
-        public async Task<PrinterStatusDto> GetPrinterStatusAsync(Guid printerId)
+        public async Task DeletePrinterAsync(Guid id)
         {
-            try
-            {
-                var printer = await _unitOfWork.Printers.GetByIdAsync(printerId);
-                if (printer == null)
-                    throw new KeyNotFoundException($"No se encontró la impresora con ID {printerId}");
+            var printer = _printers.Find(p => p.Id == id);
+            if (printer != null)
+                _printers.Remove(printer);
 
-                var isOnline = await CheckPrinterStatusAsync(printer.IpAddress);
-                var status = isOnline ? PrinterStatus.Online.ToString() : PrinterStatus.Offline.ToString();
-                var lastChecked = DateTime.UtcNow;
-
-                // Actualizar el estado de la impresora
-                printer.Status = status;
-                printer.LastChecked = lastChecked;
-                await _unitOfWork.SaveChangesAsync();
-
-                // Notificar el cambio de estado
-                await NotifyPrinterStatusChange(printerId, status);
-
-                var metrics = new Dictionary<string, string>
-                {
-                    { "Modelo", printer.Model },
-                    { "Ubicación", printer.Location ?? "No especificada" },
-                    { "Última verificación", lastChecked.ToString("g") },
-                    { "Estado", status }
-                };
-
-                return new PrinterStatusDto
-                {
-                    PrinterId = printerId,
-                    Status = status,
-                    LastChecked = lastChecked,
-                    IsOnline = isOnline,
-                    Message = $"La impresora está {status}",
-                    Name = printer.Name,
-                    IpAddress = printer.IpAddress,
-                    StatusMessage = status == PrinterStatus.Online.ToString() ? "La impresora está respondiendo" : "No se pudo conectar a la impresora",
-                    Metrics = metrics
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al obtener el estado de la impresora {printerId}");
-                throw;
-            }
+            await Task.CompletedTask;
         }
 
-        public async Task<IEnumerable<Printer>> ScanNetworkForPrintersAsync()
+        public async Task<PrinterStatusDto> GetPrinterStatusAsync(Guid id)
         {
-            var foundPrinters = new List<Printer>();
-            // Implementar escaneo de red real aquí
-            // Esto es solo un ejemplo básico
-            return await Task.FromResult(foundPrinters);
+            var printer = _printers.Find(p => p.Id == id);
+            if (printer == null)
+                return null;
+
+            var status = new PrinterStatusDto
+            {
+                PrinterId = printer.Id,
+                Status = printer.Status,
+                LastChecked = DateTime.UtcNow
+            };
+
+            return await Task.FromResult(status);
         }
 
-        public async Task<PrinterStatsDto> GetPrinterStatsAsync()
+        public async Task<PrinterStatsDto> GetPrinterStatisticsAsync()
         {
-            try
+            var total = _printers.Count;
+            var online = _printers.FindAll(p => p.Status == "Online").Count;
+            var offline = total - online;
+
+            var stats = new PrinterStatsDto
             {
-                var printers = await _unitOfWork.Printers.GetAllAsync();
-                var onlinePrinters = printers.Count(p => p.IsOnline);
-                var offlinePrinters = printers.Count - onlinePrinters;
-                var needsMaintenance = printers.Count(p => p.StatusMessage?.Contains("mantenimiento", StringComparison.OrdinalIgnoreCase) == true);
-                var lowOnSupplies = printers.Count(p => p.StatusMessage?.Contains("bajo", StringComparison.OrdinalIgnoreCase) == true);
+                TotalPrinters = total,
+                OnlinePrinters = online,
+                OfflinePrinters = offline
+            };
 
-                var statusCount = printers
-                    .GroupBy(p => p.Status.ToString())
-                    .ToDictionary(g => g.Key, g => g.Count());
-
-                var modelDistribution = printers
-                    .GroupBy(p => p.Model ?? "Desconocido")
-                    .ToDictionary(g => g.Key, g => g.Count());
-
-                return new PrinterStatsDto
-                {
-                    TotalPrinters = printers.Count(),
-                    OnlinePrinters = onlinePrinters,
-                    OfflinePrinters = offlinePrinters,
-                    NeedsMaintenance = needsMaintenance,
-                    LowOnSupplies = lowOnSupplies,
-                    StatusCount = statusCount,
-                    ModelDistribution = modelDistribution
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al obtener estadísticas de impresoras");
-                throw;
-            }
+            return await Task.FromResult(stats);
         }
     }
 }

@@ -1,0 +1,90 @@
+@page "/printers/form/{id?}"
+@inject IPrinterService PrinterService
+@inject NavigationManager Nav
+@using QOPIQ.Frontend.Models
+
+<h3>@titulo</h3>
+
+<div class="card p-4 shadow-sm" style="max-width: 550px;">
+    <EditForm Model="modelo" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label>Nombre:</label>
+            <InputText class="form-control" @bind-Value="modelo.Name" />
+        </div>
+
+        <div class="mb-3">
+            <label>Modelo:</label>
+            <InputText class="form-control" @bind-Value="modelo.Model" />
+        </div>
+
+        <div class="mb-3">
+            <label>Dirección IP:</label>
+            <InputText class="form-control" @bind-Value="modelo.IpAddress" />
+        </div>
+
+        <div class="mb-3">
+            <label>Ubicación:</label>
+            <InputText class="form-control" @bind-Value="modelo.Location" />
+        </div>
+
+        <button class="btn btn-success me-2">💾 Guardar</button>
+        <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+
+    private bool esEdicion;
+    private PrinterCreateDto modelo = new();
+    private string titulo = "Nueva Impresora";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Id))
+        {
+            var printer = await PrinterService.GetByIdAsync(Guid.Parse(Id));
+            if (printer != null)
+            {
+                modelo = new PrinterCreateDto
+                {
+                    Name = printer.Name,
+                    Model = printer.Model,
+                    IpAddress = printer.IpAddress,
+                    Location = printer.Location
+                };
+                esEdicion = true;
+                titulo = "Editar Impresora";
+            }
+        }
+    }
+
+    private async Task Guardar()
+    {
+        bool ok;
+        if (esEdicion && Id != null)
+        {
+            ok = await PrinterService.UpdateAsync(new PrinterUpdateDto
+            {
+                Id = Guid.Parse(Id),
+                Name = modelo.Name,
+                Model = modelo.Model,
+                IpAddress = modelo.IpAddress,
+                Location = modelo.Location,
+                IsActive = true
+            });
+        }
+        else
+        {
+            ok = await PrinterService.CreateAsync(modelo);
+        }
+
+        if (ok)
+            Nav.NavigateTo("/printers", true);
+    }
+
+    private void Cancelar() => Nav.NavigateTo("/printers");
+}

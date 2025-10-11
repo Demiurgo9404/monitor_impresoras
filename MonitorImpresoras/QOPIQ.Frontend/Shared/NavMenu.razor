@@ -1,0 +1,51 @@
+<div class="sidebar-sticky">
+    <div class="logo">
+        <h2>QOPIQ</h2>
+    </div>
+    
+    <ul class="nav nav-pills flex-column">
+        <li class="nav-item">
+            <NavLink href="/dashboard" class="nav-link" Match="NavLinkMatch.Prefix" active-class="active">
+                <span class="oi oi-dashboard me-2" aria-hidden="true"></span> Dashboard
+            </NavLink>
+        </li>
+        
+        <AuthorizeView>
+            <Authorized>
+                <li class="nav-item">
+                    <NavLink href="/printers" class="nav-link" Match="NavLinkMatch.Prefix" active-class="active">
+                        <span class="oi oi-print me-2" aria-hidden="true"></span> Impresoras
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink href="/reports" class="nav-link" Match="NavLinkMatch.Prefix" active-class="active">
+                        <span class="oi oi-document me-2" aria-hidden="true"></span> Reportes
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink href="/settings" class="nav-link" Match="NavLinkMatch.Prefix" active-class="active">
+                        <span class="oi oi-cog me-2" aria-hidden="true"></span> Configuración
+                    </NavLink>
+                </li>
+            </Authorized>
+        </AuthorizeView>
+    </ul>
+</div>
+
+<div class="sidebar-footer">
+    <AuthorizeView>
+        <Authorized>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <span class="oi oi-person"></span>
+                </div>
+                <div class="user-details">
+                    <div class="user-name">@context.User.Identity?.Name</div>
+                    <div class="user-role">
+                        @(context.User.IsInRole("Admin") ? "Administrador" : "Usuario")
+                    </div>
+                </div>
+            </div>
+        </Authorized>
+    </AuthorizeView>
+</div>

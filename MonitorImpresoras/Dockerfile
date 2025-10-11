@@ -7,7 +7,6 @@ EXPOSE 5001
 # Instalar dependencias del sistema para SNMP y WMI
 RUN apt-get update && apt-get install -y \
     snmp \
-    snmp-mibs-downloader \
     iputils-ping \
     net-tools \
     && rm -rf /var/lib/apt/lists/*
@@ -16,23 +15,23 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copiar archivos de proyecto
-COPY ["MonitorImpresoras.API/MonitorImpresoras.API.csproj", "MonitorImpresoras.API/"]
-COPY ["MonitorImpresoras.Application/MonitorImpresoras.Application.csproj", "MonitorImpresoras.Application/"]
-COPY ["MonitorImpresoras.Domain/MonitorImpresoras.Domain.csproj", "MonitorImpresoras.Domain/"]
-COPY ["MonitorImpresoras.Infrastructure/MonitorImpresoras.Infrastructure.csproj", "MonitorImpresoras.Infrastructure/"]
+COPY ["QOPIQ.API/QOPIQ.API.csproj", "QOPIQ.API/"]
+COPY ["QOPIQ.Application/QOPIQ.Application.csproj", "QOPIQ.Application/"]
+COPY ["QOPIQ.Domain/QOPIQ.Domain.csproj", "QOPIQ.Domain/"]
+COPY ["QOPIQ.Infrastructure/QOPIQ.Infrastructure.csproj", "QOPIQ.Infrastructure/"]
 
 # Restaurar dependencias
-RUN dotnet restore "MonitorImpresoras.API/MonitorImpresoras.API.csproj"
+RUN dotnet restore "QOPIQ.API/QOPIQ.API.csproj"
 
 # Copiar código fuente
 COPY . .
 
 # Compilar aplicación
-WORKDIR "/src/MonitorImpresoras.API"
-RUN dotnet build "MonitorImpresoras.API.csproj" -c Release -o /app/build
+WORKDIR "/src/QOPIQ.API"
+RUN dotnet build "QOPIQ.API.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "MonitorImpresoras.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "QOPIQ.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
@@ -57,4 +56,4 @@ ENV ASPNETCORE_URLS=http://+:5000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
-ENTRYPOINT ["dotnet", "MonitorImpresoras.API.dll"]
+ENTRYPOINT ["dotnet", "QOPIQ.API.dll"]

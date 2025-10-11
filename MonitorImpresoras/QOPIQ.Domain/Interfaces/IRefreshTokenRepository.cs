@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using QOPIQ.Domain.Models;
+using QOPIQ.Domain.Entities;
 
 namespace QOPIQ.Domain.Interfaces
 {
