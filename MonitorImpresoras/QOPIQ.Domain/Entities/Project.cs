@@ -7,7 +7,7 @@ namespace QOPIQ.Domain.Entities
     /// <summary>
     /// Represents a project in the system
     /// </summary>
-    public class Project : BaseEntity
+    public class Project : BaseAuditableEntity
     {
         /// <summary>
         /// Name of the project
@@ -44,20 +44,13 @@ namespace QOPIQ.Domain.Entities
         /// </summary>
         public virtual Tenant? Tenant { get; set; }
 
-        /// <summary>
-        /// Date and time when the project was created
-        /// </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary>
-        /// User who created the project
-        /// </summary>
-        public string CreatedBy { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Date and time when the project was last modified
-        /// </summary>
-        public DateTime? ModifiedAt { get; set; }
+        // Audit properties are inherited from BaseAuditableEntity:
+        // - CreatedAt (replaces CreatedAt)
+        // - CreatedBy (replaces CreatedBy)
+        // - UpdatedAt (replaces ModifiedAt)
+        // - UpdatedBy (replaces ModifiedBy)
+        // - Deleted
+        // - DeletedBy
 
         /// <summary>
         /// User who last modified the project

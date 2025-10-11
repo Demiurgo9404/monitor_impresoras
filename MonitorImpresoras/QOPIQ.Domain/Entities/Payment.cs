@@ -2,6 +2,8 @@ using System;
 using QOPIQ.Domain.Common;
 using QOPIQ.Domain.Enums;
 
+// NOTA: Esta entidad ahora usa TransactionStatus en lugar de PaymentStatus
+
 namespace QOPIQ.Domain.Entities
 {
     /// <summary>
@@ -47,7 +49,7 @@ namespace QOPIQ.Domain.Entities
         /// <summary>
         /// Status of the payment
         /// </summary>
-        public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
+        public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
 
         /// <summary>
         /// Additional notes or details about the payment

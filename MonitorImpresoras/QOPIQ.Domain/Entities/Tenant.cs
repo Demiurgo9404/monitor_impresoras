@@ -38,7 +38,7 @@ namespace QOPIQ.Domain.Entities
         /// <summary>
         /// Date and time the tenant was created
         /// </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public new DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Whether the tenant is active

@@ -77,7 +77,7 @@
             },
             "Microsoft.EntityFrameworkCore.InMemory": {
               "target": "Package",
-              "version": "[9.0.9, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.Relational": {
               "target": "Package",
@@ -317,7 +317,7 @@
             },
             "Lextm.SharpSnmpLib": {
               "target": "Package",
-              "version": "[12.2.0, )"
+              "version": "[12.5.6, )"
             },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
@@ -334,6 +334,10 @@
               "version": "[8.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.Relational": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[8.0.0, )"
             },

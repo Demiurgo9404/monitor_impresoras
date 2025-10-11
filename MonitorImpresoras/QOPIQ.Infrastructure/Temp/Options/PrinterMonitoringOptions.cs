@@ -2,6 +2,9 @@ using System;
 
 namespace QOPIQ.Infrastructure.Options
 {
+    /// <summary>
+    /// Opciones de configuración para el monitoreo de impresoras
+    /// </summary>
     public class PrinterMonitoringOptions
     {
         public const string SectionName = "PrinterMonitoring";
@@ -27,6 +30,26 @@ namespace QOPIQ.Infrastructure.Options
         public int CriticalTonerThreshold { get; set; } = 10;
         
         /// <summary>
+        /// Nivel de papel bajo (cantidad de hojas)
+        /// </summary>
+        public int LowPaperThreshold { get; set; } = 50;
+        
+        /// <summary>
+        /// Habilitar notificaciones por correo electrónico
+        /// </summary>
+        public bool EnableEmailNotifications { get; set; } = true;
+        
+        /// <summary>
+        /// Dirección de correo electrónico para notificaciones
+        /// </summary>
+        public string NotificationEmail { get; set; } = "soporte@qopiq.com";
+        
+        /// <summary>
+        /// Tiempo de espera para reconexión en segundos
+        /// </summary>
+        public int ReconnectionTimeoutSeconds { get; set; } = 60;
+        
+        /// <summary>
         /// Número máximo de reintentos para verificar el estado de una impresora
         /// </summary>
         public int MaxRetryAttempts { get; set; } = 3;
@@ -40,11 +63,6 @@ namespace QOPIQ.Infrastructure.Options
         /// Indica si se debe habilitar el monitoreo automático
         /// </summary>
         public bool EnableAutomaticMonitoring { get; set; } = true;
-        
-        /// <summary>
-        /// Dirección de correo electrónico para notificaciones
-        /// </summary>
-        public string NotificationEmail { get; set; }
     }
 }
 

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using QOPIQ.Application.Interfaces;
 using System.Linq;

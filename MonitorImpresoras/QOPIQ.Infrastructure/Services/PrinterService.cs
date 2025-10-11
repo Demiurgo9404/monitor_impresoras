@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using QOPIQ.Application.Interfaces;
 using QOPIQ.Domain.Entities;
-using QOPIQ.Domain.Repositories;
+using QOPIQ.Domain.Interfaces.Repositories;
+using QOPIQ.Domain.Interfaces.Services;
 
 namespace QOPIQ.Infrastructure.Services
 {
@@ -57,7 +57,7 @@ namespace QOPIQ.Infrastructure.Services
             try
             {
                 _logger.LogInformation("Creando nueva impresora: {PrinterName}", printer.Name);
-                _printerRepository.Add(printer);
+                await _printerRepository.AddAsync(printer);
                 await _unitOfWork.SaveChangesAsync();
                 return printer;
             }
@@ -73,8 +73,9 @@ namespace QOPIQ.Infrastructure.Services
             try
             {
                 _logger.LogInformation("Actualizando impresora con ID: {PrinterId}", printer.Id);
-                _printerRepository.Update(printer);
-                return await _unitOfWork.SaveChangesAsync() > 0;
+                await _printerRepository.UpdateAsync(printer, CancellationToken.None);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
             }
             catch (Exception ex)
             {
@@ -95,8 +96,9 @@ namespace QOPIQ.Infrastructure.Services
                     return false;
                 }
 
-                _printerRepository.Remove(printer);
-                return await _unitOfWork.SaveChangesAsync() > 0;
+                await _printerRepository.RemoveAsync(printer, CancellationToken.None);
+                await _unitOfWork.SaveChangesAsync();
+                return true;
             }
             catch (Exception ex)
             {

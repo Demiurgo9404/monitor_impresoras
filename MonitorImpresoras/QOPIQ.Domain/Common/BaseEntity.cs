@@ -15,12 +15,12 @@ namespace QOPIQ.Domain.Common
         /// <summary>
         /// Fecha de creación de la entidad
         /// </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public virtual DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Fecha de última actualización de la entidad
         /// </summary>
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public virtual DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Marca la entidad como actualizada

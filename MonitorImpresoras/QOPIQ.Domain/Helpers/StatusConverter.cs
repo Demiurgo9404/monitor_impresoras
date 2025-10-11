@@ -1,6 +1,8 @@
 using QOPIQ.Domain.Enums;
 using System;
 
+// NOTA: Este convertidor ahora usa TransactionStatus unificado
+
 namespace QOPIQ.Domain.Helpers
 {
     /// <summary>
@@ -9,39 +11,41 @@ namespace QOPIQ.Domain.Helpers
     public static class StatusConverter
     {
         /// <summary>
-        /// Converts a PaymentStatus to an InvoiceStatus
+        /// Converts a TransactionStatus to a display-friendly string
         /// </summary>
-        public static InvoiceStatus ToInvoiceStatus(this PaymentStatus status)
+        public static string ToDisplayString(this TransactionStatus status)
         {
             return status switch
             {
-                PaymentStatus.Pending => InvoiceStatus.Pending,
-                PaymentStatus.Completed => InvoiceStatus.Paid,
-                PaymentStatus.Failed => InvoiceStatus.Overdue,
-                PaymentStatus.Refunded => InvoiceStatus.Refunded,
-                PaymentStatus.PartiallyRefunded => InvoiceStatus.PartiallyPaid,
-                PaymentStatus.Voided => InvoiceStatus.Voided,
-                _ => InvoiceStatus.Draft,
+                TransactionStatus.Draft => "Borrador",
+                TransactionStatus.Pending => "Pendiente",
+                TransactionStatus.Completed => "Completado",
+                TransactionStatus.Failed => "Fallido",
+                TransactionStatus.Refunded => "Reembolsado",
+                TransactionStatus.PartiallyRefunded => "Reembolso Parcial",
+                TransactionStatus.Voided => "Anulado",
+                TransactionStatus.Overdue => "Vencido",
+                _ => "Desconocido"
             };
         }
 
         /// <summary>
-        /// Converts an InvoiceStatus to a PaymentStatus
+        /// Determines if a status represents a completed transaction
         /// </summary>
-        public static PaymentStatus ToPaymentStatus(this InvoiceStatus status)
+        public static bool IsCompleted(this TransactionStatus status)
         {
-            return status switch
-            {
-                InvoiceStatus.Draft => PaymentStatus.Pending,
-                InvoiceStatus.Sent => PaymentStatus.Pending,
-                InvoiceStatus.Pending => PaymentStatus.Pending,
-                InvoiceStatus.PartiallyPaid => PaymentStatus.PartiallyRefunded,
-                InvoiceStatus.Paid => PaymentStatus.Completed,
-                InvoiceStatus.Overdue => PaymentStatus.Failed,
-                InvoiceStatus.Voided => PaymentStatus.Voided,
-                InvoiceStatus.Refunded => PaymentStatus.Refunded,
-                _ => PaymentStatus.Unknown,
-            };
+            return status == TransactionStatus.Completed || 
+                   status == TransactionStatus.Refunded ||
+                   status == TransactionStatus.PartiallyRefunded;
+        }
+
+        /// <summary>
+        /// Determines if a status represents a pending transaction
+        /// </summary>
+        public static bool IsPending(this TransactionStatus status)
+        {
+            return status == TransactionStatus.Pending || 
+                   status == TransactionStatus.Draft;
         }
     }
 }

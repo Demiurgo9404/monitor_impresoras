@@ -1,71 +1,56 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using QOPIQ.Application.Interfaces;
-using QOPIQ.Application.Interfaces.MultiTenancy;
-using QOPIQ.Domain.Common;
-using QOPIQ.Domain.Repositories;
+using QOPIQ.Domain.Interfaces;
+using QOPIQ.Domain.Interfaces.Repositories;
+using QOPIQ.Domain.Interfaces.Services;
+using QOPIQ.Infrastructure.Configuration;
 using QOPIQ.Infrastructure.Data;
 using QOPIQ.Infrastructure.Repositories;
 using QOPIQ.Infrastructure.Services;
-using QOPIQ.Infrastructure.Services.MultiTenancy;
 
-namespace QOPIQ.Infrastructure;
-
-public static class DependencyInjection
+namespace QOPIQ.Infrastructure
 {
-    public static IServiceCollection AddInfrastructureServices(
-        this IServiceCollection services, 
-        IConfiguration configuration,
-        IHostEnvironment environment)
+    public static class DependencyInjection
     {
-        try
+        public static IServiceCollection AddInfrastructureServices(
+            this IServiceCollection services,
+            IConfiguration configuration,
+            IHostEnvironment environment)
         {
-            // Configurar DbContext
-            var connectionString = configuration.GetConnectionString("DefaultConnection") 
-                ?? "Host=localhost;Database=QOPIQ;Username=postgres;Password=postgres";
+            // Configuración de opciones
+            services.Configure<SnmpOptions>(configuration.GetSection("Snmp"));
 
-            services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
-            {
-                options.UseNpgsql(connectionString);
-                
-                if (environment.IsDevelopment())
-                {
-                    options.EnableSensitiveDataLogging();
-                    options.EnableDetailedErrors();
-                }
-            });
+            // Base de datos
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-            // Configuración básica de servicios
-            services.AddHttpContextAccessor();
-            
-            // Registrar servicios de multi-tenancy
-            services.AddScoped<ITenantAccessor, TenantAccessor>();
-            services.AddScoped<ITenantResolver, TenantResolver>();
-            
-            // Registrar servicios de repositorios
+            // Repositorios genéricos
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+            // Repositorios específicos
             services.AddScoped<IPrinterRepository, PrinterRepository>();
-            services.AddScoped<IUnitOfWork, Data.UnitOfWork>();
+
+            // Unit of Work
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Servicios
+            services.AddScoped<IPrinterRepository, PrinterRepository>();
             
-            // Registrar servicios de aplicación
-            services.AddScoped<IPrinterService, PrinterService>();
+            // Servicios
             services.AddScoped<ISnmpService, SnmpService>();
-            
-            // Configurar middleware de resolución de tenant
-            services.AddTransient<TenantResolutionMiddleware>();
-            
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Configuración para desarrollo
+            if (environment.IsDevelopment())
+            {
+                // Configuraciones específicas para desarrollo
+            }
+
             return services;
-        }
-        catch (Exception ex)
-        {
-            var logger = services.BuildServiceProvider().GetRequiredService<ILogger<DependencyInjection>>();
-            logger.LogError(ex, "Error al configurar los servicios de infraestructura");
-            throw;
         }
     }
 }

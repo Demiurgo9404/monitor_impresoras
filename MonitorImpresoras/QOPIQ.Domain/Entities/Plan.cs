@@ -8,7 +8,7 @@ namespace QOPIQ.Domain.Entities
     /// <summary>
     /// Represents a subscription plan in the system
     /// </summary>
-    public class Plan : BaseEntity
+    public class Plan : BaseAuditableEntity
     {
         /// <summary>
         /// Name of the plan
@@ -95,15 +95,13 @@ namespace QOPIQ.Domain.Entities
         /// </summary>
         public bool IsActive { get; set; } = true;
 
-        /// <summary>
-        /// Date and time when the plan was created
-        /// </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary>
-        /// Date and time when the plan was last updated
-        /// </summary>
-        public DateTime? UpdatedAt { get; set; }
+        // Audit properties are inherited from BaseAuditableEntity:
+        // - CreatedAt
+        // - CreatedBy
+        // - UpdatedAt
+        // - UpdatedBy
+        // - Deleted
+        // - DeletedBy
 
         /// <summary>
         /// The subscriptions that use this plan

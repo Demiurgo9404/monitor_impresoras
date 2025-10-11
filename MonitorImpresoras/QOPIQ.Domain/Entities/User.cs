@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using QOPIQ.Domain.Common;
 using QOPIQ.Domain.Enums;
+using UserRoleEntity = QOPIQ.Domain.Entities.UserRole;
 
 namespace QOPIQ.Domain.Entities
 {
     /// <summary>
     /// Represents a user in the system
     /// </summary>
-    public class User : BaseEntity
+    public class User : BaseAuditableEntity
     {
         /// <summary>
         /// User's first name
@@ -31,9 +32,9 @@ namespace QOPIQ.Domain.Entities
         public string PasswordHash { get; set; } = string.Empty;
 
         /// <summary>
-        /// User's role in the system
+        /// User's role type in the system
         /// </summary>
-        public UserRole Role { get; set; } = UserRole.User;
+        public UserRoleType RoleType { get; set; } = UserRoleType.User;
 
         /// <summary>
         /// Indicates if the user is active
@@ -81,8 +82,19 @@ namespace QOPIQ.Domain.Entities
         public Guid TenantId { get; set; }
 
         /// <summary>
+        /// <summary>
         /// Navigation property for user's print jobs
         /// </summary>
         public virtual ICollection<PrintJob> PrintJobs { get; set; } = new List<PrintJob>();
+
+        /// <summary>
+        /// Navigation property for user's roles
+        /// </summary>
+        public virtual ICollection<UserRoleEntity> UserRoles { get; set; } = new List<UserRoleEntity>();
+
+        /// <summary>
+        /// Navigation property for user's refresh tokens
+        /// </summary>
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

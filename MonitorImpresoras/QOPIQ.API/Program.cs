@@ -1,121 +1,31 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using QOPIQ.API.Middleware;
-using QOPIQ.Application;
-using QOPIQ.Application.Interfaces.MultiTenancy;
-using QOPIQ.Domain.Entities;
+using QOPIQ.Application.Interfaces;
+using QOPIQ.Application.Services;
 using QOPIQ.Infrastructure;
-using QOPIQ.Infrastructure.Data;
-using Serilog;
+using QOPIQ.API.Hubs;
 using System.Text;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar Serilog básico
+// Configurar Serilog
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
 
 builder.Host.UseSerilog();
 
-// Configurar servicios básicos
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddHttpContextAccessor();
+// 🔹 Base de datos
+builder.Services.AddInfrastructure(builder.Configuration);
 
-// Configurar servicios multi-tenant
-builder.Services.AddScoped<ITenantAccessor, TenantAccessor>();
-builder.Services.AddScoped<ITenantResolver, TenantResolver>();
-
-// Configurar servicios de autenticación
-builder.Services.AddScoped<IJwtService, JwtService>();
+// 🔹 Servicios de aplicación
+builder.Services.AddScoped<IPrinterService, PrinterService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
-// Configurar servicios de negocio
-builder.Services.AddScoped<ICompanyService, CompanyService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-
-// Configurar servicios de reportes
-builder.Services.AddScoped<IReportService, ReportService>();
-builder.Services.AddScoped<IReportDataService, ReportDataService>();
-builder.Services.AddScoped<IPdfReportGenerator, PdfReportGenerator>();
-builder.Services.AddScoped<IExcelReportGenerator, ExcelReportGenerator>();
-builder.Services.AddScoped<IScheduledReportService, ScheduledReportService>();
-
-// Configurar servicio de email
-builder.Services.AddScoped<IEmailService, EmailService>();
-
-// Configurar servicio de background para reportes programados
-builder.Services.AddHostedService<ReportSchedulerService>();
-
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo 
-    { 
-        Title = "QOPIQ - Sistema de Monitoreo de Impresoras", 
-        Version = "v1",
-        Description = "API Multi-Tenant para monitoreo de impresoras"
-    });
-    
-    // Agregar header de tenant a Swagger
-    c.AddSecurityDefinition("Tenant", new OpenApiSecurityScheme
-    {
-        Description = "Tenant ID header",
-        Name = "X-Tenant-Id",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey
-    });
-    
-    // Agregar JWT a Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
-    
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Tenant"
-                }
-            },
-            Array.Empty<string>()
-        },
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
-
-// Configurar base de datos en memoria para desarrollo
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("QOPIQDb"));
-
-// Configurar JWT
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "default-key-for-development-only";
-var key = Encoding.ASCII.GetBytes(jwtKey);
-
+// 🔹 Configuración JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -127,81 +37,115 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(key)
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "default-key-for-development-only"))
+        };
+
+        // 🔹 Habilitar JWT para SignalR
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && 
+                    path.StartsWithSegments("/hubs/printers"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
-// Configurar Identity
-builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
-
-// Configurar CORS
+// 🔹 CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowAll", b =>
+        b.AllowAnyOrigin()
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .WithExposedHeaders("X-Pagination"));
+});
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+    { 
+        Title = "QOPIQ - Sistema de Monitoreo de Impresoras", 
+        Version = "v1"
+    });
+
+    // Agregar JWT a Swagger
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        Description = "JWT Authorization header using the Bearer scheme",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
-// Configurar servicios de aplicación
-builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
+// 🔹 SignalR
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Configurar pipeline
+// Configurar el pipeline de la aplicación
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => 
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "QOPIQ API V1");
+        c.RoutePrefix = string.Empty; // Para servir Swagger en la raíz
+    });
 }
 
-app.UseHttpsRedirection();
+app.UseRouting();
 app.UseCors("AllowAll");
-
-// Middleware multi-tenant (antes de autenticación)
-app.UseTenantResolution();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Endpoint de prueba
-app.MapGet("/", () => new { 
-    message = "Monitor de Impresoras API funcionando correctamente", 
-    version = "1.0.0",
-    timestamp = DateTime.UtcNow 
-});
+// Middleware de manejo de errores personalizado
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
-app.MapGet("/api/status", () => new { 
-    status = "healthy", 
-    timestamp = DateTime.UtcNow 
-});
-
-app.MapGet("/api/printers/test", () => new { 
-    message = "Endpoint de impresoras funcionando",
-    printers = new[] {
-        new { id = Guid.NewGuid(), name = "Impresora HP LaserJet", status = "Online" },
-        new { id = Guid.NewGuid(), name = "Impresora Canon Pixma", status = "Offline" }
-    },
-});
-
+// Mapear controladores y hub SignalR
 app.MapControllers();
+app.MapHub<PrinterHub>("/hubs/printers");
 
-// Seed de datos iniciales
-using (var scope = app.Services.CreateScope())
+// Seed de datos iniciales (solo en desarrollo)
+if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     
-    await TenantSeeder.SeedAsync(context);
+    // Aplicar migraciones pendientes
+    await context.Database.MigrateAsync();
     
-    // Seed datos de ejemplo para tenants con usuarios
-    await TenantSeeder.SeedTenantDataAsync(context, "demo", passwordHasher);
-    await TenantSeeder.SeedTenantDataAsync(context, "contoso", passwordHasher);
+    // Seed de datos iniciales
+    await SeedData.InitializeAsync(context, userManager, roleManager);
 }
 
 Log.Information("QOPIQ API iniciada correctamente");

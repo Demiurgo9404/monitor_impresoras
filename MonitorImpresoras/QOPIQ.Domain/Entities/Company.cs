@@ -54,20 +54,13 @@ namespace QOPIQ.Domain.Entities
         /// </summary>
         public virtual Tenant? Tenant { get; set; }
 
-        /// <summary>
-        /// Date and time when the company was created
-        /// </summary>
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        /// <summary>
-        /// User who created the company
-        /// </summary>
-        public string CreatedBy { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Date and time when the company was last modified
-        /// </summary>
-        public DateTime? ModifiedAt { get; set; }
+        // Audit properties are inherited from BaseAuditableEntity:
+        // - CreatedAt
+        // - CreatedBy
+        // - UpdatedAt (renamed from ModifiedAt in the base class)
+        // - UpdatedBy
+        // - Deleted
+        // - DeletedBy
 
         /// <summary>
         /// User who last modified the company

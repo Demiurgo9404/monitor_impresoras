@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using QOPIQ.Domain.Entities;
+using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Infrastructure.Data
 {
@@ -15,7 +16,7 @@ namespace QOPIQ.Infrastructure.Data
         public DbSet<PrinterCounters> PrinterCounters { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<QOPIQ.Domain.Entities.UserRole> UserRoles { get; set; }
         public DbSet<PrintJob> PrintJobs { get; set; }
         public DbSet<PrinterConsumable> PrinterConsumables { get; set; }
         public DbSet<Report> Reports { get; set; }
@@ -42,25 +43,30 @@ namespace QOPIQ.Infrastructure.Data
         public DbSet<ReportExecution> ReportExecutions { get; set; }
         public DbSet<EmailTemplate> EmailTemplates { get; set; }
         public DbSet<ReportTemplate> ReportTemplates { get; set; }
+        
+        // Seguridad y autenticación
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             
             // Configurar relaciones muchos a muchos
-            modelBuilder.Entity<UserRole>()
+            modelBuilder.Entity<QOPIQ.Domain.Entities.UserRole>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });
             
-            modelBuilder.Entity<UserRole>()
+            modelBuilder.Entity<QOPIQ.Domain.Entities.UserRole>()
                 .HasOne(ur => ur.User)
                 .WithMany(u => u.UserRoles)
                 .HasForeignKey(ur => ur.UserId);
             
-            modelBuilder.Entity<UserRole>()
+            modelBuilder.Entity<QOPIQ.Domain.Entities.UserRole>()
                 .HasOne(ur => ur.Role)
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(ur => ur.RoleId);
 
+            // TODO: Uncomment and update these configurations when the domain models are updated
+            /*
             // Configurar relaciones enterprise
             modelBuilder.Entity<Subscription>()
                 .HasOne(s => s.User)
@@ -90,7 +96,10 @@ namespace QOPIQ.Infrastructure.Data
             modelBuilder.Entity<Invoice>()
                 .Property(i => i.TotalAmount)
                 .HasPrecision(10, 2);
+            */
 
+            // TODO: Uncomment and update these configurations when the domain models are updated
+            /*
             // Índices para mejor rendimiento
             modelBuilder.Entity<Subscription>()
                 .HasIndex(s => new { s.UserId, s.Status })
@@ -103,6 +112,7 @@ namespace QOPIQ.Infrastructure.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.CompanyName)
                 .HasDatabaseName("IX_Users_CompanyName");
+            */
         }
     }
 }
