@@ -1,0 +1,41 @@
+<nav class="nav-menu bg-dark text-white p-3">
+    <ul class="list-unstyled">
+        <li><NavLink href="/dashboard" class="nav-link" Match="NavLinkMatch.All">🏠 Dashboard</NavLink></li>
+        <li><NavLink href="/printers" class="nav-link">🖨️ Impresoras</NavLink></li>
+        <li><NavLink href="/logout" class="nav-link">🚪 Cerrar sesión</NavLink></li>
+    </ul>
+</nav>
+
+<style>
+.nav-menu {
+    width: 220px;
+    height: 100vh;
+    position: fixed;
+    background-color: #343a40;
+}
+
+.nav-link {
+    color: white;
+    display: block;
+    margin: 8px 0;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.list-unstyled {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+</style>

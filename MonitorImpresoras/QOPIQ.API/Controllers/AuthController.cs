@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using QOPIQ.Application.Interfaces;
-using QOPIQ.Domain.Models;
+using QOPIQ.Application.DTOs;
 
 namespace QOPIQ.API.Controllers
 {
@@ -33,22 +33,21 @@ namespace QOPIQ.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] QOPIQ.Application.DTOs.LoginDto loginDto)
         {
             try
             {
-                var user = await _authService.AuthenticateAsync(loginDto.Email, loginDto.Password);
+                var ipAddress = GetIpAddress();
+                var user = await _authService.LoginAsync(loginDto, ipAddress);
                 if (user == null)
                     return Unauthorized(new { message = "Usuario o contraseña incorrectos" });
 
-                var token = GenerateJwtToken(user);
-                var refreshToken = await _authService.GenerateRefreshTokenAsync(user.Id);
-
                 return Ok(new
                 {
-                    Token = token,
-                    RefreshToken = refreshToken.Token,
-                    ExpiresIn = int.Parse(_configuration["Jwt:ExpireMinutes"] ?? "60") * 60
+                    Token = user.Token,
+                    RefreshToken = user.RefreshToken,
+                    User = user,
+                    ExpiresIn = int.Parse(_configuration["JwtSettings:ExpirationInMinutes"] ?? "60") * 60
                 });
             }
             catch (Exception ex)
@@ -59,15 +58,15 @@ namespace QOPIQ.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+        public async Task<IActionResult> Register([FromBody] QOPIQ.Application.DTOs.RegisterDto registerDto)
         {
             try
             {
-                var result = await _authService.RegisterAsync(registerDto);
-                if (!result.Succeeded)
-                    return BadRequest(new { message = "Error al registrar el usuario", errors = result.Errors });
+                var user = await _authService.RegisterAsync(registerDto);
+                if (user == null)
+                    return BadRequest(new { message = "Error al registrar el usuario" });
 
-                return Ok(new { message = "Usuario registrado exitosamente" });
+                return Ok(new { message = "Usuario registrado exitosamente", user = user });
             }
             catch (Exception ex)
             {
@@ -87,18 +86,17 @@ namespace QOPIQ.API.Controllers
                 if (string.IsNullOrEmpty(userId))
                     return BadRequest(new { message = "Token inválido" });
 
-                var user = await _authService.GetUserByIdAsync(userId);
-                if (user == null || user.RefreshToken != refreshTokenDto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                var ipAddress = GetIpAddress();
+                var user = await _authService.RefreshTokenAsync(refreshTokenDto.RefreshToken, ipAddress);
+                if (user == null)
                     return BadRequest(new { message = "Token de refresco inválido o expirado" });
-
-                var newJwtToken = GenerateJwtToken(user);
-                var newRefreshToken = await _authService.GenerateRefreshTokenAsync(userId);
 
                 return Ok(new
                 {
-                    Token = newJwtToken,
-                    RefreshToken = newRefreshToken.Token,
-                    ExpiresIn = int.Parse(_configuration["Jwt:ExpireMinutes"] ?? "60") * 60
+                    Token = user.Token,
+                    RefreshToken = user.RefreshToken,
+                    User = user,
+                    ExpiresIn = int.Parse(_configuration["JwtSettings:ExpirationInMinutes"] ?? "60") * 60
                 });
             }
             catch (SecurityTokenException ex)
@@ -123,7 +121,7 @@ namespace QOPIQ.API.Controllers
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id),
                     new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+                    new Claim(ClaimTypes.Name, user.Name),
                     new Claim(ClaimTypes.Role, user.Role)
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:ExpireMinutes"] ?? "60")),
@@ -159,6 +157,11 @@ namespace QOPIQ.API.Controllers
                 throw new SecurityTokenException("Token inválido");
 
             return principal;
+        }
+
+        private string GetIpAddress()
+        {
+            return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         }
     }
 

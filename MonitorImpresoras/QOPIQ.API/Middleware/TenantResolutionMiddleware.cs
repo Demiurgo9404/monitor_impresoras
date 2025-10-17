@@ -18,8 +18,11 @@ namespace QOPIQ.API.Middleware
             // Resolver el tenant actual
             var tenantId = await tenantResolver.ResolveTenantIdentifierAsync();
             
-            // Establecer el tenant en el TenantAccessor
-            tenantAccessor.TenantId = tenantId;
+            // Establecer el tenant en el TenantAccessor usando el método SetTenant
+            if (!string.IsNullOrEmpty(tenantId))
+            {
+                tenantAccessor.SetTenant(tenantId);
+            }
             
             // Continuar con el pipeline
             await _next(context);

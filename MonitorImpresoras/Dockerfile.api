@@ -1,0 +1,41 @@
+# Dockerfile para QOPIQ API
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+# Variables de entorno para producción
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:80
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copiar archivos de proyecto
+COPY ["QOPIQ.API/QOPIQ.API.csproj", "QOPIQ.API/"]
+COPY ["QOPIQ.Application/QOPIQ.Application.csproj", "QOPIQ.Application/"]
+COPY ["QOPIQ.Domain/QOPIQ.Domain.csproj", "QOPIQ.Domain/"]
+COPY ["QOPIQ.Infrastructure/QOPIQ.Infrastructure.csproj", "QOPIQ.Infrastructure/"]
+
+# Restaurar dependencias
+RUN dotnet restore "QOPIQ.API/QOPIQ.API.csproj"
+
+# Copiar código fuente
+COPY . .
+
+# Build
+WORKDIR "/src/QOPIQ.API"
+RUN dotnet build "QOPIQ.API.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "QOPIQ.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Crear usuario no privilegiado
+RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
+USER appuser
+
+ENTRYPOINT ["dotnet", "QOPIQ.API.dll"]

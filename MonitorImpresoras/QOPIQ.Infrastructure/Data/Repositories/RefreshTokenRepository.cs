@@ -1,41 +1,67 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using QOPIQ.Domain.Entities;
-using QOPIQ.Domain.Interfaces;
-using QOPIQ.Domain.Models;
-using System.Linq;
+using QOPIQ.Domain.Interfaces.Repositories;
 
 namespace QOPIQ.Infrastructure.Data.Repositories
 {
-    public class RefreshTokenRepository : IRefreshTokenRepository
+    public class RefreshTokenRepository : Repository<RefreshToken>, IRefreshTokenRepository
     {
-        private readonly ApplicationDbContext _context;
+        private new readonly AppDbContext _context;
 
-        public RefreshTokenRepository(ApplicationDbContext context)
+        public RefreshTokenRepository(AppDbContext context) : base(context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<RefreshToken> GetByTokenAsync(string token)
+        public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
         {
-            return await _context.RefreshTokens
-                .FirstOrDefaultAsync(rt => rt.Token == token);
+            if (string.IsNullOrWhiteSpace(token))
+                return null;
+
+            // Convert the token string to Guid for comparison
+            if (Guid.TryParse(token, out Guid tokenId))
+            {
+                return await _context.RefreshTokens
+                    .FirstOrDefaultAsync(rt => rt.Token == tokenId, cancellationToken);
+            }
+            
+            return null;
         }
 
-        public async Task AddAsync(RefreshToken refreshToken)
+        public async Task InvalidateUserTokensAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            await _context.RefreshTokens.AddAsync(refreshToken);
+            // Convert Guid to string for comparison with UserId
+            var userIdString = userId.ToString();
+            var tokens = await _context.RefreshTokens
+                .Where(rt => rt.UserId == userIdString && !rt.IsRevoked)
+                .ToListAsync(cancellationToken);
+
+            foreach (var token in tokens)
+            {
+                token.IsRevoked = true;
+                token.RevokedAt = DateTime.UtcNow;
+                _context.RefreshTokens.Update(token);
+            }
         }
 
-        public void Remove(RefreshToken refreshToken)
+        public async Task<bool> IsValidTokenAsync(string token, CancellationToken cancellationToken = default)
         {
-            _context.RefreshTokens.Remove(refreshToken);
-        }
+            if (string.IsNullOrWhiteSpace(token))
+                return false;
 
-        public async Task<bool> SaveChangesAsync()
-        {
-            return await _context.SaveChangesAsync() > 0;
+            // Convert the token string to Guid for comparison
+            if (Guid.TryParse(token, out Guid tokenId))
+            {
+                var refreshToken = await _context.RefreshTokens
+                    .FirstOrDefaultAsync(rt => rt.Token == tokenId && !rt.IsExpired && !rt.IsRevoked, cancellationToken);
+
+                return refreshToken != null;
+            }
+            
+            return false;
         }
     }
 }

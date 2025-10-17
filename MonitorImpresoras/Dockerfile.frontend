@@ -1,0 +1,40 @@
+# Dockerfile para QOPIQ Frontend
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+# Variables de entorno para producción
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:80
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copiar archivos de proyecto
+COPY ["QOPIQ.Frontend/QOPIQ.Frontend.csproj", "QOPIQ.Frontend/"]
+COPY ["QOPIQ.Application/QOPIQ.Application.csproj", "QOPIQ.Application/"]
+COPY ["QOPIQ.Domain/QOPIQ.Domain.csproj", "QOPIQ.Domain/"]
+
+# Restaurar dependencias
+RUN dotnet restore "QOPIQ.Frontend/QOPIQ.Frontend.csproj"
+
+# Copiar código fuente
+COPY . .
+
+# Build
+WORKDIR "/src/QOPIQ.Frontend"
+RUN dotnet build "QOPIQ.Frontend.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "QOPIQ.Frontend.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Crear usuario no privilegiado
+RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
+USER appuser
+
+ENTRYPOINT ["dotnet", "QOPIQ.Frontend.dll"]

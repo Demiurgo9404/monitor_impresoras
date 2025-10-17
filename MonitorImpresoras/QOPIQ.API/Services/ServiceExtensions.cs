@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Identity;
 using QOPIQ.Application;
-using QOPIQ.Domain.Interfaces.Services;
+using QOPIQ.Application.Interfaces;
+using QOPIQ.Domain.Entities;
+using QOPIQ.Domain.Interfaces;
 using QOPIQ.Infrastructure;
-using QOPIQ.Infrastructure.Configuration;
 using QOPIQ.Infrastructure.Services;
 
 namespace QOPIQ.API.Services
@@ -17,13 +20,13 @@ namespace QOPIQ.API.Services
             return services;
         }
 
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
         {
             // Registrar servicios de infraestructura
             services.AddInfrastructureServices(configuration, environment);
             
             // Registrar servicios personalizados
-            services.AddScoped<ISnmpService, SnmpService>();
+            services.AddScoped<QOPIQ.Domain.Interfaces.Services.ISnmpService, QOPIQ.Infrastructure.Services.SnmpService>();
             services.AddScoped<IPrinterMonitoringService, PrinterMonitoringService>();
             
             return services;

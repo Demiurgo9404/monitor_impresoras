@@ -4,16 +4,23 @@ using System.Threading.Tasks;
 using QOPIQ.Application.DTOs;
 using QOPIQ.Application.Interfaces;
 using QOPIQ.Domain.Entities;
+using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Application.Services
 {
     public class PrinterService : IPrinterService
     {
         private readonly List<Printer> _printers = new();
+        private readonly IPrinterHubContext _printerHub;
+
+        public PrinterService(IPrinterHubContext printerHub)
+        {
+            _printerHub = printerHub;
+        }
 
         public async Task<IEnumerable<PrinterDto>> GetAllAsync()
         {
-            return await Task.FromResult(_printers.ConvertAll(p => new PrinterDto
+            return _printers.Select(p => new PrinterDto
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -21,8 +28,8 @@ namespace QOPIQ.Application.Services
                 IpAddress = p.IpAddress,
                 Status = p.Status,
                 Location = p.Location,
-                LastUpdated = DateTime.UtcNow
-            }));
+                UpdatedAt = DateTime.UtcNow
+            });
         }
 
         public async Task<PrinterDto> GetPrinterByIdAsync(Guid id)
@@ -38,7 +45,7 @@ namespace QOPIQ.Application.Services
                 IpAddress = printer.IpAddress,
                 Status = printer.Status,
                 Location = printer.Location,
-                LastUpdated = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow
             });
         }
 
@@ -51,11 +58,15 @@ namespace QOPIQ.Application.Services
                 Model = dto.Model,
                 IpAddress = dto.IpAddress,
                 Location = dto.Location,
-                Status = "Online",
+                Status = PrinterStatus.Online,
                 CreatedAt = DateTime.UtcNow
             };
 
             _printers.Add(printer);
+            
+            // Notificar a los clientes sobre la nueva impresora
+            await _printerHub.SendPrinterUpdate(printer.Id.ToString(), PrinterStatus.Online.ToString());
+            
             await Task.CompletedTask;
         }
 
@@ -69,6 +80,9 @@ namespace QOPIQ.Application.Services
                 existing.IpAddress = printer.IpAddress;
                 existing.Status = printer.Status;
                 existing.Location = printer.Location;
+                
+                // Notificar a los clientes sobre la actualización
+                await _printerHub.SendPrinterUpdate(existing.Id.ToString(), existing.Status.ToString());
             }
             await Task.CompletedTask;
         }
@@ -77,7 +91,11 @@ namespace QOPIQ.Application.Services
         {
             var printer = _printers.Find(p => p.Id == id);
             if (printer != null)
+            {
                 _printers.Remove(printer);
+                // Notificar a los clientes sobre la eliminación
+                await _printerHub.SendPrinterUpdate(printer.Id.ToString(), "Eliminada");
+            }
 
             await Task.CompletedTask;
         }
@@ -88,11 +106,18 @@ namespace QOPIQ.Application.Services
             if (printer == null)
                 return null;
 
-            var status = new PrinterStatusDto
+            var status = new DTOs.PrinterStatusDto
             {
                 PrinterId = printer.Id,
                 Status = printer.Status,
-                LastChecked = DateTime.UtcNow
+                TonerLevel = printer.TonerLevel,
+                TonerLevelPercentage = printer.TonerLevelPercentage,
+                LastUpdate = DateTime.UtcNow,
+                IsOnline = printer.Status == PrinterStatus.Online,
+                Name = printer.Name,
+                IpAddress = printer.IpAddress,
+                StatusMessage = $"Estado actual: {printer.Status}",
+                Message = ""
             };
 
             return await Task.FromResult(status);
@@ -101,7 +126,7 @@ namespace QOPIQ.Application.Services
         public async Task<PrinterStatsDto> GetPrinterStatisticsAsync()
         {
             var total = _printers.Count;
-            var online = _printers.FindAll(p => p.Status == "Online").Count;
+            var online = _printers.FindAll(p => p.Status == PrinterStatus.Online).Count;
             var offline = total - online;
 
             var stats = new PrinterStatsDto

@@ -11,7 +11,7 @@ namespace QOPIQ.Domain.Entities
         /// <summary>
         /// The refresh token value
         /// </summary>
-        public string Token { get; set; } = string.Empty;
+        public Guid Token { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Expiration date and time of the refresh token

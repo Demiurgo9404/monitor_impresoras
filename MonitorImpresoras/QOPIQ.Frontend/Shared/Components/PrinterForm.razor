@@ -1,72 +1,67 @@
-@using QOPIQ.Frontend.Models
+@using QOPIQ.Application.DTOs
+@using QOPIQ.Domain.Enums
 @using System.ComponentModel.DataAnnotations
 
-<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+<EditForm Model="@Printer" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="form-group mb-3">
         <label for="name">Nombre *</label>
-        <InputText id="name" @bind-Value="Model.Name" class="form-control" />
-        <ValidationMessage For="@(() => Model.Name)" />
-    </div>
-
-    <div class="form-group mb-3">
-        <label for="model">Modelo *</label>
-        <InputText id="model" @bind-Value="Model.Model" class="form-control" />
-        <ValidationMessage For="@(() => Model.Model)" />
+        <InputText id="name" @bind-Value="Printer.Name" class="form-control" />
+        <ValidationMessage For="@(() => Printer.Name)" />
     </div>
 
     <div class="form-group mb-3">
         <label for="ipAddress">Dirección IP *</label>
-        <InputText id="ipAddress" @bind-Value="Model.IpAddress" class="form-control" />
-        <ValidationMessage For="@(() => Model.IpAddress)" />
+        <InputText id="ipAddress" @bind-Value="Printer.IpAddress" class="form-control" />
+        <ValidationMessage For="@(() => Printer.IpAddress)" />
     </div>
 
     <div class="form-group mb-3">
         <label for="location">Ubicación</label>
-        <InputText id="location" @bind-Value="Model.Location" class="form-control" />
-        <ValidationMessage For="@(() => Model.Location)" />
+        <InputText id="location" @bind-Value="Printer.Location" class="form-control" />
     </div>
 
-    @if (IsEdit)
-    {
-        <div class="form-group form-check mb-3">
-            <InputCheckbox id="isActive" @bind-Value="IsActive" class="form-check-input" />
-            <label class="form-check-label" for="isActive">Activo</label>
-        </div>
-    }
+    <div class="form-group mb-3">
+        <label for="status">Estado</label>
+        <InputSelect id="status" @bind-Value="Printer.Status" class="form-select">
+            @foreach (var status in Enum.GetValues<PrinterStatus>())
+            {
+                <option value="@status">@status.ToString()</option>
+            }
+        </InputSelect>
+    </div>
 
-    <div class="form-actions">
-        <button type="button" class="btn btn-secondary me-2" @onclick="OnCancel">Cancelar</button>
-        <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
+    <div class="form-actions mt-4">
+        <button type="submit" class="btn btn-primary">@(Printer.Id == Guid.Empty ? "Crear" : "Actualizar")</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="HandleCancel">Cancelar</button>
     </div>
 </EditForm>
 
 @code {
-    [Parameter] public bool IsEdit { get; set; } = false;
-    [Parameter] public PrinterCreateDto Model { get; set; } = new();
-    [Parameter] public EventCallback<PrinterCreateDto> OnSubmit { get; set; }
-    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] 
+    public PrinterDto Printer { get; set; } = new();
     
-    private bool IsActive { get; set; } = true;
-    private string SubmitButtonText => IsEdit ? "Actualizar" : "Crear";
-
-    protected override void OnParametersSet()
-    {
-        if (IsEdit && Model is PrinterUpdateDto updateDto)
-        {
-            IsActive = updateDto.IsActive;
-        }
-    }
+    [Parameter]
+    public EventCallback<PrinterDto> OnSubmit { get; set; }
+    
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
 
     private async Task HandleValidSubmit()
     {
-        if (IsEdit && Model is PrinterUpdateDto updateDto)
+        if (OnSubmit.HasDelegate)
         {
-            updateDto.IsActive = IsActive;
+            await OnSubmit.InvokeAsync(Printer);
         }
-        
-        await OnSubmit.InvokeAsync(Model);
+    }
+
+    private async Task HandleCancel()
+    {
+        if (OnCancel.HasDelegate)
+        {
+            await OnCancel.InvokeAsync();
+        }
     }
 }

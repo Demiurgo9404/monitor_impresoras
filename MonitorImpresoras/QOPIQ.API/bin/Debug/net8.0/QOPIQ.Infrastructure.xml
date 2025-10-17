@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>QOPIQ.Infrastructure</name>
+    </assembly>
+    <members>
+        <member name="T:QOPIQ.Infrastructure.Data.Repository`1">
+            <summary>
+            Implementación base del patrón Repository para el acceso a datos
+            </summary>
+            <typeparam name="TEntity">Tipo de entidad</typeparam>
+        </member>
+        <member name="T:QOPIQ.Infrastructure.Data.UnitOfWork">
+            <summary>
+            Implementación de la unidad de trabajo que coordina múltiples repositorios
+            y gestiona transacciones de base de datos.
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.#ctor(QOPIQ.Infrastructure.Data.AppDbContext)">
+            <summary>
+            Inicializa una nueva instancia de la clase <see cref="T:QOPIQ.Infrastructure.Data.UnitOfWork"/>
+            </summary>
+            <param name="context">Contexto de base de datos</param>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Data.UnitOfWork.Printers">
+            <inheritdoc />
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Data.UnitOfWork.Users">
+            <inheritdoc />
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Data.UnitOfWork.RefreshTokens">
+            <inheritdoc />
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Data.UnitOfWork.Subscriptions">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.SaveChangesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.BeginTransactionAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.CommitTransactionAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.RollbackTransactionAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.RollbackTransaction">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.HasActiveTransaction">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.SaveEntitiesAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor">
+            <summary>
+            Implementación de ITenantAccessor que proporciona acceso al tenant actual.
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor.HasTenant">
+            <inheritdoc />
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor.TenantId">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor.#ctor">
+            <summary>
+            Inicializa una nueva instancia de la clase <see cref="T:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor"/>
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor.SetTenant(System.String,System.Object)">
+            <summary>
+            Establece el ID del tenant actual y su información adicional.
+            </summary>
+            <param name="tenantId">El ID del tenant a establecer.</param>
+            <param name="tenantInfo">Información adicional del tenant (opcional).</param>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor.GetTenantIdAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:QOPIQ.Infrastructure.TenantResolutionMiddleware">
+            <summary>
+            Middleware para la resolución del tenant en el pipeline de la aplicación.
+            </summary>
+        </member>
+        <member name="T:QOPIQ.Infrastructure.TenantResolutionMiddlewareExtensions">
+            <summary>
+            Métodos de extensión para configurar el middleware de resolución de tenant.
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.TenantResolutionMiddlewareExtensions.UseTenantResolution(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            Agrega el middleware de resolución de tenant al pipeline de la aplicación.
+            </summary>
+        </member>
+        <member name="T:QOPIQ.Infrastructure.TenantResolver">
+            <summary>
+            Implementación de ITenantResolver que resuelve el identificador del tenant a partir del contexto HTTP.
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.TenantResolver.#ctor(Microsoft.AspNetCore.Http.IHttpContextAccessor,Microsoft.Extensions.Logging.ILogger{QOPIQ.Infrastructure.TenantResolver})">
+            <summary>
+            Inicializa una nueva instancia de la clase <see cref="T:QOPIQ.Infrastructure.TenantResolver"/>
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.TenantResolver.ResolveTenantIdentifierAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.TenantResolver.GetCurrentTenantId">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.TenantResolver.IsValidTenantAsync(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.TenantResolver.GetCurrentTenantAsync">
+            <inheritdoc />
+        </member>
+        <member name="T:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions">
+            <summary>
+            Opciones de configuración para el monitoreo de impresoras
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.MonitoringIntervalMinutes">
+            <summary>
+            Intervalo de monitoreo en minutos
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.PrinterStatusTimeoutSeconds">
+            <summary>
+            Tiempo de espera en segundos para la verificación de estado de la impresora
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.LowTonerThreshold">
+            <summary>
+            Nivel de tóner bajo (porcentaje)
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.CriticalTonerThreshold">
+            <summary>
+            Nivel de tóner crítico (porcentaje)
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.LowPaperThreshold">
+            <summary>
+            Nivel de papel bajo (cantidad de hojas)
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.EnableEmailNotifications">
+            <summary>
+            Habilitar notificaciones por correo electrónico
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.NotificationEmail">
+            <summary>
+            Dirección de correo electrónico para notificaciones
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.ReconnectionTimeoutSeconds">
+            <summary>
+            Tiempo de espera para reconexión en segundos
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.MaxRetryAttempts">
+            <summary>
+            Número máximo de reintentos para verificar el estado de una impresora
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.RetryDelaySeconds">
+            <summary>
+            Tiempo de espera entre reintentos en segundos
+            </summary>
+        </member>
+        <member name="P:QOPIQ.Infrastructure.Options.PrinterMonitoringOptions.EnableAutomaticMonitoring">
+            <summary>
+            Indica si se debe habilitar el monitoreo automático
+            </summary>
+        </member>
+    </members>
+</doc>

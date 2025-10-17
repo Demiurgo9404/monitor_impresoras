@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,6 +7,8 @@ using QOPIQ.Application.Interfaces;
 using QOPIQ.Application.Services;
 using QOPIQ.Infrastructure;
 using QOPIQ.API.Hubs;
+using QOPIQ.API.Middleware;
+using QOPIQ.Domain.Entities;
 using System.Text;
 using Serilog;
 
@@ -21,10 +24,8 @@ builder.Host.UseSerilog();
 // 🔹 Base de datos y configuración de Identity
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
 
-// 🔹 Servicios de aplicación
-builder.Services.AddScoped<IPrinterService, PrinterService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IPrinterHubContext, PrinterHubContext>();
+// 🔹 Servicios de aplicación - AuthService ya está registrado en Infrastructure
+// Otros servicios se registrarán cuando sean necesarios
 
 // 🔹 Configuración JWT
 builder.Services.AddAuthentication(options =>
@@ -112,7 +113,27 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // 🔹 SignalR
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.PropertyNamingPolicy = null;
+    });
+
+// Registrar IPrinterHub
+builder.Services.AddScoped<IPrinterHubContext, PrinterHubContext>();
+
+// Configurar CORS para SignalR
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SignalRPolicy", builder =>
+    {
+        builder
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .SetIsOriginAllowed(host => true)
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -139,20 +160,13 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 app.MapControllers();
 app.MapHub<PrinterHub>("/hubs/printers");
 
-// Seed de datos iniciales (solo en desarrollo)
-if (app.Environment.IsDevelopment())
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-    
-    // Aplicar migraciones pendientes
-    await context.Database.MigrateAsync();
-    
-    // Seed de datos iniciales
-    await SeedData.InitializeAsync(context, userManager, roleManager);
-}
+// Database initialization (commented out until DbContext is properly configured)
+// if (app.Environment.IsDevelopment())
+// {
+//     using var scope = app.Services.CreateScope();
+//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+//     await context.Database.MigrateAsync();
+// }
 
 Log.Information("QOPIQ API iniciada correctamente");
 

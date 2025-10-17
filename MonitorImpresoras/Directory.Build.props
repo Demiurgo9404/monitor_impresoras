@@ -20,8 +20,10 @@
     <PackageReference Update="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
     
     <!-- Paquetes de ASP.NET Core -->
-    <PackageReference Update="Microsoft.AspNetCore.Identity" Version="8.0.0" />
-    <PackageReference Update="Microsoft.AspNetCore.SignalR" Version="8.0.0" />
+    <PackageReference Update="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageReference Update="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Update="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
+    <PackageReference Update="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
     <PackageReference Update="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
     

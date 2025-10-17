@@ -1,16 +1,24 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using QOPIQ.Domain.Entities;
+using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+using QOPIQ.Infrastructure.Data;
+using QOPIQ.Infrastructure.Data.Repositories;
+using QOPIQ.Infrastructure.Services;
+using QOPIQ.Application.Interfaces;
 using QOPIQ.Domain.Interfaces;
 using QOPIQ.Domain.Interfaces.Repositories;
-using QOPIQ.Domain.Interfaces.Services;
+using QOPIQ.Domain.Entities;
+using QOPIQ.Domain.Settings;
+using Microsoft.AspNetCore.Hosting;
 using QOPIQ.Infrastructure.Configuration;
-using QOPIQ.Infrastructure.Data;
-using QOPIQ.Infrastructure.Repositories;
-using QOPIQ.Infrastructure.Services;
+
+// Use fully qualified names to avoid ambiguity
+using IPrinterRepository = QOPIQ.Domain.Interfaces.Repositories.IPrinterRepository;
+using ISnmpService = QOPIQ.Domain.Interfaces.Services.ISnmpService;
+using IPrinterMonitoringService = QOPIQ.Application.Interfaces.IPrinterMonitoringService;
+using IUnitOfWork = QOPIQ.Domain.Interfaces.IUnitOfWork;
+using IAuthService = QOPIQ.Application.Interfaces.IAuthService;
 
 namespace QOPIQ.Infrastructure
 {
@@ -19,60 +27,72 @@ namespace QOPIQ.Infrastructure
         public static IServiceCollection AddInfrastructureServices(
             this IServiceCollection services,
             IConfiguration configuration,
-            IHostEnvironment environment)
+            IWebHostEnvironment environment)
         {
-            // Configuración de opciones
-            services.Configure<SnmpOptions>(configuration.GetSection("Snmp"));
+            // Add database context
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
-            // Base de datos
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
-
-            // Configuración de Identity
-            var identityBuilder = services.AddIdentityCore<User>(options =>
-            {
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequiredLength = 6;
-                options.User.RequireUniqueEmail = true;
-            });
-
-            identityBuilder.AddRoles<IdentityRole<Guid>>();
-            identityBuilder.AddEntityFrameworkStores<ApplicationDbContext>();
-            identityBuilder.AddDefaultTokenProviders();
-            identityBuilder.AddSignInManager<SignInManager<User>>();
-            identityBuilder.AddUserManager<UserManager<User>>();
-            identityBuilder.AddRoleManager<RoleManager<IdentityRole<Guid>>>();
-
-            // Repositorios genéricos
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-
-            // Repositorios específicos
+            // Repositories - Use Domain interfaces with Infrastructure implementations
+            // Register specific repository implementations for each entity type
+            services.AddScoped<Domain.Interfaces.Repositories.IUserRepository, UserRepository>();
             services.AddScoped<IPrinterRepository, PrinterRepository>();
+            services.AddScoped<Domain.Interfaces.Repositories.ISubscriptionRepository, SubscriptionRepository>();
+            services.AddScoped<Domain.Interfaces.Repositories.IRefreshTokenRepository, RefreshTokenRepository>();
 
-            // Servicios
+            // Unit of Work
+            services.AddScoped<IUnitOfWork, Data.UnitOfWork>();
+
+            // Register SNMP options from configuration
+            services.Configure<SnmpOptions>(configuration.GetSection("Snmp"));
+            
+            // Register SNMP service
             services.AddScoped<ISnmpService, SnmpService>();
-            services.AddScoped<IJwtService, JwtService>();
-
-            // Unit of Work - Registrar con resolución manual de dependencias
-            services.AddScoped<IUnitOfWork>(provider => 
+            
+            // Register PrinterMonitoringService with all dependencies
+            services.AddScoped<IPrinterMonitoringService>(provider =>
             {
-                var context = provider.GetRequiredService<ApplicationDbContext>();
-                var printerRepository = provider.GetRequiredService<IPrinterRepository>();
-                return new UnitOfWork(context, printerRepository);
+                var unitOfWork = provider.GetRequiredService<IUnitOfWork>();
+                var snmpService = provider.GetRequiredService<ISnmpService>();
+                var options = provider.GetRequiredService<IOptions<SnmpOptions>>();
+                
+                return new PrinterMonitoringService(
+                    unitOfWork,
+                    snmpService,
+                    options
+                );
             });
+            
+            // Register other services if they exist in the Application layer
+            // Commented out until PrinterService dependencies are resolved
+            // var printerServiceType = Type.GetType("QOPIQ.Application.Interfaces.IPrinterService, QOPIQ.Application");
+            // if (printerServiceType != null)
+            // {
+            //     var printerServiceImpl = Type.GetType("QOPIQ.Infrastructure.Services.PrinterService, QOPIQ.Infrastructure");
+            //     if (printerServiceImpl != null)
+            //     {
+            //         services.AddScoped(printerServiceType, printerServiceImpl);
+            //     }
+            // }
 
-            // Configuración para desarrollo
-            if (environment.IsDevelopment())
-            {
-                // Configuraciones específicas para desarrollo
-            }
+            // Configuración de JWT
+            services.Configure<QOPIQ.Domain.Settings.JwtSettings>(
+                configuration.GetSection("JwtSettings"));
+
+            // Add HttpContextAccessor for current user service
+            services.AddHttpContextAccessor();
+            services.AddScoped<Application.Interfaces.ICurrentUserService, Services.CurrentUserService>();
+
+            // Register AuthService with all its dependencies
+            services.AddScoped<IAuthService, AuthService>();
+            
+            // Add logging
+            services.AddLogging();
+
+            // BCrypt.Net-Next is used statically, no DI registration needed
 
             return services;
         }
     }
 }
-

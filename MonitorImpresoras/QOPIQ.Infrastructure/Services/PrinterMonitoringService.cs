@@ -1,151 +1,155 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Threading;
+using Microsoft.Extensions.Options;
 using QOPIQ.Domain.Entities;
+using QOPIQ.Domain.Interfaces;
 using QOPIQ.Domain.Enums;
-using QOPIQ.Domain.Interfaces.Repositories;
-using QOPIQ.Domain.Interfaces.Services;
+using QOPIQ.Infrastructure.Configuration;
+
+// Use fully qualified names to avoid ambiguity
+using IPrinterMonitoringService = QOPIQ.Application.Interfaces.IPrinterMonitoringService;
+using IPrinterRepository = QOPIQ.Domain.Interfaces.Repositories.IPrinterRepository;
+using ISnmpService = QOPIQ.Domain.Interfaces.Services.ISnmpService;
 
 namespace QOPIQ.Infrastructure.Services
 {
     public class PrinterMonitoringService : IPrinterMonitoringService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IRepository<Printer> _printerRepository;
+        private readonly IPrinterRepository _printerRepository;
         private readonly ISnmpService _snmpService;
+        private readonly SnmpOptions _options;
 
-        public PrinterMonitoringService(IUnitOfWork unitOfWork, ISnmpService snmpService)
+        public PrinterMonitoringService(
+            IUnitOfWork unitOfWork, 
+            ISnmpService snmpService,
+            IOptions<SnmpOptions> options)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _printerRepository = unitOfWork.GetRepository<Printer>();
+            _printerRepository = unitOfWork.Printers ?? throw new ArgumentNullException(nameof(unitOfWork.Printers));
             _snmpService = snmpService ?? throw new ArgumentNullException(nameof(snmpService));
+            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
-        public async Task<IEnumerable<Printer>> GetAllPrintersAsync()
+        public async Task<List<Printer>> GetAllPrintersAsync()
         {
-            return await _printerRepository.GetAllAsync();
+            var printers = await _printerRepository.GetAllAsync(CancellationToken.None);
+            return new List<Printer>(printers);
         }
 
         public async Task<Printer?> GetPrinterByIdAsync(Guid id)
         {
-            return await _printerRepository.GetByIdAsync(id);
+            return await _printerRepository.GetByIdAsync(id, CancellationToken.None);
         }
 
-        public async Task AddPrinterAsync(Printer printer)
+        public async Task<Printer> AddPrinterAsync(Printer printer)
         {
-            if (printer == null)
-                throw new ArgumentNullException(nameof(printer));
+            if (printer == null) throw new ArgumentNullException(nameof(printer));
+            
+            // Check if a printer with the same IP already exists
+            var existingPrinter = await _printerRepository.GetByIpAddressAsync(printer.IpAddress, CancellationToken.None);
+            if (existingPrinter != null)
+            {
+                throw new InvalidOperationException($"A printer with IP {printer.IpAddress} already exists");
+            }
 
-            await _printerRepository.AddAsync(printer);
-            await _unitOfWork.SaveChangesAsync();
+            await _printerRepository.AddAsync(printer, CancellationToken.None);
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
+            return printer;
         }
 
         public async Task UpdatePrinterAsync(Printer printer)
         {
-            if (printer == null)
-                throw new ArgumentNullException(nameof(printer));
+            if (printer == null) throw new ArgumentNullException(nameof(printer));
+            
+            var existingPrinter = await _printerRepository.GetByIdAsync(printer.Id, CancellationToken.None);
+            if (existingPrinter == null)
+            {
+                throw new KeyNotFoundException($"Printer with ID {printer.Id} not found");
+            }
 
-            _printerRepository.Update(printer);
-            await _unitOfWork.SaveChangesAsync();
+            // Check if IP is being changed and if it's already in use
+            if (existingPrinter.IpAddress != printer.IpAddress)
+            {
+                var printerWithSameIp = await _printerRepository.GetByIpAddressAsync(printer.IpAddress, CancellationToken.None);
+                if (printerWithSameIp != null)
+                {
+                    throw new InvalidOperationException($"A printer with IP {printer.IpAddress} already exists");
+                }
+            }
+
+            // Update properties
+            existingPrinter.Name = printer.Name;
+            existingPrinter.Model = printer.Model;
+            existingPrinter.IpAddress = printer.IpAddress;
+            existingPrinter.Location = printer.Location;
+            existingPrinter.DepartmentId = printer.DepartmentId;
+            existingPrinter.IsActive = printer.IsActive;
+            existingPrinter.UpdatedAt = DateTime.UtcNow;
+
+            _printerRepository.Update(existingPrinter);
+            await _unitOfWork.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task DeletePrinterAsync(Guid id)
         {
-            var printer = await _printerRepository.GetByIdAsync(id);
+            var printer = await _printerRepository.GetByIdAsync(id, CancellationToken.None);
             if (printer != null)
             {
-                _printerRepository.Delete(printer);
-                await _unitOfWork.SaveChangesAsync();
+                _printerRepository.Remove(printer);
+                await _unitOfWork.SaveChangesAsync(CancellationToken.None);
             }
         }
 
         public async Task<bool> TestPrinterConnectionAsync(string ipAddress)
         {
-            // Simula una prueba de conexión
-            await Task.Delay(100);
-            return true;
-        }
-
-        public async Task<PrinterStatus> GetPrinterStatusAsync(Guid id)
-        {
-            // Simulación de estado
-            await Task.Delay(50);
-            return PrinterStatus.Online;
-        }
-
-        public async Task MonitorPrintersAsync(CancellationToken cancellationToken = default)
-        {
             try
             {
-                // Start a new transaction
-                await _unitOfWork.BeginTransactionAsync(cancellationToken);
+                var status = await _snmpService.GetPrinterStatusAsync(ipAddress, _options.Community);
+                return !string.IsNullOrEmpty(status);
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-                var printers = await _printerRepository.GetAllAsync();
-                foreach (var printer in printers)
+        public async Task<Dictionary<string, object>> GetPrinterStatusAsync(Guid printerId)
+        {
+            var printer = await _printerRepository.GetByIdAsync(printerId, CancellationToken.None);
+            if (printer == null)
+                throw new KeyNotFoundException($"Printer with ID {printerId} not found");
+
+            var status = new Dictionary<string, object>
+            {
+                ["printerId"] = printer.Id,
+                ["name"] = printer.Name,
+                ["status"] = printer.Status.ToString(),
+                ["isOnline"] = printer.IsOnline,
+                ["lastStatusUpdate"] = printer.UpdatedAt,
+                ["ipAddress"] = printer.IpAddress
+            };
+
+            // Add SNMP information if available
+            if (printer.IsOnline && !string.IsNullOrEmpty(printer.IpAddress))
+            {
+                try
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                        break;
-
-                    try
+                    var snmpInfo = await _snmpService.GetPrinterInfoAsync(printer.IpAddress, _options.Community);
+                    foreach (var kvp in snmpInfo)
                     {
-                        // Get printer status via SNMP
-                        var statusText = await _snmpService.GetPrinterStatusAsync(printer.IpAddress);
-                        
-                        // Convert status text to enum
-                        var status = statusText.ToLower() switch
-                        {
-                            "online" => PrinterStatus.Online,
-                            "offline" => PrinterStatus.Offline,
-                            "error" => PrinterStatus.Error,
-                            "warning" => PrinterStatus.Warning,
-                            "maintenance" => PrinterStatus.Maintenance,
-                            _ => PrinterStatus.Offline
-                        };
-                        
-                        // Update printer status and last update time
-                        printer.Status = status;
-                        printer.LastStatusUpdate = DateTime.UtcNow;
-                        printer.IsOnline = status != PrinterStatus.Offline && status != PrinterStatus.Error;
-                        
-                        // Update printer in database
-                        _printerRepository.Update(printer);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Update printer status to error if there's an issue
-                        printer.Status = PrinterStatus.Error;
-                        printer.StatusMessage = $"Error checking status: {ex.Message}";
-                        printer.LastStatusUpdate = DateTime.UtcNow;
-                        printer.IsOnline = false;
-                        
-                        _printerRepository.Update(printer);
-                        
-                        // Log the error
-                        Console.WriteLine($"Error updating printer {printer.Id} at {printer.IpAddress}: {ex.Message}");
+                        status[kvp.Key] = kvp.Value;
                     }
                 }
+                catch (Exception ex)
+                {
+                    status["snmpError"] = ex.Message;
+                }
+            }
 
-                // Save all changes in a single transaction
-                int changes = await _unitOfWork.SaveChangesAsync(cancellationToken);
-                
-                // Commit the transaction if we get here without exceptions
-                await _unitOfWork.CommitTransactionAsync(cancellationToken);
-                
-                // Log the monitoring result
-                Console.WriteLine($"Successfully monitored {printers.Count()} printers. {changes} changes saved.");
-            }
-            catch (Exception ex)
-            {
-                // Rollback the transaction on error
-                await _unitOfWork.RollbackTransactionAsync(CancellationToken.None);
-                
-                // Log the error
-                Console.WriteLine($"Error in MonitorPrintersAsync: {ex.Message}");
-                
-                // Re-throw to allow the caller to handle the error
-                throw new InvalidOperationException("Failed to monitor printers. See inner exception for details.", ex);
-            }
+            return status;
         }
     }
 }

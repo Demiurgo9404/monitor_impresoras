@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace QOPIQ.Application.DTOs
 {
     public class PrinterStatsDto
@@ -7,9 +5,11 @@ namespace QOPIQ.Application.DTOs
         public int TotalPrinters { get; set; }
         public int OnlinePrinters { get; set; }
         public int OfflinePrinters { get; set; }
-        public int NeedsMaintenance { get; set; }
-        public int LowOnSupplies { get; set; }
-        public Dictionary<string, int> StatusCount { get; set; } = new Dictionary<string, int>();
-        public Dictionary<string, int> ModelDistribution { get; set; } = new Dictionary<string, int>();
+        
+        // Propiedades adicionales para el frontend
+        public int ActiveCount => OnlinePrinters;
+        public int WarningCount => 0; // TODO: Implementar lógica real
+        public int InactiveCount => OfflinePrinters;
+        public int Total => TotalPrinters;
     }
 }

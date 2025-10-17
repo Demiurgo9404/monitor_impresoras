@@ -1,85 +1,151 @@
-using Microsoft.EntityFrameworkCore.Storage;
-using QOPIQ.Domain.Interfaces;
-using QOPIQ.Domain.Interfaces.Repositories;
-using QOPIQ.Infrastructure.Repositories;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Storage;
+using QOPIQ.Domain.Interfaces;
+using QOPIQ.Domain.Interfaces.Repositories;
+using QOPIQ.Infrastructure.Data.Repositories;
 
 namespace QOPIQ.Infrastructure.Data
 {
     /// <summary>
-    /// Implementación de la unidad de trabajo que maneja transacciones y guardado de cambios
+    /// Implementación de la unidad de trabajo que coordina múltiples repositorios
+    /// y gestiona transacciones de base de datos.
     /// </summary>
-    public class UnitOfWork : IUnitOfWork, IDisposable, IAsyncDisposable
+    public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     {
-        private readonly ApplicationDbContext _context;
-        private IDbContextTransaction? _currentTransaction;
+        private readonly AppDbContext _context;
+        private IDbContextTransaction _transaction;
         private bool _disposed = false;
 
-        public IPrinterRepository Printers { get; }
+        private IPrinterRepository _printers;
+        private IUserRepository _users;
+        private IRefreshTokenRepository _refreshTokens;
+        private ISubscriptionRepository _subscriptions;
 
-        public UnitOfWork(ApplicationDbContext context, IPrinterRepository printerRepository)
+        /// <summary>
+        /// Inicializa una nueva instancia de la clase <see cref="UnitOfWork"/>
+        /// </summary>
+        /// <param name="context">Contexto de base de datos</param>
+        public UnitOfWork(AppDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            Printers = printerRepository ?? throw new ArgumentNullException(nameof(printerRepository));
         }
 
+        /// <inheritdoc />
+        public IPrinterRepository Printers => _printers ??= new PrinterRepository(_context);
+        
+        /// <inheritdoc />
+        public IUserRepository Users => _users ??= new UserRepository(_context);
+        
+        /// <inheritdoc />
+        public IRefreshTokenRepository RefreshTokens => _refreshTokens ??= new RefreshTokenRepository(_context);
+        
+        /// <inheritdoc />
+        public ISubscriptionRepository Subscriptions => _subscriptions ??= new SubscriptionRepository(_context);
+
+        /// <inheritdoc />
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task BeginTransactionAsync()
         {
-            if (_currentTransaction != null)
-            throw new InvalidOperationException("Ya existe una transacción en curso");
-
-            _currentTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+            if (_transaction != null)
+            {
+                throw new InvalidOperationException("Ya hay una transacción activa");
+            }
+            _transaction = await _context.Database.BeginTransactionAsync();
         }
 
-        public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task CommitTransactionAsync()
         {
-            if (_currentTransaction == null)
-                throw new InvalidOperationException("No hay ninguna transacción activa para confirmar");
+            if (_transaction == null)
+            {
+                throw new InvalidOperationException("No hay una transacción activa para confirmar");
+            }
 
             try
             {
-                await SaveChangesAsync(cancellationToken);
-                await _currentTransaction.CommitAsync(cancellationToken);
+                await _context.SaveChangesAsync();
+                await _transaction.CommitAsync();
+            }
+            catch
+            {
+                await RollbackTransactionAsync();
+                throw;
             }
             finally
             {
-                await _currentTransaction.DisposeAsync();
-                _currentTransaction = null;
+                await _transaction.DisposeAsync();
+                _transaction = null;
             }
         }
 
-        public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async Task RollbackTransactionAsync()
         {
-            if (_currentTransaction == null)
-                return; // No hay transacción que revertir
+            if (_transaction == null)
+            {
+                return;
+            }
 
             try
             {
-                await _currentTransaction.RollbackAsync(cancellationToken);
+                await _transaction.RollbackAsync();
             }
             finally
             {
-                await _currentTransaction.DisposeAsync();
-                _currentTransaction = null;
+                await _transaction.DisposeAsync();
+                _transaction = null;
             }
         }
+
+        /// <inheritdoc />
+        public void RollbackTransaction()
+        {
+            try
+            {
+                _transaction?.Rollback();
+            }
+            finally
+            {
+                if (_transaction != null)
+                {
+                    _transaction.Dispose();
+                    _transaction = null;
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public bool HasActiveTransaction()
+        {
+            return _transaction != null;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var result = await _context.SaveChangesAsync(cancellationToken);
+                return result > 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        #region IDisposable Implementation
 
         public void Dispose()
         {
             Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await DisposeAsync(true);
             GC.SuppressFinalize(this);
         }
 
@@ -89,11 +155,21 @@ namespace QOPIQ.Infrastructure.Data
             {
                 if (disposing)
                 {
-                    _currentTransaction?.Dispose();
+                    _transaction?.Dispose();
                     _context.Dispose();
                 }
                 _disposed = true;
             }
+        }
+
+        #endregion
+
+        #region IAsyncDisposable Implementation
+
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsync(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual async ValueTask DisposeAsync(bool disposing)
@@ -102,14 +178,16 @@ namespace QOPIQ.Infrastructure.Data
             {
                 if (disposing)
                 {
-                    if (_currentTransaction != null)
+                    if (_transaction != null)
                     {
-                        await _currentTransaction.DisposeAsync();
+                        await _transaction.DisposeAsync();
                     }
                     await _context.DisposeAsync();
                 }
                 _disposed = true;
             }
         }
+
+        #endregion
     }
 }

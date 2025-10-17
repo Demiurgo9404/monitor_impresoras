@@ -50,9 +50,44 @@ namespace QOPIQ.Domain.Entities
         public string? Location { get; set; }
 
         /// <summary>
-        /// Department where the printer is located
+        /// Department ID the printer belongs to
         /// </summary>
-        public string? Department { get; set; }
+        public Guid? DepartmentId { get; set; }
+
+        /// <summary>
+        /// Current toner level percentage (0-100)
+        /// </summary>
+        public int TonerLevelPercentage { get; set; } = 100;
+
+        /// <summary>
+        /// Toner level as a string (for backward compatibility)
+        /// </summary>
+        public string TonerLevel { get; set; } = "100%";
+
+        /// <summary>
+        /// Type of the printer
+        /// </summary>
+        public PrinterType PrinterType { get; set; } = PrinterType.Unknown;
+
+        /// <summary>
+        /// Date and time of the last toner level update
+        /// </summary>
+        public DateTime? LastTonerUpdate { get; set; }
+
+        /// <summary>
+        /// Indicates if the printer is active in the system
+        /// </summary>
+        public bool IsActive { get; set; } = true;
+
+        /// <summary>
+        /// Timestamp of the last check
+        /// </summary>
+        public DateTime LastChecked { get; set; } = DateTime.UtcNow;
+
+        /// <summary>
+        /// Navigation property for department
+        /// </summary>
+        public virtual Department? Department { get; set; }
 
         /// <summary>
         /// Printer serial number

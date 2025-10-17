@@ -50,6 +50,19 @@ public class AuthService : IAuthService
         await _storage.DeleteAsync(TokenKey);
     }
 
+    public async Task<string?> GetTokenAsync(string username, string password)
+    {
+        var http = _factory.CreateClient("QOPIQ.API");
+        var response = await http.PostAsJsonAsync("auth/token", new { username, password });
+        
+        if (!response.IsSuccessStatusCode)
+            return null;
+            
+        var content = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(content);
+        return doc.RootElement.GetProperty("token").GetString();
+    }
+
     public static async Task<string?> GetTokenAsync(ProtectedSessionStorage storage)
     {
         var r = await storage.GetAsync<string>(TokenKey);

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,6 +18,7 @@
     <Compile Include="Entities\**\*.cs" />
     <Compile Include="Enums\**\*.cs" />
     <Compile Include="Interfaces\**\*.cs" />
+    <Compile Include="Settings\**\*.cs" />
   </ItemGroup>
 
 </Project>

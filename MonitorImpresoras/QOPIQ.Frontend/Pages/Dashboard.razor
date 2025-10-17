@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.Extensions.Options
 @using Microsoft.JSInterop
+@using QOPIQ.Domain.Enums
 @inject IPrinterService PrinterService
 @inject IOptions<FrontendOptions> Opt
 @inject IJSRuntime JSRuntime
@@ -92,8 +93,8 @@
                                    class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between">
                                         <h6 class="mb-1">@printer.Name</h6>
-                                        <small class="badge @(printer.Status?.ToLower() == "online" ? "ok" : "bad")">
-                                            @printer.Status
+                                        <small class="badge @(printer.Status == PrinterStatus.Online ? "ok" : "bad")">
+                                            @printer.Status.ToString()
                                         </small>
                                     </div>
                                     <p class="mb-1">@printer.Model</p>
@@ -147,8 +148,8 @@
                                     <td>@printer.IpAddress</td>
                                     <td>@(printer.Location ?? "-")</td>
                                     <td>
-                                        <span class="badge @(printer.Status?.ToLower() == "online" ? "ok" : "bad")">
-                                            @printer.Status
+                                        <span class="badge @(printer.Status == PrinterStatus.Online ? "ok" : "bad")">
+                                            @printer.Status.ToString()
                                         </span>
                                     </td>
                                     <td class="text-end">
@@ -218,7 +219,7 @@
             
             // Actualizar listas
             filteredPrinters = new List<PrinterDto>(list);
-            recentPrinters = list.OrderByDescending(p => p.LastUpdated).ToList();
+            recentPrinters = list.OrderByDescending(p => p.UpdatedAt).ToList();
             
             // Actualizar gráfico
             if (module != null)
@@ -260,21 +261,13 @@
             hub.On<Guid, string>("ReceivePrinterStatus", async (id, status) =>
             {
                 var item = list?.FirstOrDefault(x => x.Id == id);
-                if (item != null)
+                if (item != null && Enum.TryParse<PrinterStatus>(status, out var parsedStatus))
                 {
-                    item.Status = status;
-                    item.LastUpdated = DateTime.UtcNow;
-                    
+                    item.Status = parsedStatus;
+                    item.UpdatedAt = DateTime.UtcNow;
+
                     // Actualizar estadísticas
                     stats = await PrinterService.GetStatsAsync();
-                    await UpdateChart();
-                    
-                    // Actualizar lista de recientes
-                    recentPrinters = list!
-                        .OrderByDescending(p => p.LastUpdated)
-                        .Take(5)
-                        .ToList();
-                        
                     await InvokeAsync(StateHasChanged);
                 }
             });

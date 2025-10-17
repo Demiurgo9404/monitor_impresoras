@@ -1,4 +1,7 @@
-using QOPIQ.Frontend.Models;
+using QOPIQ.Application.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace QOPIQ.Frontend.Services;
 

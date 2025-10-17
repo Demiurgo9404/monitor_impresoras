@@ -5,6 +5,7 @@ using QOPIQ.Domain.Entities;
 using QOPIQ.Domain.Enums;
 using SubscriptionStatusEnum = QOPIQ.Domain.Enums.SubscriptionStatus;
 using PrinterStatusEnum = QOPIQ.Domain.Enums.PrinterStatus;
+using InvoiceStatus = QOPIQ.Domain.Enums.InvoiceStatus;
 
 namespace QOPIQ.Domain.DTOs
 {
@@ -176,7 +177,7 @@ namespace QOPIQ.Domain.DTOs
         public Guid Id { get; set; } = default;
         public decimal Amount { get; set; } = 0;
         public string Currency { get; set; } = string.Empty;
-        public PaymentStatus Status { get; set; } = PaymentStatus.Unknown;
+        public InvoiceStatus Status { get; set; } = InvoiceStatus.Pending;
         public DateTime PaymentDate { get; set; } = DateTime.MinValue;
         public string PaymentMethod { get; set; } = string.Empty;
         public string TransactionId { get; set; } = string.Empty;

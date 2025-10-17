@@ -2,7 +2,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.Extensions.Options;
-using QOPIQ.Frontend.Models;
 using QOPIQ.Application.DTOs;
 using System;
 using System.Collections.Generic;
@@ -16,29 +15,29 @@ public class PrinterService : IPrinterService
     private readonly IHttpClientFactory _factory;
     private readonly ProtectedSessionStorage _storage;
     private readonly FrontendOptions _opt;
-    private readonly IAuthService _authService;
-    private readonly HttpClient _http;
 
     public PrinterService(IHttpClientFactory factory,
         ProtectedSessionStorage storage,
-        IOptions<FrontendOptions> opt,
-        IAuthService authService)
+        IOptions<FrontendOptions> opt)
     {
         _factory = factory;
         _storage = storage;
         _opt = opt.Value;
-        _authService = authService;
-        _http = _factory.CreateClient("QOPIQ.API");
     }
 
     private async Task<HttpClient> ClientAsync()
     {
         var http = _factory.CreateClient("QOPIQ.API");
-        var token = await _authService.GetTokenAsync(_storage);
-        if (!string.IsNullOrWhiteSpace(token))
+
+        if (_storage != null)
         {
-            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var result = await _storage.GetAsync<string>("authToken");
+            if (result.Success && !string.IsNullOrWhiteSpace(result.Value))
+            {
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Value);
+            }
         }
+
         return http;
     }
 
@@ -60,7 +59,7 @@ public class PrinterService : IPrinterService
         var response = await http.PostAsJsonAsync("api/printers", printer);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<PrinterDto>() ?? 
-               throw new Exception("No se pudo crear la impresora");
+               throw new InvalidOperationException("No se pudo crear la impresora");
     }
 
     public async Task UpdateAsync(PrinterUpdateDto printer)
@@ -94,7 +93,7 @@ public class PrinterService : IPrinterService
     {
         var http = await ClientAsync();
         return await http.GetFromJsonAsync<PrinterStatsDto>("api/printers/stats") ?? 
-               new PrinterStatsDto();
+               new PrinterStatsDto { TotalPrinters = 0, OnlinePrinters = 0, OfflinePrinters = 0 };
     }
 
     public async Task<List<PrinterDto>> SearchAsync(string searchTerm)

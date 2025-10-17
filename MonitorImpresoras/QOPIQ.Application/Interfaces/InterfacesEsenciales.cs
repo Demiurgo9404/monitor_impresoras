@@ -69,15 +69,6 @@ namespace QOPIQ.Application.Interfaces
 
     // Acceso al tenant actual se encuentra en QOPIQ.Application.Interfaces.MultiTenancy.ITenantAccessor
 
-    // Servicio de autenticación
-    public interface IAuthService
-    {
-        Task<AuthResponseDto> LoginAsync(LoginDto loginDto, string tenantId);
-        Task<AuthResponseDto> RefreshTokenAsync(string token, string refreshToken);
-        Task<bool> ValidateTokenAsync(string token);
-        Task<bool> LogoutAsync(string userId);
-    }
-
     // Servicio de correo electrónico
     public interface IEmailService
     {

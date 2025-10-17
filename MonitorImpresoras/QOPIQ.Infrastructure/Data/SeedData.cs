@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using QOPIQ.Domain.Entities;
+using QOPIQ.Domain.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace QOPIQ.Infrastructure.Data
     public static class SeedData
     {
         public static async Task InitializeAsync(
-            ApplicationDbContext context,
+            AppDbContext context,
             UserManager<User> userManager,
             RoleManager<IdentityRole<Guid>> roleManager)
         {
@@ -55,10 +56,10 @@ namespace QOPIQ.Infrastructure.Data
                         Name = "HP LaserJet Pro M404",
                         IpAddress = "192.168.1.100",
                         Model = "HP LaserJet Pro M404",
-                        Status = "Online",
-                        Location = "Piso 1 - Oficina 101",
-                        IsActive = true,
-                        LastChecked = DateTime.UtcNow
+                        Status = PrinterStatus.Online,
+                        Location = "Piso 1 - Oficina 101"
+                        //IsActive = true,
+                        //LastChecked = DateTime.UtcNow
                     },
                     new Printer
                     {
@@ -66,10 +67,10 @@ namespace QOPIQ.Infrastructure.Data
                         Name = "Canon ImageCLASS MF644Cdw",
                         IpAddress = "192.168.1.101",
                         Model = "Canon MF644Cdw",
-                        Status = "Online",
-                        Location = "Piso 2 - Sala de Reuniones",
-                        IsActive = true,
-                        LastChecked = DateTime.UtcNow
+                        Status = PrinterStatus.Online,
+                        Location = "Piso 2 - Sala de Reuniones"
+                        //IsActive = true,
+                        //LastChecked = DateTime.UtcNow
                     },
                     new Printer
                     {
@@ -77,10 +78,10 @@ namespace QOPIQ.Infrastructure.Data
                         Name = "Epson WorkForce Pro WF-4740",
                         IpAddress = "192.168.1.102",
                         Model = "Epson WF-4740",
-                        Status = "Offline",
-                        Location = "Piso 1 - Recepción",
-                        IsActive = true,
-                        LastChecked = DateTime.UtcNow.AddHours(-1)
+                        Status = PrinterStatus.Offline,
+                        Location = "Piso 1 - Recepción"
+                        //IsActive = true,
+                        //LastChecked = DateTime.UtcNow.AddHours(-1)
                     }
                 };
 

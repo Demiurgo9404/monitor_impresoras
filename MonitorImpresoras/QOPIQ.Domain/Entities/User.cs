@@ -84,6 +84,11 @@ namespace QOPIQ.Domain.Entities
         public virtual ICollection<UserRoleEntity> UserRoles { get; set; } = new List<UserRoleEntity>();
 
         /// <summary>
+        /// List of user's role names
+        /// </summary>
+        public List<string> Roles { get; set; } = new();
+
+        /// <summary>
         /// Navigation property for user's refresh tokens
         /// </summary>
         public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();

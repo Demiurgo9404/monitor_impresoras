@@ -36,6 +36,11 @@ namespace QOPIQ.Domain.Entities
         public virtual Tenant? Tenant { get; set; }
 
         /// <summary>
+        /// Total amount of the invoice
+        /// </summary>
+        public decimal Amount { get; set; }
+
+        /// <summary>
         /// Date when the invoice was issued
         /// </summary>
         public DateTime IssueDate { get; set; } = DateTime.UtcNow;

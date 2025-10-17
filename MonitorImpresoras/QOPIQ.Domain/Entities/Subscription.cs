@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using QOPIQ.Domain.Common;
+using QOPIQ.Domain.Enums;
 
 namespace QOPIQ.Domain.Entities
 {
@@ -37,6 +39,11 @@ namespace QOPIQ.Domain.Entities
         /// Price per billing cycle
         /// </summary>
         public decimal Price { get; set; }
+
+        /// <summary>
+        /// The subscription plan details (alias for PlanName for backward compatibility)
+        /// </summary>
+        public string Plan { get => PlanName; set => PlanName = value; }
 
         /// <summary>
         /// Currency code (e.g., USD, EUR, MXN)
@@ -107,6 +114,21 @@ namespace QOPIQ.Domain.Entities
         /// External subscription ID (e.g., from payment processor)
         /// </summary>
         public string? ExternalSubscriptionId { get; set; }
+
+        /// <summary>
+        /// Stripe subscription ID
+        /// </summary>
+        public string? StripeSubscriptionId { get; set; }
+
+        /// <summary>
+        /// User ID for the subscription owner
+        /// </summary>
+        public Guid UserId { get; set; }
+
+        /// <summary>
+        /// Collection of invoices for this subscription
+        /// </summary>
+        public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
 
         /// <summary>
         /// Tenant ID for multi-tenancy

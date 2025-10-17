@@ -1,0 +1,58 @@
+{
+  "Version": 1,
+  "Hash": "B+3mBp/C7og2rwLzITxH/fLfB69asf+2SiWlR3c2G7o=",
+  "Source": "QOPIQ.Frontend",
+  "BasePath": "_content/QOPIQ.Frontend",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "QOPIQ.Frontend\\wwwroot",
+      "Source": "QOPIQ.Frontend",
+      "ContentRoot": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Frontend\\wwwroot\\",
+      "BasePath": "_content/QOPIQ.Frontend",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Frontend\\wwwroot\\css\\site.css",
+      "SourceId": "QOPIQ.Frontend",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Frontend\\wwwroot\\",
+      "BasePath": "_content/QOPIQ.Frontend",
+      "RelativePath": "css/site.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\site.css"
+    },
+    {
+      "Identity": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Frontend\\wwwroot\\js\\chart.js",
+      "SourceId": "QOPIQ.Frontend",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Advance\\Documents\\GitHub\\monitor_impresoras\\MonitorImpresoras\\QOPIQ.Frontend\\wwwroot\\",
+      "BasePath": "_content/QOPIQ.Frontend",
+      "RelativePath": "js/chart.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\chart.js"
+    }
+  ]
+}

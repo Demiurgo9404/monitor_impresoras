@@ -58,7 +58,7 @@ namespace QOPIQ.API.Middleware
                 using (_logger.BeginScope(new Dictionary<string, object>
                 {
                     ["TenantId"] = tenantId,
-                    ["TenantName"] = tenantInfo?.Name ?? "Unknown"
+                    ["TenantName"] = tenantInfo?.ToString() ?? "Unknown"
                 }))
                 {
                     _logger.LogDebug("Request processed for tenant {TenantId}", tenantId);

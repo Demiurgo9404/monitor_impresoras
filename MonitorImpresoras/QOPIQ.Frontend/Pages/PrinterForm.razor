@@ -1,90 +1,44 @@
-@page "/printers/form/{id?}"
-@inject IPrinterService PrinterService
-@inject NavigationManager Nav
-@using QOPIQ.Frontend.Models
+@page "/printers/form"
+@using QOPIQ.Application.DTOs
+@using QOPIQ.Domain.Enums
 
-<h3>@titulo</h3>
+<EditForm Model="@Printer" OnValidSubmit="@SavePrinter">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
-<div class="card p-4 shadow-sm" style="max-width: 550px;">
-    <EditForm Model="modelo" OnValidSubmit="Guardar">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <div class="form-group">
+        <label>Nombre</label>
+        <InputText @bind-Value="Printer.Name" class="form-control" />
+    </div>
 
-        <div class="mb-3">
-            <label>Nombre:</label>
-            <InputText class="form-control" @bind-Value="modelo.Name" />
-        </div>
+    <div class="form-group">
+        <label>Dirección IP</label>
+        <InputText @bind-Value="Printer.IpAddress" class="form-control" />
+    </div>
 
-        <div class="mb-3">
-            <label>Modelo:</label>
-            <InputText class="form-control" @bind-Value="modelo.Model" />
-        </div>
+    <div class="form-group">
+        <label>Ubicación</label>
+        <InputText @bind-Value="Printer.Location" class="form-control" />
+    </div>
 
-        <div class="mb-3">
-            <label>Dirección IP:</label>
-            <InputText class="form-control" @bind-Value="modelo.IpAddress" />
-        </div>
+    <div class="form-group">
+        <label>Estado</label>
+        <InputSelect @bind-Value="Printer.Status" class="form-select">
+            @foreach (var status in Enum.GetValues<PrinterStatus>())
+            {
+                <option value="@status">@status</option>
+            }
+        </InputSelect>
+    </div>
 
-        <div class="mb-3">
-            <label>Ubicación:</label>
-            <InputText class="form-control" @bind-Value="modelo.Location" />
-        </div>
-
-        <button class="btn btn-success me-2">💾 Guardar</button>
-        <button class="btn btn-secondary" type="button" @onclick="Cancelar">Cancelar</button>
-    </EditForm>
-</div>
+    <button class="btn btn-primary mt-3" type="submit">Guardar</button>
+</EditForm>
 
 @code {
-    [Parameter] public string? Id { get; set; }
+    [Parameter] public PrinterDto Printer { get; set; } = new();
 
-    private bool esEdicion;
-    private PrinterCreateDto modelo = new();
-    private string titulo = "Nueva Impresora";
-
-    protected override async Task OnInitializedAsync()
+    private async Task SavePrinter()
     {
-        if (!string.IsNullOrWhiteSpace(Id))
-        {
-            var printer = await PrinterService.GetByIdAsync(Guid.Parse(Id));
-            if (printer != null)
-            {
-                modelo = new PrinterCreateDto
-                {
-                    Name = printer.Name,
-                    Model = printer.Model,
-                    IpAddress = printer.IpAddress,
-                    Location = printer.Location
-                };
-                esEdicion = true;
-                titulo = "Editar Impresora";
-            }
-        }
+        Console.WriteLine($"Impresora guardada: {Printer.Name}");
     }
-
-    private async Task Guardar()
-    {
-        bool ok;
-        if (esEdicion && Id != null)
-        {
-            ok = await PrinterService.UpdateAsync(new PrinterUpdateDto
-            {
-                Id = Guid.Parse(Id),
-                Name = modelo.Name,
-                Model = modelo.Model,
-                IpAddress = modelo.IpAddress,
-                Location = modelo.Location,
-                IsActive = true
-            });
-        }
-        else
-        {
-            ok = await PrinterService.CreateAsync(modelo);
-        }
-
-        if (ok)
-            Nav.NavigateTo("/printers", true);
-    }
-
-    private void Cancelar() => Nav.NavigateTo("/printers");
 }

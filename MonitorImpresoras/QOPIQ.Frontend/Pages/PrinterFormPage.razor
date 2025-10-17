@@ -1,5 +1,6 @@
 @page "/printers/form"
 @page "/printers/form/{Id:guid}"
+@using QOPIQ.Application.DTOs
 @inject IPrinterService PrinterService
 @inject NavigationManager Nav
 
@@ -10,11 +11,13 @@
         <h3>@(IsEdit ? "✏️ Editar Impresora" : "➕ Nueva Impresora")</h3>
     </div>
     <div class="card-body">
-        <PrinterForm 
-            Model="@Model" 
-            IsEdit="@IsEdit"
-            OnSubmit="HandleSubmit"
-            OnCancel="HandleCancel" />
+        @if (Printer != null)
+        {
+            <PrinterForm 
+                Printer="@Printer" 
+                OnSubmit="HandleSubmit"
+                OnCancel="HandleCancel" />
+        }
     </div>
 </div>
 
@@ -30,46 +33,64 @@
     
     private bool IsEdit => Id != null;
     private string? errorMessage;
-    private PrinterCreateDto Model { get; set; } = new();
+    private PrinterDto? Printer { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        if (IsEdit && Id.HasValue)
-        {
-            try 
-            {
-                var printer = await PrinterService.GetByIdAsync(Id.Value);
-                if (printer != null)
-                {
-                    Model = new PrinterUpdateDto
-                    {
-                        Id = printer.Id,
-                        Name = printer.Name,
-                        Model = printer.Model,
-                        IpAddress = printer.IpAddress,
-                        Location = printer.Location,
-                        IsActive = true
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                errorMessage = $"Error al cargar la impresora: {ex.Message}";
-            }
-        }
-
-    private async Task HandleSubmit(PrinterCreateDto model)
-    {
-        try
+        try 
         {
             if (IsEdit && Id.HasValue)
             {
-                await PrinterService.UpdateAsync(model);
+                Printer = await PrinterService.GetByIdAsync(Id.Value);
             }
             else
             {
-                await PrinterService.CreateAsync(model);
+                Printer = new PrinterDto
+                {
+                    Id = Guid.Empty,
+                    Status = PrinterStatus.Online,
+                    UpdatedAt = DateTime.UtcNow
+                };
             }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar la impresora: {ex.Message}";
+        }
+    }
+
+    private async Task HandleSubmit(PrinterDto printer)
+    {
+        try
+        {
+            errorMessage = null;
+            
+            if (IsEdit && printer is not null)
+            {
+                var updateDto = new PrinterUpdateDto
+                {
+                    Id = printer.Id,
+                    Name = printer.Name,
+                    Model = printer.Model,
+                    IpAddress = printer.IpAddress,
+                    Location = printer.Location,
+                    Status = printer.Status,
+                    IsActive = true
+                };
+                await PrinterService.UpdateAsync(updateDto);
+            }
+            else
+            {
+                var createDto = new PrinterCreateDto
+                {
+                    Name = printer.Name,
+                    Model = printer.Model,
+                    IpAddress = printer.IpAddress,
+                    Location = printer.Location,
+                };
+                await PrinterService.CreateAsync(createDto);
+            }
+            
             Nav.NavigateTo("/printers");
         }
         catch (Exception ex)
@@ -82,3 +103,4 @@
     {
         Nav.NavigateTo("/printers");
     }
+}
