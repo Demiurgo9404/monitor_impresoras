@@ -1,0 +1,48 @@
+# 📊 QOPIQ Prometheus Configuration
+# Monitoreo de métricas de la aplicación
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'qopiq-monitor'
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # QOPIQ API Health Metrics
+  - job_name: 'qopiq-api'
+    static_configs:
+      - targets: ['qopiq-api:80']
+    metrics_path: '/health'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    params:
+      format: ['prometheus']
+    
+  # PostgreSQL Metrics (si se configura pg_exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 60s
+    
+  # Redis Metrics (si se configura redis_exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 60s
+    
+  # Nginx Metrics (si se configura nginx-prometheus-exporter)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    scrape_interval: 60s
+
+# Alerting rules (opcional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093

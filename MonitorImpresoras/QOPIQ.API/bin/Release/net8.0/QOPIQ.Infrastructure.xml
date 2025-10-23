@@ -4,6 +4,16 @@
         <name>QOPIQ.Infrastructure</name>
     </assembly>
     <members>
+        <member name="T:QOPIQ.Infrastructure.Configuration.SnmpOptions">
+            <summary>
+            Configuración SNMP v3 segura para monitoreo de impresoras
+            </summary>
+        </member>
+        <member name="T:QOPIQ.Infrastructure.Configuration.SnmpV3Options">
+            <summary>
+            Configuración específica para SNMP v3
+            </summary>
+        </member>
         <member name="T:QOPIQ.Infrastructure.Data.Repository`1">
             <summary>
             Implementación base del patrón Repository para el acceso a datos
@@ -55,6 +65,18 @@
         <member name="M:QOPIQ.Infrastructure.Data.UnitOfWork.SaveEntitiesAsync(System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
+        <member name="T:QOPIQ.Infrastructure.Migrations.InitialCreate">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Migrations.InitialCreate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Migrations.InitialCreate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Migrations.InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
         <member name="T:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor">
             <summary>
             Implementación de ITenantAccessor que proporciona acceso al tenant actual.
@@ -80,6 +102,36 @@
         </member>
         <member name="M:QOPIQ.Infrastructure.Services.MultiTenancy.TenantAccessor.GetTenantIdAsync(System.Threading.CancellationToken)">
             <inheritdoc />
+        </member>
+        <member name="T:QOPIQ.Infrastructure.Services.SnmpService">
+            <summary>
+            Servicio SNMP v3 seguro para monitoreo de impresoras
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Services.SnmpService.GetPrinterInfoAsync(System.String,System.String)">
+            <summary>
+            Obtiene información completa de la impresora usando SNMP v3 (simulado por ahora)
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Services.SnmpService.GetRandomStatus">
+            <summary>
+            Obtiene un estado aleatorio para simulación
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Services.SnmpService.IsIpAllowed(System.String)">
+            <summary>
+            Verifica si la IP está en la lista de IPs permitidas
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Services.SnmpService.IsIpInRange(System.Net.IPAddress,System.String)">
+            <summary>
+            Verifica si una IP está en un rango CIDR
+            </summary>
+        </member>
+        <member name="M:QOPIQ.Infrastructure.Services.SnmpService.ParsePrinterStatus(System.String)">
+            <summary>
+            Parsea el estado de la impresora desde SNMP
+            </summary>
         </member>
         <member name="T:QOPIQ.Infrastructure.TenantResolutionMiddleware">
             <summary>

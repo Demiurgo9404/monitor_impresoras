@@ -14,6 +14,8 @@ namespace QOPIQ.Infrastructure.Data
         public DbSet<Subscription> Subscriptions { get; set; } = default!;
         public DbSet<Invoice> Invoices { get; set; } = default!;
         public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
+        public DbSet<Role> Roles { get; set; } = default!;
+        public DbSet<RolePermission> RolePermissions { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -24,6 +26,14 @@ namespace QOPIQ.Infrastructure.Data
             modelBuilder.Entity<Subscription>().ToTable("Subscriptions");
             modelBuilder.Entity<Invoice>().ToTable("Invoices");
             modelBuilder.Entity<RefreshToken>().ToTable("RefreshTokens");
+            modelBuilder.Entity<Role>().ToTable("Roles");
+            modelBuilder.Entity<RolePermission>().ToTable("RolePermissions");
+
+            // Configurar relaciones
+            modelBuilder.Entity<RolePermission>()
+                .HasOne(rp => rp.Role)
+                .WithMany(r => r.Permissions)
+                .HasForeignKey(rp => rp.RoleId);
         }
     }
 }

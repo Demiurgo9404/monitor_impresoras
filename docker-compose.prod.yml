@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # 🗄️ PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: qopiq-postgres
+    environment:
+      POSTGRES_DB: qopiq_production
+      POSTGRES_USER: qopiq_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password_123}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - qopiq-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qopiq_user -d qopiq_production"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  # 🔄 Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: qopiq-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password_123}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - qopiq-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # 🚀 QOPIQ API
+  qopiq-api:
+    build:
+      context: ./MonitorImpresoras
+      dockerfile: ../Dockerfile
+    container_name: qopiq-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - DB_HOST=postgres
+      - DB_NAME=qopiq_production
+      - DB_USER=qopiq_user
+      - DB_PASSWORD=${DB_PASSWORD:-secure_password_123}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-super_secret_jwt_key_for_production_256_bits_minimum_length_required}
+      - REDIS_CONNECTION_STRING=redis:6379,password=${REDIS_PASSWORD:-redis_password_123}
+      - SNMP_COMMUNITY=${SNMP_COMMUNITY:-production_community}
+      - SNMP_V3_USERNAME=${SNMP_V3_USERNAME:-qopiq_snmp_prod}
+      - SNMP_V3_AUTH_KEY=${SNMP_V3_AUTH_KEY:-ProductionAuthKey123!}
+      - SNMP_V3_PRIV_KEY=${SNMP_V3_PRIV_KEY:-ProductionPrivKey456!}
+      - ALLOWED_NETWORK_RANGE=${ALLOWED_NETWORK_RANGE:-10.0.0.0/8}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "5000:80"
+    networks:
+      - qopiq-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+
+  # 🌐 Nginx Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: qopiq-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - qopiq-api
+    networks:
+      - qopiq-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # 📊 Prometheus (Opcional - Monitoreo)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: qopiq-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - qopiq-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  nginx_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+
+networks:
+  qopiq-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

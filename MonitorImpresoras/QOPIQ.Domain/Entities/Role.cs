@@ -12,12 +12,12 @@ namespace QOPIQ.Domain.Entities
         /// <summary>
         /// Nombre del rol (ej. "Admin", "User", "Manager").
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Descripción del rol y sus permisos.
         /// </summary>
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         /// <summary>
         /// Indica si el rol está activo en el sistema.
@@ -40,8 +40,9 @@ namespace QOPIQ.Domain.Entities
     /// </summary>
     public class RolePermission
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
         public Guid RoleId { get; set; }
-        public string Permission { get; set; }
-        public virtual Role Role { get; set; }
+        public string Permission { get; set; } = string.Empty;
+        public virtual Role Role { get; set; } = null!;
     }
 }

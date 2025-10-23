@@ -1,3 +1,9 @@
+C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.AssemblyInfo.cs
+C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.sourcelink.json
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\bin\Release\net8.0\QOPIQ.Infrastructure.deps.json
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\bin\Release\net8.0\QOPIQ.Infrastructure.runtimeconfig.json
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\bin\Release\net8.0\QOPIQ.Infrastructure.dll
@@ -7,12 +13,6 @@ C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Inf
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\bin\Release\net8.0\QOPIQ.Domain.dll
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\bin\Release\net8.0\QOPIQ.Application.pdb
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\bin\Release\net8.0\QOPIQ.Domain.pdb
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.csproj.AssemblyReference.cache
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.AssemblyInfoInputs.cache
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.AssemblyInfo.cs
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.csproj.CoreCompileInputs.cache
-C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.sourcelink.json
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.In.4042D516.Up2Date
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\QOPIQ.Infrastructure.dll
 C:\Users\Advance\Documents\GitHub\monitor_impresoras\MonitorImpresoras\QOPIQ.Infrastructure\obj\Release\net8.0\refint\QOPIQ.Infrastructure.dll

@@ -1,94 +1,42 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using QOPIQ.Application.Interfaces;
-using QOPIQ.Application.Services;
 using QOPIQ.Infrastructure;
 using QOPIQ.API.Hubs;
 using QOPIQ.API.Middleware;
-using QOPIQ.Domain.Entities;
-using System.Text;
+using QOPIQ.Infrastructure.Data;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar Serilog
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateLogger();
+// 🔧 Configurar Serilog desde configuración
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
 
-builder.Host.UseSerilog();
-
-// 🔹 Base de datos y configuración de Identity
+// 🔧 Configuración de infraestructura (incluye JWT, Rate Limiting, Health Checks, etc.)
 builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment);
 
-// 🔹 Servicios de aplicación - AuthService ya está registrado en Infrastructure
-// Otros servicios se registrarán cuando sean necesarios
-
-// 🔹 Configuración JWT
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "default-key-for-development-only"))
-        };
-
-        // 🔹 Habilitar JWT para SignalR
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && 
-                    path.StartsWithSegments("/hubs/printers"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            }
-        };
-    });
-
-// 🔹 CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", b =>
-        b.AllowAnyOrigin()
-         .AllowAnyHeader()
-         .AllowAnyMethod()
-         .WithExposedHeaders("X-Pagination"));
-});
-
+// 🎯 Controladores y API
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// 📚 Swagger con autenticación JWT
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
     { 
         Title = "QOPIQ - Sistema de Monitoreo de Impresoras", 
-        Version = "v1"
+        Version = "v1.0",
+        Description = "API REST para monitoreo de impresoras con autenticación JWT",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "QOPIQ Support",
+            Email = "support@qopiq.com"
+        }
     });
 
-    // Agregar JWT a Swagger
+    // JWT Security para Swagger
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme",
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
@@ -112,71 +60,80 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// 🔹 SignalR
-builder.Services.AddSignalR()
-    .AddJsonProtocol(options =>
-    {
-        options.PayloadSerializerOptions.PropertyNamingPolicy = null;
-    });
-
-// Registrar IPrinterHub
-builder.Services.AddScoped<IPrinterHubContext, PrinterHubContext>();
-
-// Configurar CORS para SignalR
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("SignalRPolicy", builder =>
-    {
-        builder
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .SetIsOriginAllowed(host => true)
-            .AllowCredentials();
-    });
-});
+// 🔄 SignalR Hub Context
+// TODO: Implementar IPrinterHubContext correctamente
+// builder.Services.AddScoped<IPrinterHubContext, PrinterHubContext>();
 
 var app = builder.Build();
 
-// Configurar el pipeline de la aplicación
+// 🔧 Pipeline de middleware configurado para producción
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => 
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "QOPIQ API V1");
-        c.RoutePrefix = string.Empty; // Para servir Swagger en la raíz
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "QOPIQ API V1.0");
+        c.RoutePrefix = "swagger";
+        c.DocumentTitle = "QOPIQ API Documentation";
     });
 }
+else
+{
+    app.UseHsts(); // HTTPS Strict Transport Security
+}
 
-app.UseRouting();
-app.UseCors("AllowAll");
+// 🔒 Seguridad y headers
+app.UseHttpsRedirection();
+
+// ⚡ Rate Limiting personalizado
+app.UseMiddleware<RateLimitingMiddleware>();
+
+// 🌐 CORS
+app.UseCors("CorsPolicy");
+
+// 🔐 Autenticación y autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Middleware de manejo de errores personalizado
+// 🚨 Middleware de manejo de errores
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
-// Mapear controladores y hub SignalR
+// 🏥 Health Checks
+app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
+
+// 🎯 Endpoints
 app.MapControllers();
 app.MapHub<PrinterHub>("/hubs/printers");
 
-// Database initialization (commented out until DbContext is properly configured)
-// if (app.Environment.IsDevelopment())
-// {
-//     using var scope = app.Services.CreateScope();
-//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//     await context.Database.MigrateAsync();
-// }
+// 🗄️ Inicialización de base de datos
+if (app.Environment.IsDevelopment())
+{
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await context.Database.EnsureCreatedAsync(); // Crear base de datos si no existe
+        Log.Information("Base de datos inicializada correctamente");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Error al inicializar la base de datos: {Message}", ex.Message);
+    }
+}
 
-Log.Information("QOPIQ API iniciada correctamente");
+Log.Information("🚀 QOPIQ API iniciada correctamente en {Environment}", app.Environment.EnvironmentName);
 
 try
 {
-    app.Run();
+    await app.RunAsync();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Error al iniciar la aplicación");
+    Log.Fatal(ex, "💥 Error crítico al iniciar la aplicación");
     throw;
 }
 finally

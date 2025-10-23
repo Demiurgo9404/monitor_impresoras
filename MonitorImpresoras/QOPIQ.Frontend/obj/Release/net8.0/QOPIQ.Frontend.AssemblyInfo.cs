@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QOPIQ.Frontend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+582a4b1fcdca65b7c4bdcb77c9fb9d20b395faae")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+13ae77a8845144685c6a615d16e14b3be7dd603f")]
 [assembly: System.Reflection.AssemblyProductAttribute("QOPIQ.Frontend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QOPIQ.Frontend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
